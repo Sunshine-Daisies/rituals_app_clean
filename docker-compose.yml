@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # Flutter Web Development Server
+  web:
+    build: .
+    container_name: rituals_app_web
+    working_dir: /app
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+    ports:
+      - "8080:8080"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: flutter run -d web-server --web-port 8080 --web-hostname 0.0.0.0
+    
+  # Supabase Local Stack (optional - for local development)
+  supabase:
+    image: supabase/supabase-studio:latest
+    container_name: rituals_app_supabase
+    ports:
+      - "54323:3000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    profiles:
+      - local-supabase
+
+volumes:
+  flutter_pub_cache:
+
