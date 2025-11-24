@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/supabase_service.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -57,59 +57,59 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
     try {
       if (_isLogin) {
-        final response = await SupabaseService.instance.signIn(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+        await AuthService.login(
+          _emailController.text.trim(),
+          _passwordController.text,
         );
         
-        if (response.user != null) {
-          if (mounted) {
-            context.go('/home');
-          }
+        if (mounted) {
+          context.go('/home');
         }
       } else {
-        final response = await SupabaseService.instance.signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          displayName: _nameController.text.trim().isNotEmpty 
-              ? _nameController.text.trim() 
-              : null,
+        await AuthService.register(
+          _emailController.text.trim(),
+          _passwordController.text,
         );
         
-        if (response.user != null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Row(
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.white),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text('Registration successful! Check your email.'),
-                    ),
-                  ],
-                ),
-                backgroundColor: AppTheme.successColor,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                ),
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text('Kayıt başarılı! Lütfen e-postana gelen linke tıkla.'),
+                  ),
+                ],
               ),
-            );
-            setState(() {
-              _isLogin = true;
-            });
-          }
+              backgroundColor: AppTheme.successColor,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+              ),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+          
+          // Kayıt başarılı olunca giriş ekranına dön
+          setState(() {
+            _isLogin = true;
+            _errorMessage = '';
+            _passwordController.clear();
+          });
         }
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'routes/app_router.dart';
-import 'services/supabase_service.dart';
+import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -14,17 +14,10 @@ void main() async {
     print('Environment variables loaded successfully');
   } catch (e) {
     print('Failed to load .env file: $e');
-    // Uygulama çalışmaya devam etsin ama env değişkenleri olmayabilir
   }
   
-  // Initialize Supabase
-  try {
-    await SupabaseService.initialize();
-    print('Supabase initialized successfully');
-  } catch (e) {
-    print('Supabase initialization failed: $e');
-    // Uygulama çalışmaya devam etsin ama auth işlemleri çalışmayabilir
-  }
+  // Initialize Auth
+  await AuthService.init();
 
   runApp(const ProviderScope(child: RitualsApp()));
 }

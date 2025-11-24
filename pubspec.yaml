@@ -35,7 +35,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # State management & backend
-  supabase_flutter: ^2.5.6
   flutter_riverpod: ^2.5.1
   
   # Navigation

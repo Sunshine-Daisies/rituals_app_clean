@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/ritual.dart';
 import '../../services/rituals_service.dart';
-import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 
 class RitualsListScreen extends StatefulWidget {
@@ -22,12 +21,10 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
   }
 
   void _loadRituals() {
-    final userId = SupabaseService.instance.currentUser?.id;
-    if (userId != null) {
-      setState(() {
-        _ritualsFuture = RitualsService.getRituals(userId);
-      });
-    }
+    // Backend geçişi sonrası auth kontrolünü geçici olarak kaldırdık
+    setState(() {
+      _ritualsFuture = RitualsService.getRituals('temp_user_id');
+    });
   }
 
   Future<void> _deleteRitual(String ritualId) async {

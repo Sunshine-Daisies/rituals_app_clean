@@ -85,14 +85,13 @@ class LlmSecurityService {
 
   /// Audit log - İstekleri kaydet
   /// 
-  /// TODO: İleride Supabase'e log kaydetmek için genişletilebilir
+  /// TODO: İleride backend'e log kaydetmek için genişletilebilir
   static void logRequest(String userPrompt, String requestType) {
     // Şimdilik sadece debug print
     print('[LLM_AUDIT] Type: $requestType, Length: ${userPrompt.length}');
     
-    // TODO: Supabase'e log kaydet
-    // await supabase.from('llm_logs').insert({
-    //   'user_id': userId,
+    // TODO: Backend'e log kaydet
+    // await ApiService.post('/audit-logs', {
     //   'request_type': requestType,
     //   'prompt_length': userPrompt.length,
     //   'timestamp': DateTime.now().toIso8601String(),

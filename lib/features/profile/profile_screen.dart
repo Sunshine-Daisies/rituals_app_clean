@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/supabase_service.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String? _email;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final email = await AuthService.getUserEmail();
+    if (mounted) {
+      setState(() {
+        _email = email;
+      });
+    }
+  }
 
   Future<void> _logout(BuildContext context) async {
     try {
-      await SupabaseService.instance.signOut();
+      await AuthService.logout();
       if (context.mounted) {
         context.go('/auth');
       }
@@ -36,8 +58,6 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = SupabaseService.instance.currentUser;
-    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -128,7 +148,7 @@ class ProfileScreen extends StatelessWidget {
                             
                             // User Info
                             Text(
-                              user?.email?.split('@')[0] ?? 'User',
+                              _email?.split('@')[0] ?? 'User',
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textPrimary,
@@ -137,7 +157,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: AppTheme.spacingS),
                             Text(
-                              user?.email ?? 'email@example.com',
+                              _email ?? 'Loading...',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.textSecondary,
                               ),

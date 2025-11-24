@@ -11,28 +11,20 @@ import '../features/rituals/rituals_list_screen.dart';
 import '../features/checklist/checklist_screen.dart';
 import '../features/stats/stats_screen.dart';
 import '../pages/chat_page.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/auth', // Start with auth page
     redirect: (context, state) {
-      try {
-        final isAuthenticated = SupabaseService.instance.currentUser != null;
-        final isAuthRoute = state.matchedLocation == '/auth';
+      final isAuthenticated = ApiService.hasToken;
+      final isAuthRoute = state.matchedLocation == '/auth';
 
-        if (!isAuthenticated && !isAuthRoute) {
-          return '/auth';
-        }
-        if (isAuthenticated && isAuthRoute) {
-          return '/home';
-        }
-      } catch (e) {
-        // Supabase henüz başlatılmamışsa auth sayfasına yönlendir
-        print('Auth check failed: $e');
-        if (state.matchedLocation != '/auth') {
-          return '/auth';
-        }
+      if (!isAuthenticated && !isAuthRoute) {
+        return '/auth';
+      }
+      if (isAuthenticated && isAuthRoute) {
+        return '/home';
       }
       return null;
     },

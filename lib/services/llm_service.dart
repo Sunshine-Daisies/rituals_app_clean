@@ -163,9 +163,6 @@ class RitualIntent {
       if (reminderDays != null) 'reminder_days': reminderDays, // text[]
     };
   }
-
-  /// Örnek: Supabase insert kullanım notu
-  /// await supabase.from('rituals').insert(intent.toRitualRow(user.id));
 }
 
 String? _safeString(dynamic v) => (v == null) ? null : v.toString().trim().isEmpty ? null : v.toString().trim();

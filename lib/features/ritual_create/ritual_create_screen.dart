@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/rituals_service.dart';
-import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 
 class RitualCreateScreen extends StatefulWidget {
@@ -16,7 +15,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
   final List<TextEditingController> _stepControllers = [];
   
   TimeOfDay _selectedTime = const TimeOfDay(hour: 7, minute: 0);
-  String _repeatMode = 'Daily'; // Daily, Weekly
+  String _repeatMode = 'Weekly'; // Daily, Weekly, Monthly
   List<String> _selectedDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
   bool _isSaving = false;
 
@@ -148,16 +147,11 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
               })
           .toList();
 
-      // Prepare reminder days based on repeat mode
-      final reminderDays = _repeatMode == 'Daily' 
-          ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-          : _selectedDays;
-
       // Create ritual
       await RitualsService.createRitual(
         name: _nameController.text.trim(),
         reminderTime: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
-        reminderDays: reminderDays,
+        reminderDays: _selectedDays,
         steps: steps,
       );
 
@@ -374,7 +368,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                               borderRadius: BorderRadius.circular(AppTheme.radiusM),
                             ),
                             child: Row(
-                              children: ['Daily', 'Weekly'].map((mode) {
+                              children: ['Daily', 'Weekly', 'Monthly'].map((mode) {
                                 final isSelected = _repeatMode == mode;
                                 return Expanded(
                                   child: GestureDetector(
