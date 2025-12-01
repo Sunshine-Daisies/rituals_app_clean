@@ -1,10 +1,19 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/models/user_profile.dart';
 
 class GamificationService {
-  static const String _baseUrl = 'http://10.0.2.2:3000/api';
+  // Network IP for multi-device access
+  static const String _networkIp = '192.168.1.128';
+  
+  static String get _baseUrl {
+    if (kIsWeb) return 'http://localhost:3000/api';
+    if (Platform.isAndroid || Platform.isIOS) return 'http://$_networkIp:3000/api';
+    return 'http://localhost:3000/api';
+  }
   
   // Token'ı al
   Future<String?> _getToken() async {
