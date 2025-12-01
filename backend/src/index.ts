@@ -8,6 +8,7 @@ import llmUsageRoutes from './routes/llmUsageRoutes';
 import devicesRoutes from './routes/devicesRoutes';
 import gamificationRoutes from './routes/gamificationRoutes';
 import sharingRoutes from './routes/sharingRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 
 dotenv.config();
 
@@ -25,9 +26,10 @@ app.use('/api/llm-usage', llmUsageRoutes);
 app.use('/api/devices', devicesRoutes);
 app.use('/api', gamificationRoutes); // Gamification routes (/api/profile, /api/friends, etc.)
 app.use('/api/sharing', sharingRoutes); // Ritual sharing routes
+app.use('/api/notifications', notificationRoutes); // Push notification routes
 
 app.get('/', (req, res) => {
-  res.send('Rituals API Çalışıyor v1.2 - Gamification + Sharing 🎮🤝');
+  res.send('Rituals API Çalışıyor v1.3 - Gamification + Sharing + Notifications 🎮🤝🔔');
 });
 
 app.listen(port, () => {

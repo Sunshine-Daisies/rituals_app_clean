@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/sharing_service.dart';
 import '../../data/models/sharing_models.dart';
+import '../../theme/app_theme.dart';
 
 class JoinRitualScreen extends StatefulWidget {
   final String? initialCode;
@@ -67,18 +69,54 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rituale Katıl'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Icon
-            Container(
-              padding: const EdgeInsets.all(24),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppTheme.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom App Bar
+              Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingL),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                        boxShadow: AppTheme.cardShadow,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
+                        onPressed: () => context.go('/home'),
+                        tooltip: 'Geri',
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spacingM),
+                    Expanded(
+                      child: Text(
+                        'Rituale Katıl',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primaryContainer,
                 shape: BoxShape.circle,
@@ -228,7 +266,12 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
 
             // Info Section
             if (_joinResult == null) _buildInfoSection(),
-          ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -294,7 +337,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.go('/home'),
               child: const Text('Tamam'),
             ),
           ),

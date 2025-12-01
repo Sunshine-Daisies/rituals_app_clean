@@ -11,12 +11,14 @@ class BadgesScreen extends StatefulWidget {
   State<BadgesScreen> createState() => _BadgesScreenState();
 }
 
-class _BadgesScreenState extends State<BadgesScreen> {
+class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderStateMixin {
   final GamificationService _gamificationService = GamificationService();
   
   List<Badge> _allBadges = [];
+  List<BadgeProgress> _badgeProgress = [];
   bool _isLoading = true;
   String _selectedCategory = 'all';
+  late TabController _tabController;
 
   final List<Map<String, String>> _categories = [
     {'key': 'all', 'label': 'Tümü'},
@@ -29,18 +31,27 @@ class _BadgesScreenState extends State<BadgesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBadges();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadData();
   }
 
-  Future<void> _loadBadges() async {
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
     setState(() => _isLoading = true);
     
     try {
       final badges = await _gamificationService.getAllBadges();
+      final progressResult = await _gamificationService.getBadgeProgress();
       
       if (mounted) {
         setState(() {
           _allBadges = badges;
+          _badgeProgress = progressResult?.badges ?? [];
           _isLoading = false;
         });
       }
@@ -86,7 +97,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.pop(),
+                        onPressed: () => context.go('/home'),
                         tooltip: 'Geri',
                       ),
                     ),
@@ -127,95 +138,204 @@ class _BadgesScreenState extends State<BadgesScreen> {
                 ),
               ),
               
-              // Category Filters
-              SizedBox(
-                height: 40,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                  itemCount: _categories.length,
-                  itemBuilder: (context, index) {
-                    final category = _categories[index];
-                    final isSelected = _selectedCategory == category['key'];
-                    
-                    return Padding(
-                      padding: const EdgeInsets.only(right: AppTheme.spacingS),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedCategory = category['key']!),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected 
-                                ? AppTheme.primaryColor 
-                                : AppTheme.surfaceColor,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: AppTheme.cardShadow,
-                          ),
-                          child: Text(
-                            category['label']!,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : AppTheme.textSecondary,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+              // Tab Bar
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: AppTheme.textSecondary,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  tabs: const [
+                    Tab(text: '🏆 Tüm Rozetler'),
+                    Tab(text: '📈 İlerleme'),
+                  ],
                 ),
               ),
               
               const SizedBox(height: AppTheme.spacingM),
               
-              // Badges Grid
+              // Tab Bar View
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _filteredBadges.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.emoji_events_outlined,
-                                  size: 80,
-                                  color: AppTheme.textSecondary.withOpacity(0.5),
-                                ),
-                                const SizedBox(height: AppTheme.spacingM),
-                                Text(
-                                  'Bu kategoride rozet yok',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _loadBadges,
-                            child: GridView.builder(
-                              padding: const EdgeInsets.all(AppTheme.spacingL),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: AppTheme.spacingM,
-                                mainAxisSpacing: AppTheme.spacingM,
-                                childAspectRatio: 0.75,
-                              ),
-                              itemCount: _filteredBadges.length,
-                              itemBuilder: (context, index) {
-                                final badge = _filteredBadges[index];
-                                return _BadgeCard(
-                                  badge: badge,
-                                  onTap: () => _showBadgeDetail(badge),
-                                );
-                              },
-                            ),
-                          ),
+                    : TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildAllBadgesTab(),
+                          _buildProgressTab(),
+                        ],
+                      ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAllBadgesTab() {
+    return Column(
+      children: [
+        // Category Filters
+        SizedBox(
+          height: 40,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+            itemCount: _categories.length,
+            itemBuilder: (context, index) {
+              final category = _categories[index];
+              final isSelected = _selectedCategory == category['key'];
+              
+              return Padding(
+                padding: const EdgeInsets.only(right: AppTheme.spacingS),
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = category['key']!),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected 
+                          ? AppTheme.primaryColor 
+                          : AppTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: AppTheme.cardShadow,
+                    ),
+                    child: Text(
+                      category['label']!,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppTheme.textSecondary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        
+        const SizedBox(height: AppTheme.spacingM),
+        
+        // Badges Grid
+        Expanded(
+          child: _filteredBadges.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.emoji_events_outlined,
+                        size: 80,
+                        color: AppTheme.textSecondary.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: AppTheme.spacingM),
+                      Text(
+                        'Bu kategoride rozet yok',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(AppTheme.spacingL),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: AppTheme.spacingM,
+                      mainAxisSpacing: AppTheme.spacingM,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: _filteredBadges.length,
+                    itemBuilder: (context, index) {
+                      final badge = _filteredBadges[index];
+                      return _BadgeCard(
+                        badge: badge,
+                        onTap: () => _showBadgeDetail(badge),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressTab() {
+    final inProgressBadges = _badgeProgress
+        .where((b) => !b.earned)
+        .toList()
+      ..sort((a, b) => b.percentage.compareTo(a.percentage));
+    
+    final earnedBadges = _badgeProgress.where((b) => b.earned).toList();
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView(
+        padding: const EdgeInsets.all(AppTheme.spacingL),
+        children: [
+          if (inProgressBadges.isNotEmpty) ...[
+            Text(
+              'Yaklaşan Rozetler 🎯',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingM),
+            ...inProgressBadges.map((badge) => _BadgeProgressCard(badge: badge)),
+          ],
+          
+          if (earnedBadges.isNotEmpty) ...[
+            const SizedBox(height: AppTheme.spacingL),
+            Text(
+              'Kazanılan Rozetler ✅',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.successColor,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingM),
+            ...earnedBadges.map((badge) => _BadgeProgressCard(badge: badge, showEarned: true)),
+          ],
+          
+          if (inProgressBadges.isEmpty && earnedBadges.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingXL),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.trending_up,
+                      size: 80,
+                      color: AppTheme.textSecondary.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: AppTheme.spacingM),
+                    Text(
+                      'Henüz ilerleme yok',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -497,6 +617,127 @@ class _RewardChip extends StatelessWidget {
               color: iconColor,
               fontWeight: FontWeight.w600,
               fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BadgeProgressCard extends StatelessWidget {
+  final BadgeProgress badge;
+  final bool showEarned;
+
+  const _BadgeProgressCard({
+    required this.badge,
+    this.showEarned = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
+      padding: const EdgeInsets.all(AppTheme.spacingM),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusM),
+        boxShadow: AppTheme.cardShadow,
+        border: badge.earned
+            ? Border.all(color: AppTheme.successColor.withOpacity(0.5), width: 2)
+            : null,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: badge.earned 
+                  ? AppTheme.successColor.withOpacity(0.1) 
+                  : AppTheme.primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                badge.icon,
+                style: const TextStyle(fontSize: 28),
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: AppTheme.spacingM),
+          
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        badge.name,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    if (badge.earned)
+                      const Icon(Icons.check_circle, color: AppTheme.successColor, size: 18),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  badge.description,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                
+                if (!badge.earned) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: badge.percentage / 100,
+                            backgroundColor: Colors.grey[200],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              badge.percentage >= 80 
+                                  ? AppTheme.successColor 
+                                  : badge.percentage >= 50 
+                                      ? Colors.orange 
+                                      : AppTheme.primaryColor,
+                            ),
+                            minHeight: 8,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${badge.progress}/${badge.target}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else if (showEarned && badge.earnedAt != null) ...[
+                  Text(
+                    'Kazanıldı: ${badge.earnedAt!.day}.${badge.earnedAt!.month}.${badge.earnedAt!.year}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.successColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],

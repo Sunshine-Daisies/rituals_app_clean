@@ -147,6 +147,44 @@ class GamificationService {
     }
   }
 
+  /// Badge ilerleme durumunu getir
+  Future<BadgeProgressResult?> getBadgeProgress() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/badges/progress'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return BadgeProgressResult.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting badge progress: $e');
+      return null;
+    }
+  }
+
+  /// Badge kontrolü yap (yeni badge kazanma)
+  Future<BadgeCheckResult?> checkBadges() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/badges/check'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return BadgeCheckResult.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      print('Error checking badges: $e');
+      return null;
+    }
+  }
+
   // ============================================
   // FREEZE
   // ============================================
@@ -362,6 +400,110 @@ class NotificationResult {
           .map((n) => AppNotification.fromJson(n))
           .toList(),
       unreadCount: json['unreadCount'] ?? 0,
+    );
+  }
+}
+
+// ============================================
+// BADGE PROGRESS CLASSES
+// ============================================
+
+class BadgeProgressResult {
+  final List<BadgeProgress> badges;
+
+  BadgeProgressResult({required this.badges});
+
+  factory BadgeProgressResult.fromJson(Map<String, dynamic> json) {
+    final progressData = json['progress'] as Map<String, dynamic>?;
+    final badgesList = progressData?['badges'] as List<dynamic>? ?? [];
+    
+    return BadgeProgressResult(
+      badges: badgesList.map((b) => BadgeProgress.fromJson(b)).toList(),
+    );
+  }
+}
+
+class BadgeProgress {
+  final String badgeKey;
+  final String name;
+  final String description;
+  final String icon;
+  final bool earned;
+  final DateTime? earnedAt;
+  final int progress;
+  final int target;
+  final int percentage;
+
+  BadgeProgress({
+    required this.badgeKey,
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.earned,
+    this.earnedAt,
+    required this.progress,
+    required this.target,
+    required this.percentage,
+  });
+
+  factory BadgeProgress.fromJson(Map<String, dynamic> json) {
+    return BadgeProgress(
+      badgeKey: json['badge_key'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      icon: json['icon'] ?? '🏆',
+      earned: json['earned'] ?? false,
+      earnedAt: json['earned_at'] != null 
+          ? DateTime.parse(json['earned_at']) 
+          : null,
+      progress: json['progress'] ?? 0,
+      target: json['target'] ?? 1,
+      percentage: json['percentage'] ?? 0,
+    );
+  }
+}
+
+class BadgeCheckResult {
+  final bool success;
+  final List<NewBadge> newBadges;
+  final String message;
+
+  BadgeCheckResult({
+    required this.success,
+    required this.newBadges,
+    required this.message,
+  });
+
+  factory BadgeCheckResult.fromJson(Map<String, dynamic> json) {
+    return BadgeCheckResult(
+      success: json['success'] ?? false,
+      newBadges: (json['newBadges'] as List<dynamic>? ?? [])
+          .map((b) => NewBadge.fromJson(b))
+          .toList(),
+      message: json['message'] ?? '',
+    );
+  }
+}
+
+class NewBadge {
+  final String code;
+  final String name;
+  final int xp;
+  final int coins;
+
+  NewBadge({
+    required this.code,
+    required this.name,
+    required this.xp,
+    required this.coins,
+  });
+
+  factory NewBadge.fromJson(Map<String, dynamic> json) {
+    return NewBadge(
+      code: json['code'] ?? '',
+      name: json['name'] ?? '',
+      xp: json['xp'] ?? 0,
+      coins: json['coins'] ?? 0,
     );
   }
 }

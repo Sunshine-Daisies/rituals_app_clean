@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../services/sharing_service.dart';
 import '../../data/models/sharing_models.dart';
 
@@ -103,7 +102,13 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
   void _shareCode() {
     if (_inviteCode != null) {
       final shareText = '${widget.ritualTitle} ritualime katıl!\n\nDavet Kodu: $_inviteCode\n\nUygulamada "Rituale Katıl" seçeneğini kullanarak bu kodu gir.';
-      Share.share(shareText, subject: 'Rituals - Partner Daveti');
+      Clipboard.setData(ClipboardData(text: shareText));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Paylaşım metni kopyalandı!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 

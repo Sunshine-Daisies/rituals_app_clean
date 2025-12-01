@@ -152,7 +152,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.pop(),
+                        onPressed: () => context.go('/home'),
                         tooltip: 'Geri',
                       ),
                     ),

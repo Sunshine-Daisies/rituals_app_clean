@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import xpService from '../services/xpService';
+import badgeService from '../services/badgeService';
 
 // ============================================
 // PROFILE ENDPOINTS
@@ -249,70 +250,62 @@ export const getMyBadges = async (req: Request, res: Response) => {
   }
 };
 
+// POST /api/badges/check - Badge kontrolü yap ve yenilerini kazan
+export const checkBadges = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    
+    const result = await badgeService.checkAndAwardBadges(userId);
+    
+    res.json({
+      success: true,
+      newBadges: result.newBadges,
+      message: result.newBadges.length > 0 
+        ? `${result.newBadges.length} yeni rozet kazandın!` 
+        : 'Yeni rozet kazanılmadı',
+    });
+  } catch (error) {
+    console.error('Error checking badges:', error);
+    res.status(500).json({ error: 'Badge kontrolü yapılırken hata oluştu' });
+  }
+};
+
+// GET /api/badges/progress - Badge ilerleme durumunu getir
+export const getBadgeProgress = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    
+    const progress = await badgeService.getUserBadgeProgress(userId);
+    
+    res.json({
+      success: true,
+      progress,
+    });
+  } catch (error) {
+    console.error('Error getting badge progress:', error);
+    res.status(500).json({ error: 'Badge ilerlemesi alınırken hata oluştu' });
+  }
+};
+
 // ============================================
 // FREEZE ENDPOINTS
 // ============================================
 
 // POST /api/freeze/use - Freeze kullan
 export const useFreeze = async (req: Request, res: Response) => {
-  const client = await pool.connect();
-  
   try {
     const userId = (req as any).user.id;
-    const { ritualPartnerId } = req.body;
     
-    await client.query('BEGIN');
+    const result = await badgeService.useFreeze(userId);
     
-    // Freeze hakkı kontrolü
-    const profileResult = await client.query(
-      'SELECT freeze_count FROM user_profiles WHERE user_id = $1',
-      [userId]
-    );
-    
-    if (profileResult.rows.length === 0 || profileResult.rows[0].freeze_count <= 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Freeze hakkınız kalmadı' });
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
     }
     
-    // Partner streak bilgisini al
-    let streakSaved = 0;
-    if (ritualPartnerId) {
-      const partnerResult = await client.query(
-        'SELECT current_streak FROM ritual_partners WHERE id = $1 AND user_id = $2',
-        [ritualPartnerId, userId]
-      );
-      streakSaved = partnerResult.rows[0]?.current_streak || 0;
-    }
-    
-    // Freeze kullan
-    await client.query(
-      `UPDATE user_profiles 
-       SET freeze_count = freeze_count - 1, 
-           total_freezes_used = total_freezes_used + 1,
-           updated_at = CURRENT_TIMESTAMP 
-       WHERE user_id = $1`,
-      [userId]
-    );
-    
-    // Freeze log'u ekle
-    await client.query(
-      'INSERT INTO freeze_logs (user_id, ritual_partner_id, streak_saved) VALUES ($1, $2, $3)',
-      [userId, ritualPartnerId || null, streakSaved]
-    );
-    
-    await client.query('COMMIT');
-    
-    res.json({ 
-      success: true, 
-      message: 'Freeze kullanıldı, streak korundu!',
-      streakSaved,
-    });
+    res.json(result);
   } catch (error) {
-    await client.query('ROLLBACK');
     console.error('Error using freeze:', error);
     res.status(500).json({ error: 'Freeze kullanılırken hata oluştu' });
-  } finally {
-    client.release();
   }
 };
 

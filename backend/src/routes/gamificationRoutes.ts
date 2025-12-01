@@ -42,6 +42,8 @@ router.get('/users/search', gamificationController.searchUsers);
 // BADGE ROUTES (Kullanıcıya özel)
 // ============================================
 router.get('/badges/my', gamificationController.getMyBadges);
+router.get('/badges/progress', gamificationController.getBadgeProgress);
+router.post('/badges/check', gamificationController.checkBadges);
 
 // ============================================
 // FREEZE ROUTES

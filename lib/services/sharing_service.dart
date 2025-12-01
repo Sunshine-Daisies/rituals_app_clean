@@ -1,22 +1,8 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../data/models/sharing_models.dart';
+import 'api_service.dart';
 
 /// Service for ritual sharing and partner management
 class SharingService {
-  final String baseUrl;
-  String? _token;
-
-  SharingService({this.baseUrl = 'http://10.0.2.2:3000/api'});
-
-  void setToken(String token) {
-    _token = token;
-  }
-
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      };
 
   // =====================
   // Ritual Sharing
@@ -24,71 +10,41 @@ class SharingService {
 
   /// Share a ritual and get invite code
   Future<ShareResult> shareRitual(String ritualId) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/sharing/ritual/$ritualId/share'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return ShareResult.fromJson(data);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Ritual paylaşılamadı');
-    }
+    final response = await ApiService.post('/sharing/ritual/$ritualId/share', {});
+    return ShareResult.fromJson(response);
   }
 
   /// Update ritual visibility
   Future<Map<String, dynamic>> updateRitualVisibility(
       String ritualId, RitualVisibility visibility) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/sharing/ritual/$ritualId/visibility'),
-      headers: _headers,
-      body: jsonEncode({'visibility': visibility.value}),
+    final response = await ApiService.put(
+      '/sharing/ritual/$ritualId/visibility',
+      {'visibility': visibility.value},
     );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Görünürlük güncellenemedi');
-    }
+    return response as Map<String, dynamic>;
   }
 
   /// Get partner info for a ritual
   Future<RitualPartner?> getPartnerInfo(String ritualId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/sharing/ritual/$ritualId/partner'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['partner'] != null) {
-        return RitualPartner.fromJson(data['partner']);
+    try {
+      final response = await ApiService.get('/sharing/ritual/$ritualId/partner');
+      if (response != null && response['partner'] != null) {
+        return RitualPartner.fromJson(response['partner']);
       }
       return null;
-    } else if (response.statusCode == 404) {
-      return null;
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Partner bilgisi alınamadı');
+    } catch (e) {
+      // 404 durumunda null dön
+      if (e.toString().contains('404')) {
+        return null;
+      }
+      rethrow;
     }
   }
 
   /// Leave a partnership
   Future<Map<String, dynamic>> leavePartnership(String ritualId) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/sharing/ritual/$ritualId/leave'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Partnerlik bırakılamadı');
-    }
+    final response = await ApiService.delete('/sharing/ritual/$ritualId/leave');
+    return response as Map<String, dynamic>;
   }
 
   // =====================
@@ -97,48 +53,20 @@ class SharingService {
 
   /// Join a ritual using invite code
   Future<JoinResult> joinRitual(String inviteCode) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/sharing/join/$inviteCode'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return JoinResult.fromJson(data);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Rituale katılınamadı');
-    }
+    final response = await ApiService.post('/sharing/join/$inviteCode', {});
+    return JoinResult.fromJson(response);
   }
 
   /// Accept a partner request
   Future<Map<String, dynamic>> acceptPartner(String partnerId) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/sharing/partner/$partnerId/accept'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Partner kabul edilemedi');
-    }
+    final response = await ApiService.put('/sharing/partner/$partnerId/accept', {});
+    return response as Map<String, dynamic>;
   }
 
   /// Reject a partner request
   Future<Map<String, dynamic>> rejectPartner(String partnerId) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/sharing/partner/$partnerId/reject'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Partner reddedilemedi');
-    }
+    final response = await ApiService.put('/sharing/partner/$partnerId/reject', {});
+    return response as Map<String, dynamic>;
   }
 
   // =====================
@@ -147,19 +75,9 @@ class SharingService {
 
   /// Get all rituals where user is a partner (not owner)
   Future<List<SharedRitual>> getMyPartnerRituals() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/sharing/my-partner-rituals'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final List<dynamic> ritualsList = data['rituals'] ?? [];
-      return ritualsList.map((r) => SharedRitual.fromJson(r)).toList();
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Partner ritualleri alınamadı');
-    }
+    final response = await ApiService.get('/sharing/my-partner-rituals');
+    final List<dynamic> ritualsList = response['rituals'] ?? [];
+    return ritualsList.map((r) => SharedRitual.fromJson(r)).toList();
   }
 
   // =====================

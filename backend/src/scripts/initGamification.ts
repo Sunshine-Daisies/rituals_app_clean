@@ -109,6 +109,7 @@ async function initGamification() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS badges (
         id SERIAL PRIMARY KEY,
+        badge_key VARCHAR(50) UNIQUE,
         name VARCHAR(100) NOT NULL,
         description TEXT,
         icon VARCHAR(50),
@@ -119,6 +120,11 @@ async function initGamification() {
         requirement_value INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+    
+    // Add badge_key column if not exists (for migrations)
+    await client.query(`
+      ALTER TABLE badges ADD COLUMN IF NOT EXISTS badge_key VARCHAR(50) UNIQUE;
     `);
     console.log('✅ badges table created\n');
 
@@ -220,31 +226,50 @@ async function initGamification() {
     const badgeCheck = await client.query('SELECT COUNT(*) FROM badges');
     if (parseInt(badgeCheck.rows[0].count) === 0) {
       await client.query(`
-        INSERT INTO badges (name, description, icon, category, xp_reward, coin_reward, requirement_type, requirement_value) VALUES
+        INSERT INTO badges (badge_key, name, description, icon, category, xp_reward, coin_reward, requirement_type, requirement_value) VALUES
         -- Streak Badges
-        ('Kıvılcım', '3 günlük streak''e ulaştın!', '🔥', 'streak', 15, 5, 'streak_days', 3),
-        ('Alev', '7 günlük streak''e ulaştın!', '🔥🔥', 'streak', 30, 10, 'streak_days', 7),
-        ('Ateş Topu', '14 günlük streak''e ulaştın!', '🔥🔥🔥', 'streak', 50, 20, 'streak_days', 14),
-        ('Meteor', '30 günlük streak''e ulaştın!', '☄️', 'streak', 100, 50, 'streak_days', 30),
-        ('Efsane', '100 günlük streak''e ulaştın!', '💎', 'streak', 500, 200, 'streak_days', 100),
+        ('streak_starter', 'Kıvılcım', '3 günlük streak''e ulaştın!', '🔥', 'streak', 15, 5, 'streak_days', 3),
+        ('streak_week', 'Alev', '7 günlük streak''e ulaştın!', '🔥🔥', 'streak', 30, 10, 'streak_days', 7),
+        ('streak_fortnight', 'Ateş Topu', '14 günlük streak''e ulaştın!', '🔥🔥🔥', 'streak', 50, 20, 'streak_days', 14),
+        ('streak_month', 'Meteor', '30 günlük streak''e ulaştın!', '☄️', 'streak', 100, 50, 'streak_days', 30),
+        ('streak_legend', 'Efsane', '100 günlük streak''e ulaştın!', '💎', 'streak', 500, 200, 'streak_days', 100),
         
         -- Social Badges
-        ('İlk Arkadaş', 'İlk arkadaşını edindin!', '🤝', 'social', 10, 5, 'friends_count', 1),
-        ('Sosyal Kelebek', '10 arkadaşa ulaştın!', '👥', 'social', 50, 25, 'friends_count', 10),
-        ('Popüler', '25 arkadaşa ulaştın!', '🌟', 'social', 100, 50, 'friends_count', 25),
-        ('Takım Oyuncusu', 'İlk partner ritualine katıldın!', '🎯', 'social', 20, 10, 'partner_rituals', 1),
-        ('Mentor', '5 kişi ritualine katıldı!', '🏅', 'social', 100, 50, 'ritual_partners', 5),
+        ('first_friend', 'İlk Arkadaş', 'İlk arkadaşını edindin!', '🤝', 'social', 10, 5, 'friends_count', 1),
+        ('social_butterfly', 'Sosyal Kelebek', '10 arkadaşa ulaştın!', '👥', 'social', 50, 25, 'friends_count', 10),
+        ('popular', 'Popüler', '25 arkadaşa ulaştın!', '🌟', 'social', 100, 50, 'friends_count', 25),
+        ('team_player', 'Takım Oyuncusu', 'İlk partner ritualine katıldın!', '🎯', 'social', 20, 10, 'partner_rituals', 1),
+        ('mentor', 'Mentor', '5 kişi ritualine katıldı!', '🏅', 'social', 100, 50, 'ritual_partners', 5),
         
         -- Milestone Badges
-        ('Başlangıç', 'İlk ritualini tamamladın!', '🎉', 'milestone', 15, 5, 'rituals_completed', 1),
-        ('Düzenli', '30 ritual tamamladın!', '📅', 'milestone', 50, 25, 'rituals_completed', 30),
-        ('Koleksiyoncu', '5 ritual oluşturdun!', '📚', 'milestone', 30, 15, 'rituals_created', 5),
-        ('Sabahçı', '10 sabah rituali tamamladın!', '🌅', 'milestone', 40, 20, 'morning_rituals', 10),
-        ('Gececi', '10 akşam rituali tamamladın!', '🌙', 'milestone', 40, 20, 'evening_rituals', 10);
+        ('first_ritual', 'Başlangıç', 'İlk ritualini tamamladın!', '🎉', 'milestone', 15, 5, 'rituals_completed', 1),
+        ('ritual_30', 'Düzenli', '30 ritual tamamladın!', '📅', 'milestone', 50, 25, 'rituals_completed', 30),
+        ('collector', 'Koleksiyoncu', '5 ritual oluşturdun!', '📚', 'milestone', 30, 15, 'rituals_created', 5),
+        ('early_bird', 'Sabahçı', '10 sabah rituali tamamladın!', '🌅', 'milestone', 40, 20, 'morning_rituals', 10),
+        ('night_owl', 'Gececi', '10 akşam rituali tamamladın!', '🌙', 'milestone', 40, 20, 'evening_rituals', 10);
       `);
       console.log('✅ Badges seeded (15 badges)\n');
     } else {
-      console.log('⏭️ Badges already exist, skipping seed\n');
+      // Update existing badges with badge_key if missing
+      console.log('⏭️ Badges already exist, updating badge_keys...');
+      await client.query(`
+        UPDATE badges SET badge_key = 'streak_starter' WHERE name = 'Kıvılcım' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'streak_week' WHERE name = 'Alev' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'streak_fortnight' WHERE name = 'Ateş Topu' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'streak_month' WHERE name = 'Meteor' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'streak_legend' WHERE name = 'Efsane' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'first_friend' WHERE name = 'İlk Arkadaş' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'social_butterfly' WHERE name = 'Sosyal Kelebek' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'popular' WHERE name = 'Popüler' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'team_player' WHERE name = 'Takım Oyuncusu' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'mentor' WHERE name = 'Mentor' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'first_ritual' WHERE name = 'Başlangıç' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'ritual_30' WHERE name = 'Düzenli' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'collector' WHERE name = 'Koleksiyoncu' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'early_bird' WHERE name = 'Sabahçı' AND badge_key IS NULL;
+        UPDATE badges SET badge_key = 'night_owl' WHERE name = 'Gececi' AND badge_key IS NULL;
+      `);
+      console.log('✅ Badge keys updated\n');
     }
 
     // ============================================
@@ -262,6 +287,40 @@ async function initGamification() {
       ON CONFLICT (user_id) DO NOTHING;
     `);
     console.log('✅ User profiles created for existing users\n');
+
+    // ============================================
+    // 14. ADD MISSING COLUMNS
+    // ============================================
+    console.log('🔧 Adding missing columns...');
+    
+    // last_freeze_used column
+    await client.query(`
+      ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_freeze_used TIMESTAMP;
+    `);
+    
+    // current_streak to user_profiles
+    await client.query(`
+      ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS current_streak INTEGER DEFAULT 0;
+    `);
+    
+    console.log('✅ Missing columns added\n');
+
+    // ============================================
+    // 15. FREEZE HISTORY TABLE
+    // ============================================
+    console.log('❄️ Creating freeze_history table...');
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS freeze_history (
+        id SERIAL PRIMARY KEY,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        streak_preserved INTEGER DEFAULT 0,
+        used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_freeze_history_user ON freeze_history(user_id);
+    `);
+    console.log('✅ freeze_history table created\n');
 
     console.log('═══════════════════════════════════════════');
     console.log('🎮 Gamification initialization completed!');

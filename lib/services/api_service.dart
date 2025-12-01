@@ -16,13 +16,17 @@ class ApiService {
     _token = null;
   }
 
-  static Map<String, String> get _headers {
+  static Map<String, String> _getHeaders({String? customToken}) {
     final headers = {'Content-Type': 'application/json'};
-    if (_token != null) {
+    if (customToken != null) {
+      headers['Authorization'] = 'Bearer $customToken';
+    } else if (_token != null) {
       headers['Authorization'] = 'Bearer $_token';
     }
     return headers;
   }
+
+  static Map<String, String> get _headers => _getHeaders();
 
   static String get baseUrl {
     if (kIsWeb) return 'http://localhost:3000/api';
@@ -30,12 +34,12 @@ class ApiService {
     return 'http://localhost:3000/api';
   }
 
-  static Future<dynamic> get(String endpoint) async {
+  static Future<dynamic> get(String endpoint, {String? authToken}) async {
     try {
       print('GET Request to: $baseUrl$endpoint');
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _headers,
+        headers: _getHeaders(customToken: authToken),
       ).timeout(const Duration(seconds: 10));
       print('Response Status: ${response.statusCode}');
       return _handleResponse(response);
@@ -45,12 +49,12 @@ class ApiService {
     }
   }
 
-  static Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
+  static Future<dynamic> post(String endpoint, Map<String, dynamic> data, {String? authToken}) async {
     try {
       print('POST Request to: $baseUrl$endpoint');
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _headers,
+        headers: _getHeaders(customToken: authToken),
         body: jsonEncode(data),
       ).timeout(const Duration(seconds: 10));
       print('Response Status: ${response.statusCode}');
@@ -61,12 +65,12 @@ class ApiService {
     }
   }
 
-  static Future<dynamic> put(String endpoint, Map<String, dynamic> data) async {
+  static Future<dynamic> put(String endpoint, Map<String, dynamic> data, {String? authToken}) async {
     try {
       print('PUT Request to: $baseUrl$endpoint');
       final response = await http.put(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _headers,
+        headers: _getHeaders(customToken: authToken),
         body: jsonEncode(data),
       ).timeout(const Duration(seconds: 10));
       print('Response Status: ${response.statusCode}');
@@ -77,13 +81,17 @@ class ApiService {
     }
   }
 
-  static Future<dynamic> delete(String endpoint) async {
+  static Future<dynamic> delete(String endpoint, {Map<String, dynamic>? body, String? authToken}) async {
     try {
       print('DELETE Request to: $baseUrl$endpoint');
-      final response = await http.delete(
-        Uri.parse('$baseUrl$endpoint'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 10));
+      final request = http.Request('DELETE', Uri.parse('$baseUrl$endpoint'));
+      request.headers.addAll(_getHeaders(customToken: authToken));
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
+      
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 10));
+      final response = await http.Response.fromStream(streamedResponse);
       print('Response Status: ${response.statusCode}');
       return _handleResponse(response);
     } catch (e) {

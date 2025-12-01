@@ -377,9 +377,7 @@ class PartnerRequestCard extends StatelessWidget {
 
 /// Widget showing partner rituals list
 class PartnerRitualsList extends StatefulWidget {
-  final String? token;
-
-  const PartnerRitualsList({super.key, this.token});
+  const PartnerRitualsList({super.key});
 
   @override
   State<PartnerRitualsList> createState() => _PartnerRitualsListState();
@@ -394,9 +392,6 @@ class _PartnerRitualsListState extends State<PartnerRitualsList> {
   @override
   void initState() {
     super.initState();
-    if (widget.token != null) {
-      _sharingService.setToken(widget.token!);
-    }
     _loadRituals();
   }
 

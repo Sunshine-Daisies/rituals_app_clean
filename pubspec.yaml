@@ -40,8 +40,12 @@ dependencies:
   # Navigation
   go_router: ^14.2.3
   
-  # Notifications - temporarily removed due to build issues
-  # flutter_local_notifications: ^17.2.2
+  # Firebase
+  firebase_core: ^2.27.0
+  firebase_messaging: ^14.7.15
+  
+  # Notifications
+  flutter_local_notifications: ^17.2.2
   
   # Charts & UI
   fl_chart: ^0.68.0
