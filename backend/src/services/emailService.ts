@@ -11,10 +11,9 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  // Link, kullanıcının mailine gidecek.
-  // Bilgisayardan tıklayacaksan 'localhost' kullanmalısın.
-  // Emülatör içinden tıklayacaksan '10.0.2.2' olabilir ama genelde maili bilgisayarda açarsın.
-  const verificationLink = `http://localhost:3000/api/auth/verify?token=${token}`;
+  // Network IP - aynı ağdaki tüm cihazlardan erişilebilir
+  const BACKEND_URL = process.env.BACKEND_URL || 'http://192.168.1.128:3000';
+  const verificationLink = `${BACKEND_URL}/api/auth/verify?token=${token}`;
 
   const mailOptions = {
     from: '"Rituals App" <no-reply@rituals.com>',
