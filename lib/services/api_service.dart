@@ -28,9 +28,13 @@ class ApiService {
 
   static Map<String, String> get _headers => _getHeaders();
 
+  // Network IP for multi-device access on same network
+  static const String _networkIp = '192.168.1.128';
+  
   static String get baseUrl {
     if (kIsWeb) return 'http://localhost:3000/api';
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000/api';
+    // Use network IP for all mobile devices (Android/iOS)
+    if (Platform.isAndroid || Platform.isIOS) return 'http://$_networkIp:3000/api';
     return 'http://localhost:3000/api';
   }
 
