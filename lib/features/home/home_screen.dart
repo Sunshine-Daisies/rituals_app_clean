@@ -77,6 +77,14 @@ class HomeScreen extends StatelessWidget {
                         color: Colors.teal,
                         onTap: () => context.go('/ritual/create'),
                       ),
+                      const SizedBox(height: 16),
+                      _VerticalActionCard(
+                        icon: Icons.people_alt_outlined,
+                        title: 'Join Ritual',
+                        subtitle: 'Partner up with friends',
+                        color: Colors.orange,
+                        onTap: () => context.go('/join-ritual'),
+                      ),
                     ],
                   ),
                 ),
@@ -109,6 +117,12 @@ class HomeScreen extends StatelessWidget {
                   label: 'Home',
                   isActive: true,
                   onTap: () {},
+                ),
+                _BottomNavItem(
+                  icon: Icons.people,
+                  label: 'Friends',
+                  isActive: false,
+                  onTap: () => context.go('/friends'),
                 ),
                 _BottomNavItem(
                   icon: Icons.bar_chart,

@@ -5,7 +5,15 @@ import * as friendsController from '../controllers/friendsController';
 
 const router = express.Router();
 
-// Tüm route'lar authentication gerektirir
+// ============================================
+// PUBLIC ROUTES (Token gerektirmez)
+// ============================================
+router.get('/badges', gamificationController.getAllBadges);
+router.get('/leaderboard', gamificationController.getLeaderboard);
+
+// ============================================
+// PROTECTED ROUTES (Token gerektirir)
+// ============================================
 router.use(protect);
 
 // ============================================
@@ -31,14 +39,8 @@ router.delete('/friends/:id', friendsController.removeFriend);
 router.get('/users/search', gamificationController.searchUsers);
 
 // ============================================
-// LEADERBOARD ROUTES
+// BADGE ROUTES (Kullanıcıya özel)
 // ============================================
-router.get('/leaderboard', gamificationController.getLeaderboard);
-
-// ============================================
-// BADGE ROUTES
-// ============================================
-router.get('/badges', gamificationController.getAllBadges);
 router.get('/badges/my', gamificationController.getMyBadges);
 
 // ============================================

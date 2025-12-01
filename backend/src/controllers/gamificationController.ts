@@ -110,17 +110,17 @@ export const updateUsername = async (req: Request, res: Response) => {
 // XP & LEADERBOARD ENDPOINTS
 // ============================================
 
-// GET /api/leaderboard - Global sıralama
+// GET /api/leaderboard - Global sıralama (PUBLIC - token opsiyonel)
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
     const { type = 'global', limit = 100 } = req.query;
-    const userId = (req as any).user.id;
+    const userId = (req as any).user?.id;
     
     let query = '';
     let params: any[] = [];
     
-    if (type === 'friends') {
-      // Arkadaşlar arası sıralama
+    if (type === 'friends' && userId) {
+      // Arkadaşlar arası sıralama (sadece giriş yapmış kullanıcılar için)
       query = `
         SELECT up.username, up.xp, up.level, up.longest_streak,
                RANK() OVER (ORDER BY up.xp DESC) as rank
@@ -169,18 +169,22 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     
     const result = await pool.query(query, params);
     
-    // Kullanıcının kendi sırasını da ekle
-    const myRankResult = await pool.query(
-      `SELECT rank FROM (
-        SELECT user_id, RANK() OVER (ORDER BY xp DESC) as rank
-        FROM user_profiles
-      ) ranked WHERE user_id = $1`,
-      [userId]
-    );
+    // Kullanıcının kendi sırasını da ekle (sadece giriş yapmışsa)
+    let myRank = null;
+    if (userId) {
+      const myRankResult = await pool.query(
+        `SELECT rank FROM (
+          SELECT user_id, RANK() OVER (ORDER BY xp DESC) as rank
+          FROM user_profiles
+        ) ranked WHERE user_id = $1`,
+        [userId]
+      );
+      myRank = myRankResult.rows[0]?.rank || null;
+    }
     
     res.json({
       leaderboard: result.rows,
-      myRank: myRankResult.rows[0]?.rank || null,
+      myRank: myRank,
     });
   } catch (error) {
     console.error('Error getting leaderboard:', error);
@@ -192,21 +196,33 @@ export const getLeaderboard = async (req: Request, res: Response) => {
 // BADGE ENDPOINTS
 // ============================================
 
-// GET /api/badges - Tüm badge'leri getir
+// GET /api/badges - Tüm badge'leri getir (PUBLIC - token opsiyonel)
 export const getAllBadges = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user?.id;
     
-    const result = await pool.query(`
-      SELECT b.*, 
-             CASE WHEN ub.id IS NOT NULL THEN true ELSE false END as earned,
-             ub.earned_at
-      FROM badges b
-      LEFT JOIN user_badges ub ON ub.badge_id = b.id AND ub.user_id = $1
-      ORDER BY b.category, b.requirement_value
-    `, [userId]);
-    
-    res.json(result.rows);
+    // Eğer kullanıcı giriş yapmışsa, earned durumunu da getir
+    if (userId) {
+      const result = await pool.query(`
+        SELECT b.*, 
+               CASE WHEN ub.id IS NOT NULL THEN true ELSE false END as earned,
+               ub.earned_at
+        FROM badges b
+        LEFT JOIN user_badges ub ON ub.badge_id = b.id AND ub.user_id = $1
+        ORDER BY b.category, b.requirement_value
+      `, [userId]);
+      
+      res.json(result.rows);
+    } else {
+      // Giriş yapmamış kullanıcı için sadece badge listesi
+      const result = await pool.query(`
+        SELECT *, false as earned, null as earned_at
+        FROM badges
+        ORDER BY category, requirement_value
+      `);
+      
+      res.json(result.rows);
+    }
   } catch (error) {
     console.error('Error getting badges:', error);
     res.status(500).json({ error: 'Rozetler alınırken hata oluştu' });

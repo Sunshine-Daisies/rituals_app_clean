@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/ritual.dart';
+import '../../data/models/sharing_models.dart';
 import '../../services/rituals_service.dart';
+import '../../services/sharing_service.dart';
 import '../../theme/app_theme.dart';
+import '../sharing/share_ritual_dialog.dart';
+import '../sharing/partner_widgets.dart';
 
 class RitualDetailScreen extends StatefulWidget {
   final String ritualId;
@@ -23,6 +27,12 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
   late List<String> _selectedDays;
   late List<String> _steps;
   bool _isLoading = false;
+  
+  // Partner & Sharing
+  final _sharingService = SharingService();
+  RitualPartner? _partner;
+  bool _isLoadingPartner = false;
+  String _visibility = 'private';
 
   @override
   void initState() {
@@ -32,6 +42,51 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
     _selectedDays = [];
     _steps = [];
     _ritualFuture = RitualsService.getRitualById(widget.ritualId);
+    _loadPartnerInfo();
+  }
+
+  Future<void> _loadPartnerInfo() async {
+    setState(() => _isLoadingPartner = true);
+    try {
+      final partner = await _sharingService.getPartnerInfo(widget.ritualId);
+      if (mounted) {
+        setState(() {
+          _partner = partner;
+          _isLoadingPartner = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingPartner = false);
+      }
+    }
+  }
+
+  Future<void> _leavePartnership() async {
+    try {
+      await _sharingService.leavePartnership(widget.ritualId);
+      if (mounted) {
+        setState(() => _partner = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Partnerlik sonlandırıldı')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e')),
+        );
+      }
+    }
+  }
+
+  void _showShareDialog() {
+    showShareRitualDialog(
+      context,
+      ritualId: widget.ritualId,
+      ritualTitle: _nameController.text,
+      currentVisibility: RitualVisibility.fromString(_visibility),
+    ).then((_) => _loadPartnerInfo());
   }
 
   @override
@@ -327,6 +382,20 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                         ],
                       ),
                     ),
+                    // Share Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                        boxShadow: AppTheme.cardShadow,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.share),
+                        onPressed: _showShareDialog,
+                        color: AppTheme.primaryColor,
+                        tooltip: 'Partner Paylaş',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -404,6 +473,31 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          // Partner Info Card (if has partner)
+                          if (_partner != null) ...[
+                            PartnerInfoCard(
+                              partner: _partner!,
+                              onLeavePartner: _leavePartnership,
+                            ),
+                            const SizedBox(height: AppTheme.spacingM),
+                          ] else if (_isLoadingPartner) ...[
+                            Container(
+                              padding: const EdgeInsets.all(AppTheme.spacingL),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceColor,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                              ),
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.spacingM),
+                          ],
+                          
                           // Ritual Name Card
                           Container(
                             padding: const EdgeInsets.all(AppTheme.spacingL),

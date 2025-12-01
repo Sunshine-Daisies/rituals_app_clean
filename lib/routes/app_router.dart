@@ -10,6 +10,11 @@ import '../features/ritual_create/ritual_create_screen.dart';
 import '../features/rituals/rituals_list_screen.dart';
 import '../features/checklist/checklist_screen.dart';
 import '../features/stats/stats_screen.dart';
+import '../features/friends/friends_screen.dart';
+import '../features/leaderboard/leaderboard_screen.dart';
+import '../features/badges/badges_screen.dart';
+import '../features/notifications/notifications_screen.dart';
+import '../features/sharing/join_ritual_screen.dart';
 import '../pages/chat_page.dart';
 import '../services/api_service.dart';
 
@@ -72,6 +77,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/stats',
         builder: (context, state) => const StatsScreen(),
+      ),
+      GoRoute(
+        path: '/friends',
+        builder: (context, state) => const FriendsScreen(),
+      ),
+      GoRoute(
+        path: '/leaderboard',
+        builder: (context, state) => const LeaderboardScreen(),
+      ),
+      GoRoute(
+        path: '/badges',
+        builder: (context, state) => const BadgesScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/join-ritual',
+        builder: (context, state) {
+          final code = state.uri.queryParameters['code'];
+          return JoinRitualScreen(initialCode: code);
+        },
       ),
     ],
   );
