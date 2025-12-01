@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import ritualLogsRoutes from './routes/ritualLogsRoutes';
 import llmUsageRoutes from './routes/llmUsageRoutes';
 import devicesRoutes from './routes/devicesRoutes';
+import gamificationRoutes from './routes/gamificationRoutes';
 
 dotenv.config();
 
@@ -21,9 +22,10 @@ app.use('/api/rituals', ritualsRoutes);
 app.use('/api/ritual-logs', ritualLogsRoutes);
 app.use('/api/llm-usage', llmUsageRoutes);
 app.use('/api/devices', devicesRoutes);
+app.use('/api', gamificationRoutes); // Gamification routes (/api/profile, /api/friends, etc.)
 
 app.get('/', (req, res) => {
-  res.send('Rituals API Çalışıyor v1.0');
+  res.send('Rituals API Çalışıyor v1.1 - Gamification Enabled 🎮');
 });
 
 app.listen(port, () => {

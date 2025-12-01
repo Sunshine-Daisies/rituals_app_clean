@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
 
 // Gmail ayarları
-// TODO: Buradaki bilgileri kendi Gmail bilgilerinle güncelle
+// process.env.EMAIL_USER ve process.env.EMAIL_PASS, docker-compose.yml veya .env dosyasından gelir.
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'ritualsapp01@gmail.com', // <-- BURAYI DEĞİŞTİR
-    pass: 'xyle cmgd mnnr pxrf'     // <-- BURAYI DEĞİŞTİR (Normal şifre değil, App Password)
+    user: process.env.EMAIL_USER || 'ritualsapp01@gmail.com', 
+    pass: process.env.EMAIL_PASS || 'xyle cmgd mnnr pxrf'
   }
 });
 

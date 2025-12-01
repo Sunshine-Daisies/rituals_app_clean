@@ -4,6 +4,14 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import pool from '../config/db';
 import { sendVerificationEmail } from '../services/emailService';
+import xpService from '../services/xpService';
+
+// Username oluştur (email'den)
+function generateUsername(email: string): string {
+  const base = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const random = Math.floor(Math.random() * 1000);
+  return `${base}_${random}`;
+}
 
 // Kayıt Ol
 export const register = async (req: Request, res: Response) => {
@@ -28,12 +36,17 @@ export const register = async (req: Request, res: Response) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
     // 4. Kullanıcıyı kaydet (is_verified varsayılan FALSE)
-    await pool.query(
-      'INSERT INTO users (email, password_hash, verification_token) VALUES ($1, $2, $3)',
+    const userResult = await pool.query(
+      'INSERT INTO users (email, password_hash, verification_token) VALUES ($1, $2, $3) RETURNING id',
       [email, passwordHash, verificationToken]
     );
 
-    // 5. Mail gönder
+    // 5. Gamification profili oluştur
+    const userId = userResult.rows[0].id;
+    const username = generateUsername(email);
+    await xpService.createUserProfile(userId, username);
+
+    // 6. Mail gönder
     await sendVerificationEmail(email, verificationToken);
 
     // Token DÖNMÜYORUZ. Sadece mesaj.
