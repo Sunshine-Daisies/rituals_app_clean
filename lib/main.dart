@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'config/app_config.dart';
 import 'routes/app_router.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
@@ -9,6 +10,10 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize App Configuration
+  appConfig.autoDetect();
+  appConfig.printConfig();
   
   // Load environment variables from .env file
   try {

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../config/app_config.dart';
 
 class ApiService {
   static String? _token;
@@ -28,15 +27,8 @@ class ApiService {
 
   static Map<String, String> get _headers => _getHeaders();
 
-  // Network IP for multi-device access on same network
-  static const String _networkIp = '192.168.1.128';
-  
-  static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:3000/api';
-    // Use network IP for all mobile devices (Android/iOS)
-    if (Platform.isAndroid || Platform.isIOS) return 'http://$_networkIp:3000/api';
-    return 'http://localhost:3000/api';
-  }
+  /// API base URL - AppConfig'den alınır
+  static String get baseUrl => appConfig.apiBaseUrl;
 
   static Future<dynamic> get(String endpoint, {String? authToken}) async {
     try {

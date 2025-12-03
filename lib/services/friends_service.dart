@@ -1,19 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../data/models/user_profile.dart';
 
 class FriendsService {
-  // Network IP for multi-device access
-  static const String _networkIp = '192.168.1.128';
-  
-  static String get _baseUrl {
-    if (kIsWeb) return 'http://localhost:3000/api';
-    if (Platform.isAndroid || Platform.isIOS) return 'http://$_networkIp:3000/api';
-    return 'http://localhost:3000/api';
-  }
+  /// API base URL - AppConfig'den alınır
+  static String get _baseUrl => appConfig.apiBaseUrl;
   
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
