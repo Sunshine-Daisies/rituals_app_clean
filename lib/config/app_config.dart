@@ -29,7 +29,7 @@ class AppConfig {
   // ============================================
   
   /// Yerel ağ IP adresi (ipconfig ile bulunur)
-  static const String localNetworkIp = '192.168.1.128';
+  static const String localNetworkIp = '192.168.1.5';
   
   /// Staging server URL (varsa)
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
