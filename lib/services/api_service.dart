@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../core/exceptions/app_exceptions.dart';
+import '../core/utils/logger.dart';
 
 class ApiService {
   static String? _token;
@@ -12,10 +12,12 @@ class ApiService {
 
   static void setToken(String token) {
     _token = token;
+    logger.info('Auth token set', tag: 'API');
   }
 
   static void clearToken() {
     _token = null;
+    logger.info('Auth token cleared', tag: 'API');
   }
 
   static Map<String, String> _getHeaders({String? customToken}) {
@@ -35,88 +37,101 @@ class ApiService {
   static const Duration _timeout = Duration(seconds: 15);
 
   static Future<dynamic> get(String endpoint, {String? authToken}) async {
+    final stopwatch = Stopwatch()..start();
+    logger.apiRequest('GET', endpoint);
+    
     try {
-      if (kDebugMode) print('📡 GET: $baseUrl$endpoint');
-      
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
         headers: _getHeaders(customToken: authToken),
       ).timeout(_timeout);
       
-      if (kDebugMode) print('📥 Response: ${response.statusCode}');
+      stopwatch.stop();
+      logger.apiResponse(endpoint, response.statusCode, durationMs: stopwatch.elapsedMilliseconds);
       return _handleResponse(response);
     } on TimeoutException {
+      logger.error('Request timeout', tag: 'API', data: {'endpoint': endpoint});
       throw TimeoutException();
     } catch (e) {
-      if (kDebugMode) print('❌ GET Error: $e');
+      logger.error('GET failed', tag: 'API', error: e, data: {'endpoint': endpoint});
       throw ExceptionHandler.fromError(e);
     }
   }
 
   static Future<dynamic> post(String endpoint, Map<String, dynamic> data, {String? authToken}) async {
+    final stopwatch = Stopwatch()..start();
+    logger.apiRequest('POST', endpoint, body: data);
+    
     try {
-      if (kDebugMode) print('📡 POST: $baseUrl$endpoint');
-      
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
         headers: _getHeaders(customToken: authToken),
         body: jsonEncode(data),
       ).timeout(_timeout);
       
-      if (kDebugMode) print('📥 Response: ${response.statusCode}');
+      stopwatch.stop();
+      logger.apiResponse(endpoint, response.statusCode, durationMs: stopwatch.elapsedMilliseconds);
       return _handleResponse(response);
     } on TimeoutException {
+      logger.error('Request timeout', tag: 'API', data: {'endpoint': endpoint});
       throw TimeoutException();
     } catch (e) {
-      if (kDebugMode) print('❌ POST Error: $e');
+      logger.error('POST failed', tag: 'API', error: e, data: {'endpoint': endpoint});
       throw ExceptionHandler.fromError(e);
     }
   }
 
   static Future<dynamic> put(String endpoint, Map<String, dynamic> data, {String? authToken}) async {
+    final stopwatch = Stopwatch()..start();
+    logger.apiRequest('PUT', endpoint, body: data);
+    
     try {
-      if (kDebugMode) print('📡 PUT: $baseUrl$endpoint');
-      
       final response = await http.put(
         Uri.parse('$baseUrl$endpoint'),
         headers: _getHeaders(customToken: authToken),
         body: jsonEncode(data),
       ).timeout(_timeout);
       
-      if (kDebugMode) print('📥 Response: ${response.statusCode}');
+      stopwatch.stop();
+      logger.apiResponse(endpoint, response.statusCode, durationMs: stopwatch.elapsedMilliseconds);
       return _handleResponse(response);
     } on TimeoutException {
+      logger.error('Request timeout', tag: 'API', data: {'endpoint': endpoint});
       throw TimeoutException();
     } catch (e) {
-      if (kDebugMode) print('❌ PUT Error: $e');
+      logger.error('PUT failed', tag: 'API', error: e, data: {'endpoint': endpoint});
       throw ExceptionHandler.fromError(e);
     }
   }
 
   static Future<dynamic> patch(String endpoint, Map<String, dynamic> data, {String? authToken}) async {
+    final stopwatch = Stopwatch()..start();
+    logger.apiRequest('PATCH', endpoint, body: data);
+    
     try {
-      if (kDebugMode) print('📡 PATCH: $baseUrl$endpoint');
-      
       final response = await http.patch(
         Uri.parse('$baseUrl$endpoint'),
         headers: _getHeaders(customToken: authToken),
         body: jsonEncode(data),
       ).timeout(_timeout);
       
-      if (kDebugMode) print('📥 Response: ${response.statusCode}');
+      stopwatch.stop();
+      logger.apiResponse(endpoint, response.statusCode, durationMs: stopwatch.elapsedMilliseconds);
       return _handleResponse(response);
     } on TimeoutException {
+      logger.error('Request timeout', tag: 'API', data: {'endpoint': endpoint});
       throw TimeoutException();
     } catch (e) {
-      if (kDebugMode) print('❌ PATCH Error: $e');
+      logger.error('PATCH failed', tag: 'API', error: e, data: {'endpoint': endpoint});
       throw ExceptionHandler.fromError(e);
     }
   }
 
   static Future<dynamic> delete(String endpoint, {Map<String, dynamic>? body, String? authToken}) async {
+    final stopwatch = Stopwatch()..start();
+    logger.apiRequest('DELETE', endpoint, body: body);
+    
     try {
-      if (kDebugMode) print('📡 DELETE: $baseUrl$endpoint');
-      
       final request = http.Request('DELETE', Uri.parse('$baseUrl$endpoint'));
       request.headers.addAll(_getHeaders(customToken: authToken));
       if (body != null) {
@@ -126,12 +141,14 @@ class ApiService {
       final streamedResponse = await request.send().timeout(_timeout);
       final response = await http.Response.fromStream(streamedResponse);
       
-      if (kDebugMode) print('📥 Response: ${response.statusCode}');
+      stopwatch.stop();
+      logger.apiResponse(endpoint, response.statusCode, durationMs: stopwatch.elapsedMilliseconds);
       return _handleResponse(response);
     } on TimeoutException {
+      logger.error('Request timeout', tag: 'API', data: {'endpoint': endpoint});
       throw TimeoutException();
     } catch (e) {
-      if (kDebugMode) print('❌ DELETE Error: $e');
+      logger.error('DELETE failed', tag: 'API', error: e, data: {'endpoint': endpoint});
       throw ExceptionHandler.fromError(e);
     }
   }
