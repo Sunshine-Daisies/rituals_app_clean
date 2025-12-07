@@ -5,10 +5,10 @@ import 'package:flutter/foundation.dart';
 enum Environment {
   /// Geliştirme ortamı - Yerel ağ IP
   development,
-  
+
   /// Staging ortamı - Test server
   staging,
-  
+
   /// Production ortamı - Canlı server
   production,
 }
@@ -27,13 +27,13 @@ class AppConfig {
   // ============================================
   // NETWORK IPs - Buraya IP adreslerini yaz
   // ============================================
-  
+
   /// Yerel ağ IP adresi (ipconfig ile bulunur)
   static const String localNetworkIp = '192.168.1.5';
-  
+
   /// Staging server URL (varsa)
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
-  
+
   /// Production server URL (domain)
   static const String productionUrl = 'https://api.yourdomain.com';
 
@@ -56,14 +56,19 @@ class AppConfig {
       case Environment.development:
         // Web için localhost, mobil için network IP
         if (kIsWeb) return 'http://localhost:3000/api';
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        // Android emulator uses special host `10.0.2.2` to reach host machine.
+        if (!kIsWeb && Platform.isAndroid) {
+          return 'http://10.0.2.2:3000/api';
+        }
+        // iOS simulator and physical devices should use the LAN IP
+        if (!kIsWeb && Platform.isIOS) {
           return 'http://$localNetworkIp:3000/api';
         }
         return 'http://localhost:3000/api';
-        
+
       case Environment.staging:
         return '$stagingUrl/api';
-        
+
       case Environment.production:
         return '$productionUrl/api';
     }
@@ -74,14 +79,13 @@ class AppConfig {
     switch (_environment) {
       case Environment.development:
         if (kIsWeb) return 'ws://localhost:3000';
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          return 'ws://$localNetworkIp:3000';
-        }
+        if (!kIsWeb && Platform.isAndroid) return 'ws://10.0.2.2:3000';
+        if (!kIsWeb && Platform.isIOS) return 'ws://$localNetworkIp:3000';
         return 'ws://localhost:3000';
-        
+
       case Environment.staging:
         return stagingUrl.replaceFirst('https', 'wss');
-        
+
       case Environment.production:
         return productionUrl.replaceFirst('https', 'wss');
     }
