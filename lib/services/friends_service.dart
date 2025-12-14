@@ -100,9 +100,12 @@ class FriendsService {
 
   /// Arkadaşlık isteğini kabul et
   Future<FriendRequestResult> acceptFriendRequest(int friendshipId) async {
+    print('🔍 acceptFriendRequest called with friendshipId: $friendshipId');
     try {
+      final url = '$_baseUrl/friends/accept/$friendshipId';
+      print('🔍 Request URL: $url');
       final response = await http.put(
-        Uri.parse('$_baseUrl/friends/accept/$friendshipId'),
+        Uri.parse(url),
         headers: await _getHeaders(),
       );
 

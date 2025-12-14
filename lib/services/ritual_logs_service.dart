@@ -35,4 +35,26 @@ class RitualLogsService {
       throw Exception('Failed to get logs: $e');
     }
   }
+
+  /// Bugün bu ritüel tamamlandı mı kontrol et
+  static Future<Map<String, dynamic>> getCompletionStatus(String ritualId) async {
+    try {
+      // Bugünün loglarını al
+      final logs = await getLogs(ritualId);
+      final today = DateTime.now();
+      
+      // Bugün tamamlanmış log var mı kontrol et (step_index = -1)
+      final completedToday = logs.any((log) {
+        final logDate = log.completedAt;
+        return logDate.year == today.year &&
+               logDate.month == today.month &&
+               logDate.day == today.day &&
+               log.stepIndex == -1;
+      });
+      
+      return {'completedToday': completedToday};
+    } catch (e) {
+      return {'completedToday': false};
+    }
+  }
 }

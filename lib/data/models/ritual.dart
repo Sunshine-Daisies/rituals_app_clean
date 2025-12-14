@@ -1,5 +1,41 @@
 import 'package:equatable/equatable.dart';
 
+/// Partner bilgisi - ritüele katılan partner
+class RitualPartnerInfo extends Equatable {
+  final String id;
+  final String oderId;
+  final String username;
+  final int level;
+  final int currentStreak;
+  final int longestStreak;
+  final DateTime? joinedAt;
+
+  const RitualPartnerInfo({
+    required this.id,
+    required this.oderId,
+    required this.username,
+    required this.level,
+    this.currentStreak = 0,
+    this.longestStreak = 0,
+    this.joinedAt,
+  });
+
+  factory RitualPartnerInfo.fromJson(Map<String, dynamic> json) {
+    return RitualPartnerInfo(
+      id: (json['id'] ?? '').toString(),
+      oderId: (json['user_id'] ?? '').toString(),
+      username: json['username'] ?? '',
+      level: json['level'] ?? 1,
+      currentStreak: json['current_streak'] ?? 0,
+      longestStreak: json['longest_streak'] ?? 0,
+      joinedAt: json['joined_at'] != null ? DateTime.parse(json['joined_at']) : null,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, oderId, username];
+}
+
 class Ritual extends Equatable {
   final String id;
   final String profileId; // Changed from userId to match DB
@@ -12,6 +48,17 @@ class Ritual extends Equatable {
   final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? partnershipId;
+  final String? partnerRitualId;
+  final bool isMine;
+  // Streak bilgileri
+  final int currentStreak;
+  final int longestStreak;
+  // Partner bilgileri
+  final bool hasPartner;
+  final String? inviteCode;
+  final String? sharedRitualId;
+  final RitualPartnerInfo? partner;
 
   const Ritual({
     required this.id,
@@ -25,6 +72,15 @@ class Ritual extends Equatable {
     this.archivedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.partnershipId,
+    this.partnerRitualId,
+    this.isMine = true,
+    this.currentStreak = 0,
+    this.longestStreak = 0,
+    this.hasPartner = false,
+    this.inviteCode,
+    this.sharedRitualId,
+    this.partner,
   });
 
   factory Ritual.fromJson(Map<String, dynamic> json) {
@@ -42,6 +98,19 @@ class Ritual extends Equatable {
           : null,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      partnershipId: json['partnership_id'],
+      partnerRitualId: json['partner_ritual_id']?.toString(),
+      isMine: json['is_mine'] ?? true,
+      // Streak bilgileri
+      currentStreak: json['current_streak'] as int? ?? 0,
+      longestStreak: json['longest_streak'] as int? ?? 0,
+      // Partner bilgileri
+      hasPartner: json['has_partner'] == true || json['partnership_id'] != null,
+      inviteCode: json['invite_code'],
+      sharedRitualId: json['shared_ritual_id']?.toString(),
+      partner: json['partner'] != null 
+          ? RitualPartnerInfo.fromJson(json['partner'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -58,6 +127,11 @@ class Ritual extends Equatable {
       'archived_at': archivedAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'current_streak': currentStreak,
+      'longest_streak': longestStreak,
+      'has_partner': hasPartner,
+      'invite_code': inviteCode,
+      'shared_ritual_id': sharedRitualId,
     };
   }
 
@@ -73,6 +147,15 @@ class Ritual extends Equatable {
     DateTime? archivedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? partnershipId,
+    String? partnerRitualId,
+    bool? isMine,
+    int? currentStreak,
+    int? longestStreak,
+    bool? hasPartner,
+    String? inviteCode,
+    String? sharedRitualId,
+    RitualPartnerInfo? partner,
   }) {
     return Ritual(
       id: id ?? this.id,
@@ -86,9 +169,18 @@ class Ritual extends Equatable {
       archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      partnershipId: partnershipId ?? this.partnershipId,
+      partnerRitualId: partnerRitualId ?? this.partnerRitualId,
+      isMine: isMine ?? this.isMine,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
+      hasPartner: hasPartner ?? this.hasPartner,
+      inviteCode: inviteCode ?? this.inviteCode,
+      sharedRitualId: sharedRitualId ?? this.sharedRitualId,
+      partner: partner ?? this.partner,
     );
   }
 
   @override
-  List<Object?> get props => [id, profileId, name, steps, reminderTime, reminderDays, timezone, isActive, archivedAt, createdAt, updatedAt];
+  List<Object?> get props => [id, profileId, name, steps, reminderTime, reminderDays, timezone, isActive, archivedAt, createdAt, updatedAt, partnershipId, partnerRitualId, isMine, currentStreak, longestStreak, hasPartner, partner];
 }

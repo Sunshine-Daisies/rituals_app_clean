@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/ritual.dart';
-import '../../data/models/sharing_models.dart';
 import '../../services/rituals_service.dart';
-import '../../services/sharing_service.dart';
+import '../../services/partnership_service.dart';
 import '../../theme/app_theme.dart';
 import '../sharing/share_ritual_dialog.dart';
-import '../sharing/partner_widgets.dart';
 
 class RitualDetailScreen extends StatefulWidget {
   final String ritualId;
@@ -28,11 +26,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
   late List<String> _steps;
   bool _isLoading = false;
   
-  // Partner & Sharing
-  final _sharingService = SharingService();
-  RitualPartner? _partner;
+  // Partner (Equal Partnership System)
+  PartnershipInfo? _partnershipInfo;
   bool _isLoadingPartner = false;
-  String _visibility = 'private';
 
   @override
   void initState() {
@@ -48,10 +44,10 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
   Future<void> _loadPartnerInfo() async {
     setState(() => _isLoadingPartner = true);
     try {
-      final partner = await _sharingService.getPartnerInfo(widget.ritualId);
+      final info = await PartnershipService.getPartnershipByRitual(widget.ritualId);
       if (mounted) {
         setState(() {
-          _partner = partner;
+          _partnershipInfo = info;
           _isLoadingPartner = false;
         });
       }
@@ -63,13 +59,45 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
   }
 
   Future<void> _leavePartnership() async {
+    if (_partnershipInfo?.partnershipId == null) return;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: Text('Partnerlıktan Ayrıl', style: TextStyle(color: AppTheme.textPrimary)),
+        content: Text(
+          'Partnerlıktan ayrılmak istediğinize emin misiniz?\n\nHer iki taraf da kendi ritüelini koruyacak.',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('İptal', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ayrıl', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     try {
-      await _sharingService.leavePartnership(widget.ritualId);
+      final result = await PartnershipService.leavePartnership(_partnershipInfo!.partnershipId!);
       if (mounted) {
-        setState(() => _partner = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Partnerlik sonlandırıldı')),
-        );
+        if (result.success) {
+          setState(() => _partnershipInfo = null);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Partnerlıktan ayrıldınız')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Hata: ${result.error}')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -85,8 +113,96 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
       context,
       ritualId: widget.ritualId,
       ritualTitle: _nameController.text,
-      currentVisibility: RitualVisibility.fromString(_visibility),
     ).then((_) => _loadPartnerInfo());
+  }
+
+  Widget _buildPartnerInfoCard() {
+    final info = _partnershipInfo!;
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacingL),
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(AppTheme.radiusL),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.people, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: AppTheme.spacingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Partner: ${info.partnerUsername}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Eşit Partner Sistemi',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Streak Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.local_fire_department, color: Colors.orange, size: 18),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${info.currentStreak} gün',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spacingM),
+          // Leave Partnership Button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _leavePartnership,
+              icon: const Icon(Icons.exit_to_app, size: 18),
+              label: const Text('Partnerlıktan Ayrıl'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: BorderSide(color: Colors.white.withOpacity(0.5)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -451,9 +567,19 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                     }
 
                     final ritual = snapshot.data!;
+                    final isEditable = ritual.isMine;
 
                     // İlk yükleme
-                    if (_nameController.text.isEmpty) {
+                    if (_nameController.text.isEmpty && isEditable) {
+                      _nameController.text = ritual.name;
+                      _timeController.text = ritual.reminderTime;
+                      _selectedDays = List.from(ritual.reminderDays);
+                      _steps = ritual.steps
+                          .map((s) => (s['title'] as String?) ?? '')
+                          .where((s) => s.isNotEmpty)
+                          .toList();
+                    } else if (!isEditable) {
+                      // Read-only mode, always update from ritual
                       _nameController.text = ritual.name;
                       _timeController.text = ritual.reminderTime;
                       _selectedDays = List.from(ritual.reminderDays);
@@ -473,12 +599,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Partner Info Card (if has partner)
-                          if (_partner != null) ...[
-                            PartnerInfoCard(
-                              partner: _partner!,
-                              onLeavePartner: _leavePartnership,
-                            ),
+                          // Partner Info Card (Equal Partnership System)
+                          if (_partnershipInfo != null) ...[
+                            _buildPartnerInfoCard(),
                             const SizedBox(height: AppTheme.spacingM),
                           ] else if (_isLoadingPartner) ...[
                             Container(
@@ -536,6 +659,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                 const SizedBox(height: AppTheme.spacingM),
                                 TextField(
                                   controller: _nameController,
+                                  readOnly: !isEditable,
                                   style: TextStyle(color: AppTheme.textPrimary),
                                   decoration: InputDecoration(
                                     hintText: 'Enter ritual name',
@@ -587,6 +711,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                 const SizedBox(height: AppTheme.spacingM),
                                 TextField(
                                   controller: _timeController,
+                                  readOnly: !isEditable,
                                   style: TextStyle(color: AppTheme.textPrimary),
                                   decoration: InputDecoration(
                                     hintText: 'HH:mm (ör: 07:00)',
@@ -645,7 +770,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                   children: allDays.map((day) {
                                     final isSelected = _selectedDays.contains(day);
                                     return GestureDetector(
-                                      onTap: () => _toggleDay(day),
+                                      onTap: isEditable ? () => _toggleDay(day) : null,
                                       child: AnimatedContainer(
                                         duration: const Duration(milliseconds: 200),
                                         padding: const EdgeInsets.symmetric(
@@ -785,44 +910,49 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                                 ),
                                               ),
                                             ),
-                                            IconButton(
-                                              icon: const Icon(Icons.edit, size: 18),
-                                              onPressed: () => _editStep(index),
-                                              color: AppTheme.primaryColor,
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete_outline, size: 18),
-                                              onPressed: () => _removeStep(index),
-                                              color: AppTheme.errorColor,
-                                            ),
+                                            if (isEditable) ...[
+                                              IconButton(
+                                                icon: const Icon(Icons.edit, size: 18),
+                                                onPressed: () => _editStep(index),
+                                                color: AppTheme.primaryColor,
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.delete_outline, size: 18),
+                                                onPressed: () => _removeStep(index),
+                                                color: AppTheme.errorColor,
+                                              ),
+                                            ],
                                           ],
                                         ),
                                       );
                                     }).toList(),
                                   ),
-                                const SizedBox(height: AppTheme.spacingS),
-                                OutlinedButton.icon(
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Add Step'),
-                                  onPressed: _addStep,
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: AppTheme.primaryColor),
-                                    foregroundColor: AppTheme.primaryColor,
+                                if (isEditable) ...[
+                                  const SizedBox(height: AppTheme.spacingS),
+                                  OutlinedButton.icon(
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Add Step'),
+                                    onPressed: _addStep,
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: AppTheme.primaryColor),
+                                      foregroundColor: AppTheme.primaryColor,
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingXL),
 
                           // Save Button
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: AppTheme.primaryGradient,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                              boxShadow: AppTheme.softShadow,
-                            ),
-                            child: ElevatedButton(
+                          if (isEditable)
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.primaryGradient,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                boxShadow: AppTheme.softShadow,
+                              ),
+                              child: ElevatedButton(
                               onPressed: _isLoading ? null : _saveRitual,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,

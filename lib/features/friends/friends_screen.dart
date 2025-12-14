@@ -192,127 +192,155 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
         child: SafeArea(
           child: Column(
             children: [
-              // Custom App Bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spacingL,
-                  AppTheme.spacingM,
-                  AppTheme.spacingL,
-                  AppTheme.spacingS,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                        boxShadow: AppTheme.cardShadow,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.go('/home'),
-                        tooltip: 'Geri',
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.spacingM),
-                    Expanded(
-                      child: Text(
-                        'Arkadaşlar',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ),
-                    if (_requests != null && _requests!.incomingCount > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${_requests!.incomingCount} istek',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              
-              // Tab Bar
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  labelColor: AppTheme.primaryColor,
-                  unselectedLabelColor: AppTheme.textSecondary,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                  ),
-                  tabs: [
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.people, size: 18),
-                          const SizedBox(width: 4),
-                          Text('Liste (${_friends.length})'),
-                        ],
-                      ),
-                    ),
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.person_add, size: 18),
-                          const SizedBox(width: 4),
-                          const Text('Ara'),
-                        ],
-                      ),
-                    ),
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.mail, size: 18),
-                          const SizedBox(width: 4),
-                          Text('İstekler${_requests?.incomingCount != null && _requests!.incomingCount > 0 ? ' (${_requests!.incomingCount})' : ''}'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: AppTheme.spacingM),
-              
-              // Tab Views
+              _buildHeader(),
               Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildFriendsList(),
-                          _buildSearchTab(),
-                          _buildRequestsTab(),
-                        ],
-                      ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        _buildTabBar(),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    _buildFriendsList(),
+                                    _buildSearchTab(),
+                                    _buildRequestsTab(),
+                                  ],
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(AppTheme.spacingL),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: () => context.go('/home'),
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Text(
+            'Arkadaşlar',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const Spacer(),
+          if (_requests != null && _requests!.incomingCount > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.notifications_active, color: Colors.white, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${_requests!.incomingCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        labelColor: AppTheme.primaryColor,
+        unselectedLabelColor: AppTheme.textSecondary,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        dividerColor: Colors.transparent,
+        padding: const EdgeInsets.all(4),
+        tabs: [
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.people_outline, size: 20),
+                const SizedBox(width: 8),
+                Text('Liste (${_friends.length})'),
+              ],
+            ),
+          ),
+          const Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.search, size: 20),
+                SizedBox(width: 8),
+                Text('Ara'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.mail_outline, size: 20),
+                const SizedBox(width: 8),
+                Text('İstekler${_requests?.incomingCount != null && _requests!.incomingCount > 0 ? ' (${_requests!.incomingCount})' : ''}'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -531,9 +559,15 @@ class _FriendCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
         leading: Stack(
@@ -578,19 +612,10 @@ class _FriendCard extends StatelessWidget {
         ),
         subtitle: Row(
           children: [
-            Icon(Icons.local_fire_department, size: 14, color: Colors.orange[400]),
-            const SizedBox(width: 4),
-            Text(
-              '${friend.longestStreak} gün streak',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(width: 12),
             const Icon(Icons.star, size: 14, color: Colors.amber),
             const SizedBox(width: 4),
             Text(
-              '${friend.xp} XP',
+              'Level ${friend.level}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppTheme.textSecondary,
               ),
@@ -660,9 +685,15 @@ class _SearchResultCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
         leading: CircleAvatar(
@@ -756,9 +787,15 @@ class _RequestCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
         leading: CircleAvatar(

@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/authMiddleware';
+import { protect, optionalAuth } from '../middleware/authMiddleware';
 import * as gamificationController from '../controllers/gamificationController';
 import * as friendsController from '../controllers/friendsController';
 
@@ -8,8 +8,8 @@ const router = express.Router();
 // ============================================
 // PUBLIC ROUTES (Token gerektirmez)
 // ============================================
-router.get('/badges', gamificationController.getAllBadges);
-router.get('/leaderboard', gamificationController.getLeaderboard);
+router.get('/badges', optionalAuth, gamificationController.getAllBadges);
+router.get('/leaderboard', optionalAuth, gamificationController.getLeaderboard);
 
 // ============================================
 // PROTECTED ROUTES (Token gerektirir)
@@ -20,6 +20,7 @@ router.use(protect);
 // PROFILE ROUTES
 // ============================================
 router.get('/profile', gamificationController.getMyProfile);
+router.get('/stats', gamificationController.getUserStats); // Yeni istatistik endpoint'i
 router.get('/profile/:userId', gamificationController.getUserProfile);
 router.put('/profile/username', gamificationController.updateUsername);
 
@@ -57,6 +58,12 @@ router.post('/freeze/buy', gamificationController.buyFreeze);
 router.get('/notifications', gamificationController.getNotifications);
 router.put('/notifications/:id/read', gamificationController.markNotificationRead);
 router.put('/notifications/read-all', gamificationController.markAllNotificationsRead);
+router.delete('/notifications', gamificationController.deleteAllNotifications);
 router.delete('/notifications/:id', gamificationController.deleteNotification);
+
+// ============================================
+// SHOP ROUTES
+// ============================================
+router.post('/shop/buy-coins', gamificationController.buyCoins);
 
 export default router;

@@ -229,6 +229,8 @@ class FriendRequest extends Equatable {
   });
 
   factory FriendRequest.fromJson(Map<String, dynamic> json) {
+    print('🔍 FriendRequest.fromJson: $json');
+    print('🔍 friendship_id value: ${json['friendship_id']}');
     return FriendRequest(
       friendshipId: json['friendship_id'] ?? 0,
       userId: json['user_id'] ?? '',
@@ -285,6 +287,7 @@ class AppNotification extends Equatable {
 }
 
 class LeaderboardEntry extends Equatable {
+  final String userId;
   final String username;
   final int xp;
   final int level;
@@ -293,6 +296,7 @@ class LeaderboardEntry extends Equatable {
   final int? weeklyXp;
 
   const LeaderboardEntry({
+    required this.userId,
     required this.username,
     required this.xp,
     required this.level,
@@ -303,15 +307,16 @@ class LeaderboardEntry extends Equatable {
 
   factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
     return LeaderboardEntry(
+      userId: json['user_id'] ?? '',
       username: json['username'] ?? '',
-      xp: json['xp'] ?? json['weekly_xp'] ?? 0,
-      level: json['level'] ?? 1,
-      longestStreak: json['longest_streak'] ?? 0,
+      xp: int.tryParse(json['xp']?.toString() ?? '') ?? int.tryParse(json['weekly_xp']?.toString() ?? '') ?? 0,
+      level: int.tryParse(json['level']?.toString() ?? '') ?? 1,
+      longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '') ?? 0,
       rank: int.tryParse(json['rank']?.toString() ?? '0') ?? 0,
-      weeklyXp: json['weekly_xp'],
+      weeklyXp: int.tryParse(json['weekly_xp']?.toString() ?? ''),
     );
   }
 
   @override
-  List<Object?> get props => [username, rank];
+  List<Object?> get props => [userId, username, rank];
 }

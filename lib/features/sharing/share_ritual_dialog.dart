@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/services.dart';
-import '../../services/sharing_service.dart';
-import '../../data/models/sharing_models.dart';
+import '../../services/partnership_service.dart';
+import '../../theme/app_theme.dart';
 
-/// Dialog for sharing a ritual with invite code
+/// Dialog for sharing a ritual with invite code (Equal Partner System)
 class ShareRitualDialog extends StatefulWidget {
   final String ritualId;
   final String ritualTitle;
-  final RitualVisibility currentVisibility;
 
   const ShareRitualDialog({
     super.key,
     required this.ritualId,
     required this.ritualTitle,
-    required this.currentVisibility,
   });
 
   @override
@@ -21,75 +19,62 @@ class ShareRitualDialog extends StatefulWidget {
 }
 
 class _ShareRitualDialogState extends State<ShareRitualDialog> {
-  final _sharingService = SharingService();
-  
-  bool _isLoading = false;
-  bool _isSharing = false;
+  bool _isCreatingInvite = false;
   String? _errorMessage;
-  String? _inviteCode;
-  RitualVisibility _visibility = RitualVisibility.private_;
+  InviteResult? _invite;
 
-  @override
-  void initState() {
-    super.initState();
-    _visibility = widget.currentVisibility;
-  }
-
-  Future<void> _shareRitual() async {
-    // Check if private - private rituals cannot be shared
-    if (_visibility == RitualVisibility.private_) {
-      setState(() {
-        _errorMessage = 'Özel ritualler paylaşılamaz. Önce görünürlüğü değiştirin.';
-      });
-      return;
-    }
-
+  Future<void> _createInvite() async {
     setState(() {
-      _isSharing = true;
+      _isCreatingInvite = true;
       _errorMessage = null;
     });
 
     try {
-      final result = await _sharingService.shareRitual(widget.ritualId);
-      setState(() {
-        _inviteCode = result.inviteCode;
-        _isSharing = false;
-      });
+      final result = await PartnershipService.createInvite(widget.ritualId);
+      if (result.success) {
+        setState(() {
+          _invite = result;
+          _isCreatingInvite = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = result.error ?? 'Davet kodu oluşturulamadı';
+          _isCreatingInvite = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceAll('Exception: ', '');
-        _isSharing = false;
+        _isCreatingInvite = false;
       });
     }
   }
 
-  Future<void> _updateVisibility(RitualVisibility newVisibility) async {
+  Future<void> _cancelInvite() async {
+    if (_invite?.inviteId == null) return;
+    
     setState(() {
-      _isLoading = true;
+      _isCreatingInvite = true;
       _errorMessage = null;
     });
 
     try {
-      await _sharingService.updateRitualVisibility(widget.ritualId, newVisibility);
+      await PartnershipService.cancelInvite(_invite!.inviteId!);
       setState(() {
-        _visibility = newVisibility;
-        _isLoading = false;
-        // Clear invite code if switching to private
-        if (newVisibility == RitualVisibility.private_) {
-          _inviteCode = null;
-        }
+        _invite = null;
+        _isCreatingInvite = false;
       });
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceAll('Exception: ', '');
-        _isLoading = false;
+        _isCreatingInvite = false;
       });
     }
   }
 
   void _copyCode() {
-    if (_inviteCode != null) {
-      Clipboard.setData(ClipboardData(text: _inviteCode!));
+    if (_invite?.inviteCode != null) {
+      Clipboard.setData(ClipboardData(text: _invite!.inviteCode!));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Davet kodu kopyalandı!'),
@@ -100,8 +85,8 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
   }
 
   void _shareCode() {
-    if (_inviteCode != null) {
-      final shareText = '${widget.ritualTitle} ritualime katıl!\n\nDavet Kodu: $_inviteCode\n\nUygulamada "Rituale Katıl" seçeneğini kullanarak bu kodu gir.';
+    if (_invite?.inviteCode != null) {
+      final shareText = '${widget.ritualTitle} ritualime katıl!\n\nDavet Kodu: ${_invite!.inviteCode}\n\nUygulamada "Rituale Katıl" seçeneğini kullanarak bu kodu gir.';
       Clipboard.setData(ClipboardData(text: shareText));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -112,9 +97,22 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
     }
   }
 
+  String _formatExpiryDate(DateTime? expiresAt) {
+    if (expiresAt == null) return '';
+    final remaining = expiresAt.difference(DateTime.now());
+    if (remaining.inDays > 0) {
+      return '${remaining.inDays} gün geçerli';
+    } else if (remaining.inHours > 0) {
+      return '${remaining.inHours} saat geçerli';
+    } else {
+      return 'Süresi dolmak üzere';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: AppTheme.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -129,12 +127,12 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                      gradient: AppTheme.primaryGradient,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.share,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    child: const Icon(
+                      Icons.people,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -142,17 +140,18 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Ritual Paylaş',
+                        Text(
+                          'Partner Davet Et',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                         Text(
                           widget.ritualTitle,
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: AppTheme.textSecondary,
                             fontSize: 14,
                           ),
                           maxLines: 1,
@@ -163,11 +162,41 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
+
+              // Info Box
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.darkBackground1,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Eşit Partner Sistemi: Her iki taraf da ritüeli birlikte yapar ve aynı haklara sahip olur.',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Error Message
               if (_errorMessage != null)
@@ -177,6 +206,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
@@ -192,209 +222,132 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                   ),
                 ),
 
-              // Visibility Selection
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Görünürlük',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    ...RitualVisibility.values.map((v) => _buildVisibilityOption(v)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
               // Invite Code Section
-              if (_inviteCode != null) ...[
+              if (_invite != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).colorScheme.primaryContainer,
-                        Theme.of(context).colorScheme.secondaryContainer,
-                      ],
-                    ),
+                    gradient: AppTheme.primaryGradient,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     children: [
                       const Text(
                         'Davet Kodu',
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _inviteCode!,
+                        _invite!.inviteCode ?? '',
                         style: const TextStyle(
-                          fontSize: 32,
+                          fontSize: 36,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 8,
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      if (_invite!.expiresAt != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _formatExpiryDate(_invite!.expiresAt),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           OutlinedButton.icon(
                             onPressed: _copyCode,
-                            icon: const Icon(Icons.copy, size: 18),
-                            label: const Text('Kopyala'),
+                            icon: const Icon(Icons.copy, size: 18, color: Colors.white),
+                            label: const Text('Kopyala', style: TextStyle(color: Colors.white)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.white54),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton.icon(
                             onPressed: _shareCode,
                             icon: const Icon(Icons.send, size: 18),
                             label: const Text('Gönder'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppTheme.primaryColor,
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
-                  'Bu kodu arkadaşınla paylaş. Katılım isteği geldiğinde onaylamanız gerekecek.',
+                  'Bu kodu partnerinle paylaş. Katılım isteği geldiğinde onaylamanız gerekecek.',
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: AppTheme.textSecondary,
                     fontSize: 12,
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ],
-
-              // Share Button (when no code yet)
-              if (_inviteCode == null && _visibility != RitualVisibility.private_) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _isSharing ? null : _shareRitual,
-                    icon: _isSharing
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.link),
-                    label: Text(_isSharing ? 'Kod Oluşturuluyor...' : 'Davet Kodu Oluştur'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
+                const SizedBox(height: 16),
+                // Cancel Invite Button
+                TextButton.icon(
+                  onPressed: _isCreatingInvite ? null : _cancelInvite,
+                  icon: const Icon(Icons.cancel, size: 18),
+                  label: const Text('Daveti İptal Et'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
                   ),
                 ),
               ],
 
-              // Private Warning
-              if (_visibility == RitualVisibility.private_) ...[
+              // Create Invite Button (when no invite yet)
+              if (_invite == null) ...[
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.lock, color: Colors.orange[700], size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Özel ritualler paylaşılamaz. Paylaşmak için görünürlüğü değiştirin.',
-                          style: TextStyle(
-                            color: Colors.orange[700],
-                            fontSize: 13,
-                          ),
-                        ),
+                SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isCreatingInvite ? null : _createInvite,
+                      icon: _isCreatingInvite
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.link),
+                      label: Text(_isCreatingInvite ? 'Kod Oluşturuluyor...' : 'Davet Kodu Oluştur'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVisibilityOption(RitualVisibility visibility) {
-    final isSelected = _visibility == visibility;
-    
-    IconData icon;
-    switch (visibility) {
-      case RitualVisibility.private_:
-        icon = Icons.lock;
-        break;
-      case RitualVisibility.friendsOnly:
-        icon = Icons.people;
-        break;
-      case RitualVisibility.public_:
-        icon = Icons.public;
-        break;
-    }
-
-    return InkWell(
-      onTap: _isLoading ? null : () => _updateVisibility(visibility),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5) : null,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey[600],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    visibility.displayName,
-                    style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? Theme.of(context).colorScheme.primary : null,
-                    ),
-                  ),
-                  Text(
-                    visibility.description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
-              ),
-            if (_isLoading && _visibility != visibility)
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-          ],
         ),
       ),
     );
@@ -406,14 +359,12 @@ Future<void> showShareRitualDialog(
   BuildContext context, {
   required String ritualId,
   required String ritualTitle,
-  RitualVisibility currentVisibility = RitualVisibility.private_,
 }) {
   return showDialog(
     context: context,
     builder: (context) => ShareRitualDialog(
       ritualId: ritualId,
       ritualTitle: ritualTitle,
-      currentVisibility: currentVisibility,
     ),
   );
 }

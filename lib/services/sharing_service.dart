@@ -76,7 +76,8 @@ class SharingService {
   /// Get all rituals where user is a partner (not owner)
   Future<List<SharedRitual>> getMyPartnerRituals() async {
     final response = await ApiService.get('/sharing/my-partner-rituals');
-    final List<dynamic> ritualsList = response['rituals'] ?? [];
+    // Backend returns array directly
+    final List<dynamic> ritualsList = response is List ? response : (response['rituals'] ?? []);
     return ritualsList.map((r) => SharedRitual.fromJson(r)).toList();
   }
 

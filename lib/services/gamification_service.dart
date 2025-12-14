@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../data/models/user_profile.dart';
+import '../data/models/user_stats.dart';
 
 class GamificationService {
   /// API base URL - AppConfig'den alınır
@@ -29,19 +30,45 @@ class GamificationService {
 
   /// Kendi profilini getir
   Future<UserProfile?> getMyProfile() async {
+    final url = '$_baseUrl/profile';
+    print('Fetching profile from: $url');
+    
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/profile'),
+        Uri.parse(url),
         headers: await _getHeaders(),
       );
+      
+      print('Profile response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return UserProfile.fromJson(data);
       }
+      
+      print('Profile error body: ${response.body}');
       return null;
     } catch (e) {
       print('Error getting profile: $e');
+      return null;
+    }
+  }
+
+  /// Kullanıcı istatistiklerini getir
+  Future<UserStats?> getUserStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/stats'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return UserStats.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user stats: $e');
       return null;
     }
   }
@@ -303,6 +330,21 @@ class GamificationService {
     }
   }
 
+  /// Tüm bildirimleri sil
+  Future<bool> deleteAllNotifications() async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/notifications'),
+        headers: await _getHeaders(),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting all notifications: $e');
+      return false;
+    }
+  }
+
   // ============================================
   // USER SEARCH
   // ============================================
@@ -325,6 +367,43 @@ class GamificationService {
       return [];
     }
   }
+
+  // ============================================
+  // SHOP
+  // ============================================
+
+  /// Coin satın al
+  Future<BuyCoinsResult> buyCoins(int amount, double cost) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/shop/buy-coins'),
+        headers: await _getHeaders(),
+        body: json.encode({
+          'amount': amount,
+          'cost': cost,
+        }),
+      );
+
+      final data = json.decode(response.body);
+      
+      if (response.statusCode == 200) {
+        return BuyCoinsResult.fromJson(data);
+      }
+      
+      return BuyCoinsResult(
+        success: false,
+        newBalance: 0,
+        message: data['error'] ?? 'Satın alma başarısız',
+      );
+    } catch (e) {
+      print('Error buying coins: $e');
+      return BuyCoinsResult(
+        success: false,
+        newBalance: 0,
+        message: 'Bağlantı hatası',
+      );
+    }
+  }
 }
 
 // ============================================
@@ -342,7 +421,7 @@ class LeaderboardResult {
       leaderboard: (json['leaderboard'] as List<dynamic>)
           .map((e) => LeaderboardEntry.fromJson(e))
           .toList(),
-      myRank: json['myRank'],
+      myRank: int.tryParse(json['myRank']?.toString() ?? ''),
     );
   }
 }
@@ -506,6 +585,26 @@ class NewBadge {
       name: json['name'] ?? '',
       xp: json['xp'] ?? 0,
       coins: json['coins'] ?? 0,
+    );
+  }
+}
+
+class BuyCoinsResult {
+  final bool success;
+  final int newBalance;
+  final String message;
+
+  BuyCoinsResult({
+    required this.success,
+    required this.newBalance,
+    required this.message,
+  });
+
+  factory BuyCoinsResult.fromJson(Map<String, dynamic> json) {
+    return BuyCoinsResult(
+      success: json['success'] ?? false,
+      newBalance: json['newBalance'] ?? 0,
+      message: json['message'] ?? '',
     );
   }
 }

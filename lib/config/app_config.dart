@@ -54,11 +54,21 @@ class AppConfig {
   String get apiBaseUrl {
     switch (_environment) {
       case Environment.development:
-        // Web için localhost, mobil için network IP
+        // Web için localhost
         if (kIsWeb) return 'http://localhost:3000/api';
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          return 'http://$localNetworkIp:3000/api';
+        
+        // Android için
+        if (Platform.isAndroid) {
+          // Android Emulator için 10.0.2.2
+          // Eğer gerçek cihaz kullanıyorsanız burayı bilgisayarınızın IP adresi yapın (örn: 192.168.1.x)
+          return 'http://10.0.2.2:3000/api';
         }
+        
+        // iOS Simulator için localhost
+        if (Platform.isIOS) {
+          return 'http://localhost:3000/api';
+        }
+        
         return 'http://localhost:3000/api';
         
       case Environment.staging:

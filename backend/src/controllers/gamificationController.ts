@@ -11,14 +11,17 @@ import badgeService from '../services/badgeService';
 export const getMyProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    console.log(`Getting profile for user: ${userId}`);
     
     const profile = await xpService.getUserProfile(userId);
+    console.log('Profile fetched:', profile ? 'Found' : 'Not Found');
     
     if (!profile) {
       return res.status(404).json({ error: 'Profil bulunamadı' });
     }
     
     // Kazanılan badge'leri de getir
+    console.log('Fetching badges...');
     const badgesResult = await pool.query(
       `SELECT b.*, ub.earned_at 
        FROM user_badges ub 
@@ -27,14 +30,18 @@ export const getMyProfile = async (req: Request, res: Response) => {
        ORDER BY ub.earned_at DESC`,
       [userId]
     );
+    console.log(`Badges fetched: ${badgesResult.rows.length}`);
     
     res.json({
       ...profile,
       badges: badgesResult.rows,
     });
   } catch (error) {
-    console.error('Error getting profile:', error);
-    res.status(500).json({ error: 'Profil alınırken hata oluştu' });
+    console.error('Error getting profile detailed:', error);
+    if (error instanceof Error) {
+      console.error('Stack:', error.stack);
+    }
+    res.status(500).json({ error: 'Profil alınırken hata oluştu', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -123,7 +130,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     if (type === 'friends' && userId) {
       // Arkadaşlar arası sıralama (sadece giriş yapmış kullanıcılar için)
       query = `
-        SELECT up.username, up.xp, up.level, up.longest_streak,
+        SELECT up.user_id, up.username, up.xp, up.level, up.longest_streak,
                RANK() OVER (ORDER BY up.xp DESC) as rank
         FROM user_profiles up
         WHERE up.user_id = $1
@@ -142,7 +149,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     } else if (type === 'weekly') {
       // Haftalık sıralama (bu haftaki XP kazanımına göre)
       query = `
-        SELECT up.username, up.level,
+        SELECT up.user_id, up.username, up.level,
                COALESCE(weekly.weekly_xp, 0) as weekly_xp,
                RANK() OVER (ORDER BY COALESCE(weekly.weekly_xp, 0) DESC) as rank
         FROM user_profiles up
@@ -159,7 +166,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     } else {
       // Global sıralama
       query = `
-        SELECT up.username, up.xp, up.level, up.longest_streak,
+        SELECT up.user_id, up.username, up.xp, up.level, up.longest_streak,
                RANK() OVER (ORDER BY up.xp DESC) as rank
         FROM user_profiles up
         ORDER BY up.xp DESC
@@ -202,8 +209,10 @@ export const getAllBadges = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     
-    // Eğer kullanıcı giriş yapmışsa, earned durumunu da getir
+    // Eğer kullanıcı giriş yapmışsa, önce yeni kazanılan badge'leri kontrol et
     if (userId) {
+      await badgeService.checkAndAwardBadges(userId);
+
       const result = await pool.query(`
         SELECT b.*, 
                CASE WHEN ub.id IS NOT NULL THEN true ELSE false END as earned,
@@ -295,8 +304,9 @@ export const getBadgeProgress = async (req: Request, res: Response) => {
 export const useFreeze = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const { partnershipId } = req.body;
     
-    const result = await badgeService.useFreeze(userId);
+    const result = await badgeService.useFreeze(userId, partnershipId);
     
     if (!result.success) {
       return res.status(400).json({ error: result.message });
@@ -312,7 +322,7 @@ export const useFreeze = async (req: Request, res: Response) => {
 // POST /api/freeze/buy - Coin ile freeze satın al
 export const buyFreeze = async (req: Request, res: Response) => {
   const client = await pool.connect();
-  const FREEZE_COST = 20; // 20 coin = 1 freeze
+  const FREEZE_COST = 50; // 50 coin = 1 freeze
   const MAX_FREEZE = 5;
   
   try {
@@ -468,6 +478,23 @@ export const deleteNotification = async (req: Request, res: Response) => {
   }
 };
 
+// DELETE /api/notifications - Tüm bildirimleri sil
+export const deleteAllNotifications = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    
+    await pool.query(
+      'DELETE FROM notifications WHERE user_id = $1',
+      [userId]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting all notifications:', error);
+    res.status(500).json({ error: 'Bildirimler silinirken hata oluştu' });
+  }
+};
+
 // ============================================
 // USER SEARCH
 // ============================================
@@ -507,3 +534,126 @@ export const searchUsers = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Kullanıcı araması yapılırken hata oluştu' });
   }
 };
+
+// ============================================
+// SHOP ENDPOINTS
+// ============================================
+
+// POST /api/shop/buy-coins - Coin satın al (Simülasyon)
+export const buyCoins = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { amount, cost } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Geçersiz miktar' });
+    }
+
+    // Kullanıcının coin miktarını güncelle
+    await pool.query(
+      'UPDATE user_profiles SET coins = coins + $1 WHERE user_id = $2',
+      [amount, userId]
+    );
+    
+    // İşlem geçmişine ekle (Opsiyonel, şimdilik logluyoruz)
+    console.log(`User ${userId} bought ${amount} coins for ${cost}`);
+
+    // Güncel bakiyeyi döndür
+    const result = await pool.query(
+      'SELECT coins FROM user_profiles WHERE user_id = $1',
+      [userId]
+    );
+    
+    res.json({ 
+      success: true, 
+      newBalance: result.rows[0].coins,
+      message: `${amount} coin başarıyla satın alındı!` 
+    });
+  } catch (error) {
+    console.error('Error buying coins:', error);
+    res.status(500).json({ error: 'Satın alma işlemi başarısız' });
+  }
+};
+
+// ============================================
+// STATS ENDPOINTS
+// ============================================
+
+// GET /api/stats - Kullanıcı istatistiklerini getir
+export const getUserStats = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    
+    // 1. Temel İstatistikler (Toplam Ritüel, Tamamlananlar, Streak)
+    const basicStats = await pool.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM rituals WHERE user_id = $1) as total_rituals,
+        (SELECT COUNT(*) FROM ritual_logs rl 
+         JOIN rituals r ON rl.ritual_id = r.id 
+         WHERE r.user_id = $1 AND DATE(rl.completed_at) = CURRENT_DATE) as completed_today,
+        (SELECT COUNT(*) FROM ritual_logs rl 
+         JOIN rituals r ON rl.ritual_id = r.id 
+         WHERE r.user_id = $1) as total_completions,
+        (SELECT longest_streak FROM user_profiles WHERE user_id = $1) as longest_streak,
+        (SELECT COALESCE(MAX(current_streak), 0) FROM rituals WHERE user_id = $1) as current_best_streak
+    `, [userId]);
+
+    // 2. Haftalık Aktivite (Son 7 gün)
+    const weeklyActivity = await pool.query(`
+      WITH dates AS (
+        SELECT generate_series(
+          CURRENT_DATE - INTERVAL '6 days',
+          CURRENT_DATE,
+          '1 day'::interval
+        )::date AS date
+      )
+      SELECT 
+        to_char(d.date, 'Dy') as day,
+        COUNT(rl.id) as count
+      FROM dates d
+      LEFT JOIN ritual_logs rl ON DATE(rl.completed_at) = d.date 
+        AND rl.ritual_id IN (SELECT id FROM rituals WHERE user_id = $1)
+      GROUP BY d.date
+      ORDER BY d.date
+    `, [userId]);
+
+    // 3. En Çok Yapılan Ritüeller (Top 5)
+    const topRituals = await pool.query(`
+      SELECT r.name, COUNT(rl.id) as count, r.current_streak
+      FROM rituals r
+      JOIN ritual_logs rl ON r.id = rl.ritual_id
+      WHERE r.user_id = $1
+      GROUP BY r.id, r.name, r.current_streak
+      ORDER BY count DESC
+      LIMIT 5
+    `, [userId]);
+
+    // 4. Aylık Aktivite (Son 30 gün - Heatmap için)
+    const monthlyActivity = await pool.query(`
+      SELECT 
+        DATE(completed_at) as date,
+        COUNT(*) as count
+      FROM ritual_logs rl
+      JOIN rituals r ON rl.ritual_id = r.id
+      WHERE r.user_id = $1 
+        AND completed_at >= CURRENT_DATE - INTERVAL '30 days'
+      GROUP BY DATE(completed_at)
+      ORDER BY date
+    `, [userId]);
+
+    res.json({
+      totalRituals: parseInt(basicStats.rows[0].total_rituals),
+      completedToday: parseInt(basicStats.rows[0].completed_today),
+      totalCompletions: parseInt(basicStats.rows[0].total_completions),
+      longestStreak: parseInt(basicStats.rows[0].longest_streak || '0'),
+      currentBestStreak: parseInt(basicStats.rows[0].current_best_streak || '0'),
+      weeklyActivity: weeklyActivity.rows,
+      topRituals: topRituals.rows,
+      monthlyActivity: monthlyActivity.rows,
+    });
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    res.status(500).json({ error: 'İstatistikler alınırken hata oluştu' });
+  }
+};
+

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/sharing_service.dart';
-import '../../data/models/sharing_models.dart';
+import '../../services/partnership_service.dart';
 import '../../theme/app_theme.dart';
 
 class JoinRitualScreen extends StatefulWidget {
@@ -16,7 +15,6 @@ class JoinRitualScreen extends StatefulWidget {
 
 class _JoinRitualScreenState extends State<JoinRitualScreen> {
   final _codeController = TextEditingController();
-  final _sharingService = SharingService();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
@@ -47,17 +45,21 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
     });
 
     try {
-      final code = _sharingService.parseInviteCode(_codeController.text.trim());
-      if (code == null) {
-        throw Exception('Geçersiz davet kodu');
-      }
-
-      final result = await _sharingService.joinRitual(code);
+      final code = _codeController.text.trim().toUpperCase();
       
-      setState(() {
-        _joinResult = result;
-        _isLoading = false;
-      });
+      final result = await PartnershipService.joinWithCode(code);
+      
+      if (result.success) {
+        setState(() {
+          _joinResult = result;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = result.error ?? 'Katılım başarısız';
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -302,13 +304,13 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            _joinResult!.ritualTitle,
+            _joinResult!.ritualName ?? 'Ritüel',
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
-            'by ${_joinResult!.ownerUsername}',
+            'by ${_joinResult!.ownerUsername ?? 'Partner'}',
             style: TextStyle(color: Colors.grey[600]),
           ),
           const SizedBox(height: 16),

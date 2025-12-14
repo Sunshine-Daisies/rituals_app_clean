@@ -4,7 +4,7 @@ import '../services/llm_service.dart';
 
 class RitualIntentPreview extends StatefulWidget {
   final RitualIntent intent;
-  final VoidCallback onApprove;
+  final ValueChanged<RitualIntent> onApprove;
   final VoidCallback onReject;
 
   const RitualIntentPreview({
@@ -20,7 +20,7 @@ class RitualIntentPreview extends StatefulWidget {
 
 class _RitualIntentPreviewState extends State<RitualIntentPreview> {
   late TextEditingController _nameController;
-  late TextEditingController _timeController;
+  late TimeOfDay _selectedTime;
   late List<String> _selectedDays;
   late List<String> _steps;
 
@@ -28,16 +28,58 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.intent.ritualName ?? '');
-    _timeController = TextEditingController(text: widget.intent.reminderTime ?? '');
+    _selectedTime = _parseTime(widget.intent.reminderTime);
     _selectedDays = List.from(widget.intent.reminderDays ?? []);
     _steps = List.from(widget.intent.steps ?? []);
+  }
+
+  TimeOfDay _parseTime(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty) return const TimeOfDay(hour: 9, minute: 0);
+    try {
+      final parts = timeStr.split(':');
+      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    } catch (e) {
+      return const TimeOfDay(hour: 9, minute: 0);
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _timeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppTheme.primaryColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  String _formatTime() {
+    final hour = _selectedTime.hour > 12 
+        ? _selectedTime.hour - 12 
+        : _selectedTime.hour == 0 
+            ? 12 
+            : _selectedTime.hour;
+    final minute = _selectedTime.minute.toString().padLeft(2, '0');
+    final period = _selectedTime.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
   }
 
   void _toggleDay(String day) {
@@ -65,7 +107,14 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
 
   void _approve() {
     // Güncellenmiş intent ile approve et
-    widget.onApprove();
+    final updatedIntent = RitualIntent(
+      intent: widget.intent.intent,
+      ritualName: _nameController.text,
+      steps: _steps,
+      reminderTime: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+      reminderDays: _selectedDays,
+    );
+    widget.onApprove(updatedIntent);
   }
 
   @override
@@ -136,15 +185,47 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
-              TextField(
-                controller: _timeController,
-                decoration: InputDecoration(
-                  hintText: 'HH:mm (ör: 07:00)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+              InkWell(
+                onTap: _selectTime,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.backgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.schedule, color: AppTheme.primaryColor),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Time',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        _formatTime(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                keyboardType: TextInputType.datetime,
               ),
               const SizedBox(height: 20),
 
