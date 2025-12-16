@@ -7,6 +7,52 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
     await client.query('BEGIN');
 
     // ============================================
+    // 0. CORE TABLES & MIGRATIONS (Fixing missing columns)
+    // ============================================
+
+    // Ensure users table exists (Basic schema)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Add missing columns to users
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT;`);
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE;`);
+
+    // Ensure rituals table exists
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS rituals (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          reminder_time TEXT,
+          reminder_days TEXT[],
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          is_public BOOLEAN DEFAULT FALSE
+      );
+    `);
+
+    // Ensure ritual_logs table exists
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS ritual_logs (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          ritual_id UUID REFERENCES rituals(id) ON DELETE CASCADE,
+          step_index INTEGER,
+          source TEXT,
+          completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Add user_id to ritual_logs if missing
+    await client.query(`ALTER TABLE ritual_logs ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE;`);
+
+    // ============================================
     // 1. GAMIFICATION TABLES
     // ============================================
     
