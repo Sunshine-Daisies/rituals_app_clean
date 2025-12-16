@@ -4,7 +4,8 @@
   "description": "Rituals App Backend",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "init-gamification": "ts-node src/scripts/initGamification.ts",
     "migrate-partnerships": "ts-node src/scripts/migrateToEqualPartners.ts"
