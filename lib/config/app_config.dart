@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Uygulama ortam türleri
 enum Environment {
@@ -22,20 +23,27 @@ class AppConfig {
   AppConfig._internal();
 
   // Mevcut ortam
-  Environment _environment = Environment.development;
+  // Environment _environment = Environment.development;
+  Environment _environment = Environment.production; // Deploy sonrası production'a geçtik
 
   // ============================================
   // NETWORK IPs - Buraya IP adreslerini yaz
   // ============================================
 
   /// Yerel ağ IP adresi (ipconfig ile bulunur)
+<<<<<<< HEAD
   static const String localNetworkIp = '192.168.1.5';
 
+=======
+  static const String localNetworkIp = '192.168.1.7';
+  
+>>>>>>> origin/main
   /// Staging server URL (varsa)
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
 
   /// Production server URL (domain)
-  static const String productionUrl = 'https://api.yourdomain.com';
+  // .env dosyasından okumaya çalış, yoksa hardcoded değeri kullan
+  static String get productionUrl => dotenv.env['API_URL'] ?? 'https://ritualsappclean-production.up.railway.app';
 
   // ============================================
   // GETTERS
@@ -65,7 +73,15 @@ class AppConfig {
           return 'http://$localNetworkIp:3000/api';
         }
         return 'http://localhost:3000/api';
-
+        
+        // Mobil cihazlar için yerel ağ IP'si
+        if (Platform.isAndroid || Platform.isIOS) {
+          return 'http://$localNetworkIp:3001/api';
+        }
+        
+        return 'http://localhost:3001/api';
+        
+>>>>>>> origin/main
       case Environment.staging:
         return '$stagingUrl/api';
 
@@ -82,7 +98,6 @@ class AppConfig {
         if (!kIsWeb && Platform.isAndroid) return 'ws://10.0.2.2:3000';
         if (!kIsWeb && Platform.isIOS) return 'ws://$localNetworkIp:3000';
         return 'ws://localhost:3000';
-
       case Environment.staging:
         return stagingUrl.replaceFirst('https', 'wss');
 

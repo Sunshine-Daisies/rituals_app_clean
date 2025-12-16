@@ -39,10 +39,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _profile = results[1] as UserProfile?;
           _isLoading = false;
         });
+        
+        if (_profile == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Profil bilgileri alınamadı. Bağlantınızı kontrol edin.'),
+              backgroundColor: AppTheme.errorColor,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'Tekrar Dene',
+                textColor: Colors.white,
+                onPressed: _loadData,
+              ),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       }
     }
   }
@@ -75,51 +96,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // XP progress hesapla (mevcut seviyedeki ilerleme)
+  // XP progress hesapla (backend'den gelen yüzdeyi kullan)
   double _calculateXpProgress() {
     if (_profile == null) return 0;
-    
-    // Level XP tablosu (backend'deki ile aynı)
-    final List<int> levelXpRequirements = [
-      0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 3800,
-      4700, 5700, 6800, 8000, 9300, 10700, 12200, 13800, 15500, 17300,
-      19200, 21200, 23300, 25500, 27800, 30200, 32700, 35300, 38000, 40800,
-      43700, 46700, 49800, 53000, 56300, 59700, 63200, 66800, 70500, 74300,
-      78200, 82200, 86300, 90500, 94800, 99200, 103700, 108300, 113000, 117800,
-    ];
-    
-    final currentLevel = _profile!.level;
-    final totalXp = _profile!.xp;
-    
-    if (currentLevel >= levelXpRequirements.length) return 1.0;
-    
-    final currentLevelXp = levelXpRequirements[currentLevel - 1];
-    final nextLevelXp = currentLevel < levelXpRequirements.length 
-        ? levelXpRequirements[currentLevel] 
-        : levelXpRequirements.last + 5000;
-    
-    final xpInCurrentLevel = totalXp - currentLevelXp;
-    final xpNeededForNextLevel = nextLevelXp - currentLevelXp;
-    
-    return (xpInCurrentLevel / xpNeededForNextLevel).clamp(0.0, 1.0);
-  }
-
-  int _getXpForNextLevel() {
-    if (_profile == null) return 100;
-    
-    final List<int> levelXpRequirements = [
-      0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 3800,
-      4700, 5700, 6800, 8000, 9300, 10700, 12200, 13800, 15500, 17300,
-      19200, 21200, 23300, 25500, 27800, 30200, 32700, 35300, 38000, 40800,
-      43700, 46700, 49800, 53000, 56300, 59700, 63200, 66800, 70500, 74300,
-      78200, 82200, 86300, 90500, 94800, 99200, 103700, 108300, 113000, 117800,
-    ];
-    
-    final currentLevel = _profile!.level;
-    if (currentLevel >= levelXpRequirements.length) {
-      return levelXpRequirements.last + 5000;
-    }
-    return levelXpRequirements[currentLevel];
+    // Backend 0-100 arası int dönüyor, 0.0-1.0 arası double'a çevir
+    return (_profile!.xpProgressPercent / 100.0).clamp(0.0, 1.0);
   }
 
   @override
@@ -132,183 +113,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Custom App Bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spacingL,
-                  AppTheme.spacingM,
-                  AppTheme.spacingL,
-                  AppTheme.spacingM,
-                ),
-                child: Row(
-                  children: [
-                    // Back Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                        boxShadow: AppTheme.cardShadow,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.go('/home'),
-                        tooltip: 'Geri',
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.spacingM),
-                    
-                    // Title
-                    Expanded(
-                      child: Text(
-                        'Profil',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ),
-
-                    // Notifications Bell
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                        boxShadow: AppTheme.cardShadow,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.notifications_outlined, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.push('/notifications'),
-                        tooltip: 'Bildirimler',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Profile Content
+              _buildHeader(),
               Expanded(
-                child: _isLoading 
-                    ? const Center(child: CircularProgressIndicator())
-                    : RefreshIndicator(
-                        onRefresh: _loadData,
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(
-                            AppTheme.spacingL,
-                            AppTheme.spacingS,
-                            AppTheme.spacingL,
-                            AppTheme.spacingL,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    child: _isLoading 
+                        ? const Center(child: CircularProgressIndicator())
+                        : RefreshIndicator(
+                            onRefresh: _loadData,
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _buildProfileCard(),
+                                  const SizedBox(height: 24),
+                                  _buildStatsRow(),
+                                  const SizedBox(height: 24),
+                                  _buildMenuOptions(),
+                                  const SizedBox(height: 32),
+                                  _buildLogoutButton(),
+                                  const SizedBox(height: 24),
+                                  _buildAppInfo(),
+                                  const SizedBox(height: 20),
+                                ],
+                              ),
+                            ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Profile Header Card with Gamification
-                              _buildProfileCard(),
-                              
-                              const SizedBox(height: AppTheme.spacingM),
-
-                              // Stats Row (Coins, Freeze, Friends)
-                              _buildStatsRow(),
-
-                              const SizedBox(height: AppTheme.spacingL),
-                              
-                              // Profile Options
-                              _ProfileOption(
-                                icon: Icons.emoji_events,
-                                title: 'Rozetlerim',
-                                subtitle: 'Kazandığın rozet ve başarılar',
-                                onTap: () => context.push('/badges'),
-                              ),
-                              
-                              const SizedBox(height: AppTheme.spacingS),
-
-                              _ProfileOption(
-                                icon: Icons.people,
-                                title: 'Arkadaşlar',
-                                subtitle: 'Arkadaşlarını yönet',
-                                onTap: () => context.push('/friends'),
-                              ),
-
-                              const SizedBox(height: AppTheme.spacingS),
-
-                              _ProfileOption(
-                                icon: Icons.leaderboard,
-                                title: 'Liderlik Tablosu',
-                                subtitle: 'Sıralamadaki yerini gör',
-                                onTap: () => context.push('/leaderboard'),
-                              ),
-
-                              const SizedBox(height: AppTheme.spacingS),
-                              
-                              _ProfileOption(
-                                icon: Icons.analytics,
-                                title: 'İstatistikler',
-                                subtitle: 'İlerleme ve başarılarını görüntüle',
-                                onTap: () => context.go('/stats'),
-                              ),
-                              
-                              const SizedBox(height: AppTheme.spacingXL),
-                              
-                              // Logout Button
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusL),
-                                  boxShadow: AppTheme.cardShadow,
-                                ),
-                                child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.logout, color: Colors.white),
-                                  label: const Text(
-                                    'Çıkış Yap',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.errorColor,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingM),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusL),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  onPressed: () => _logout(context),
-                                ),
-                              ),
-                              
-                              const SizedBox(height: AppTheme.spacingL),
-                              
-                              // App Info
-                              Container(
-                                padding: const EdgeInsets.all(AppTheme.spacingM),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.surfaceColor,
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      'Rituals App',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppTheme.spacingXS),
-                                    Text(
-                                      'Versiyon 1.1.0 - Gamification',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -317,19 +156,172 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(AppTheme.spacingL),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: () => context.go('/home'),
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Text(
+            'Profil',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: 40, // Placeholder to keep title centered if needed, or remove completely
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuOptions() {
+    return Column(
+      children: [
+        _ProfileOption(
+          icon: Icons.emoji_events,
+          title: 'Rozetlerim',
+          subtitle: 'Kazandığın rozet ve başarılar',
+          onTap: () => context.push('/badges'),
+        ),
+        const SizedBox(height: 12),
+        _ProfileOption(
+          icon: Icons.leaderboard,
+          title: 'Liderlik Tablosu',
+          subtitle: 'Sıralamadaki yerini gör',
+          onTap: () => context.push('/leaderboard'),
+        ),
+        const SizedBox(height: 12),
+        _ProfileOption(
+          icon: Icons.analytics,
+          title: 'İstatistikler',
+          subtitle: 'İlerleme ve başarılarını görüntüle',
+          onTap: () => context.go('/stats'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.errorColor.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.logout, color: Colors.white),
+        label: const Text(
+          'Çıkış Yap',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.errorColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        onPressed: () => _logout(context),
+      ),
+    );
+  }
+
+  Widget _buildAppInfo() {
+    return Column(
+      children: [
+        Text(
+          'Rituals App',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary.withOpacity(0.5),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Versiyon 1.1.0',
+          style: TextStyle(
+            fontSize: 12,
+            color: AppTheme.textSecondary.withOpacity(0.5),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildProfileCard() {
-    final username = _profile?.username ?? _email?.split('@')[0] ?? 'User';
-    final level = _profile?.level ?? 1;
-    final totalXp = _profile?.xp ?? 0;
+    if (_profile == null) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, color: AppTheme.errorColor.withOpacity(0.8), size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'Profil yüklenemedi',
+                style: TextStyle(color: AppTheme.textPrimary.withOpacity(0.7)),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _loadData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tekrar Dene'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final username = _profile!.username.isNotEmpty ? _profile!.username : (_email?.split('@')[0] ?? 'User');
+    final level = _profile!.level;
     final xpProgress = _calculateXpProgress();
-    final nextLevelXp = _getXpForNextLevel();
 
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingL),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusL),
-        boxShadow: AppTheme.cardShadow,
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -339,13 +331,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const CircleAvatar(
                   radius: 40,
-                  backgroundColor: AppTheme.surfaceColor,
+                  backgroundColor: Colors.white,
                   child: Icon(
                     Icons.person,
                     color: AppTheme.primaryColor,
@@ -355,13 +347,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               // Level Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
+                  color: Colors.amber,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -378,27 +371,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingM),
+          const SizedBox(height: 16),
           
           // Username
           Text(
             username,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: const TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppTheme.spacingXS),
+          const SizedBox(height: 4),
           Text(
             _email ?? 'Loading...',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.8),
             ),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: AppTheme.spacingM),
+          const SizedBox(height: 24),
 
           // XP Progress Bar
           Column(
@@ -409,27 +404,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     'XP İlerlemesi',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
+                      color: Colors.white.withOpacity(0.8),
                     ),
                   ),
                   Text(
-                    '$totalXp / $nextLevelXp XP',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.primaryColor,
+                    '%${(xpProgress * 100).toInt()}',
+                    style: const TextStyle(
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppTheme.spacingS),
+              const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: xpProgress,
-                  backgroundColor: AppTheme.primaryColor.withOpacity(0.2),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  backgroundColor: Colors.black.withOpacity(0.1),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   minHeight: 8,
                 ),
               ),
@@ -453,6 +450,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             iconColor: Colors.amber,
             value: coins.toString(),
             label: 'Coin',
+            onTap: () => _showBuyCoinsDialog(),
           ),
         ),
         const SizedBox(width: AppTheme.spacingS),
@@ -477,6 +475,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ],
     );
+  }
+
+  void _showBuyCoinsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusL),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.monetization_on, color: Colors.amber, size: 28),
+            const SizedBox(width: 8),
+            const Text('Coin Mağazası'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Daha fazla coin alarak özelliklerin kilidini açabilirsin!',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 20),
+            _CoinPackageCard(
+              coins: 100,
+              price: '10.00 TL',
+              onTap: () => _buyCoins(100, 10.00),
+            ),
+            const SizedBox(height: 12),
+            _CoinPackageCard(
+              coins: 500,
+              price: '40.00 TL',
+              isPopular: true,
+              onTap: () => _buyCoins(500, 40.00),
+            ),
+            const SizedBox(height: 12),
+            _CoinPackageCard(
+              coins: 1000,
+              price: '70.00 TL',
+              onTap: () => _buyCoins(1000, 70.00),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _buyCoins(int amount, double cost) async {
+    Navigator.pop(context); // Dialogu kapat
+    
+    // Yükleniyor göster
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Backend isteği
+      final result = await _gamificationService.buyCoins(amount, cost);
+      
+      if (mounted) {
+        Navigator.pop(context); // Loading'i kapat
+        
+        if (result.success) {
+          // Başarılı
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.message),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _loadData(); // Profili yenile
+        } else {
+          // Hata
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.message),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Bir hata oluştu'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   void _showFreezeDialog() {
@@ -604,29 +704,31 @@ class _StatCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingM,
-          vertical: AppTheme.spacingM,
+          horizontal: 16,
+          vertical: 16,
         ),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-          boxShadow: AppTheme.cardShadow,
+          color: AppTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.textSecondary.withOpacity(0.2)),
         ),
         child: Column(
           children: [
             Icon(icon, color: iconColor, size: 28),
-            const SizedBox(height: AppTheme.spacingXS),
+            const SizedBox(height: 8),
             Text(
               value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: const TextStyle(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),
             ),
             Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary.withOpacity(0.8),
               ),
             ),
           ],
@@ -635,6 +737,97 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
+
+class _CoinPackageCard extends StatelessWidget {
+  final int coins;
+  final String price;
+  final bool isPopular;
+  final VoidCallback onTap;
+
+  const _CoinPackageCard({
+    required this.coins,
+    required this.price,
+    this.isPopular = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isPopular ? Colors.amber : AppTheme.textSecondary.withOpacity(0.2),
+            width: isPopular ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.monetization_on, color: Colors.amber),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$coins Coin',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (isPopular)
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.amber,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'POPÜLER',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                price,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class _ProfileOption extends StatelessWidget {
   final IconData icon;
@@ -653,16 +846,16 @@ class _ProfileOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-        boxShadow: AppTheme.cardShadow,
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
       ),
       child: ListTile(
         leading: Container(
-          padding: const EdgeInsets.all(AppTheme.spacingS),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: AppTheme.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
@@ -672,14 +865,16 @@ class _ProfileOption extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: const TextStyle(
+            fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppTheme.textPrimary,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          style: const TextStyle(
+            fontSize: 12,
             color: AppTheme.textSecondary,
           ),
         ),
@@ -690,11 +885,11 @@ class _ProfileOption extends StatelessWidget {
         ),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingM,
-          vertical: AppTheme.spacingS,
+          horizontal: 16,
+          vertical: 8,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );

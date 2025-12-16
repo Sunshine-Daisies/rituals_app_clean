@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
+import '../../services/sharing_service.dart';
 import '../../theme/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -13,10 +14,12 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final GamificationService _gamificationService = GamificationService();
+  final SharingService _sharingService = SharingService();
   
   List<AppNotification> _notifications = [];
   int _unreadCount = 0;
   bool _isLoading = true;
+  String _filter = 'all'; // 'all', 'unread'
 
   @override
   void initState() {
@@ -79,6 +82,91 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _deleteAllNotifications() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: const Text('Tümünü Sil?'),
+        content: const Text('Tüm bildirimlerin silinecek. Bu işlem geri alınamaz.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await _gamificationService.deleteAllNotifications();
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tüm bildirimler silindi'),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        _loadNotifications();
+      }
+    }
+  }
+
+  Future<void> _acceptPartnerRequest(int notificationId, String partnerId) async {
+    try {
+      await _sharingService.acceptPartner(partnerId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Partner isteği kabul edildi!'),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        _markAsRead(notificationId);
+        _loadNotifications();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectPartnerRequest(int notificationId, String partnerId) async {
+    try {
+      await _sharingService.rejectPartner(partnerId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Partner isteği reddedildi'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        _markAsRead(notificationId);
+        _loadNotifications();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
   IconData _getNotificationIcon(String type) {
     switch (type) {
       case 'friend_request':
@@ -93,10 +181,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Icons.local_fire_department;
       case 'partner_completed':
         return Icons.check_circle;
+      case 'both_completed':
+        return Icons.celebration;
+      case 'partner_streak_record':
+        return Icons.emoji_events;
       case 'partner_missed':
         return Icons.warning;
       case 'freeze_used':
         return Icons.ac_unit;
+      case 'ritual_invite':
+        return Icons.group_add;
+      case 'partner_accepted':
+        return Icons.handshake;
+      case 'partner_left':
+        return Icons.person_remove;
       default:
         return Icons.notifications;
     }
@@ -115,13 +213,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Colors.orange;
       case 'partner_completed':
         return AppTheme.successColor;
+      case 'both_completed':
+        return Colors.deepOrange;
+      case 'partner_streak_record':
+        return Colors.amber;
       case 'partner_missed':
         return AppTheme.errorColor;
       case 'freeze_used':
         return Colors.lightBlue;
+      case 'ritual_invite':
+        return Colors.teal;
+      case 'partner_accepted':
+        return AppTheme.successColor;
+      case 'partner_left':
+        return Colors.grey;
       default:
         return AppTheme.textSecondary;
     }
+  }
+
+  List<AppNotification> get _filteredNotifications {
+    if (_filter == 'unread') {
+      return _notifications.where((n) => !n.isRead).toList();
+    }
+    return _notifications;
   }
 
   @override
@@ -166,26 +281,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                       ),
                     ),
-                    if (_unreadCount > 0) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '$_unreadCount yeni',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppTheme.spacingS),
-                    ],
                     // Mark All Read Button
-                    if (_unreadCount > 0)
+                    if (_unreadCount > 0) ...[
                       Container(
                         decoration: BoxDecoration(
                           color: AppTheme.surfaceColor,
@@ -198,7 +295,105 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           tooltip: 'Tümünü Okundu İşaretle',
                         ),
                       ),
+                      const SizedBox(width: 8),
+                    ],
+                    
+                    // Delete All Button
+                    if (_notifications.isNotEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                          boxShadow: AppTheme.cardShadow,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.delete_sweep, color: AppTheme.errorColor, size: 20),
+                          onPressed: _deleteAllNotifications,
+                          tooltip: 'Tümünü Sil',
+                        ),
+                      ),
                   ],
+                ),
+              ),
+
+              // Filter Tabs
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL, vertical: AppTheme.spacingS),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: AppTheme.cardShadow,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _filter = 'all'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _filter == 'all' ? AppTheme.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Tümü',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _filter == 'all' ? Colors.white : AppTheme.textSecondary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _filter = 'unread'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _filter == 'unread' ? AppTheme.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Okunmamış',
+                                  style: TextStyle(
+                                    color: _filter == 'unread' ? Colors.white : AppTheme.textSecondary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                if (_unreadCount > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _filter == 'unread' ? Colors.white : AppTheme.primaryColor,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '$_unreadCount',
+                                      style: TextStyle(
+                                        color: _filter == 'unread' ? AppTheme.primaryColor : Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
@@ -206,30 +401,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _notifications.isEmpty
+                    : _filteredNotifications.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.notifications_off_outlined,
+                                  _filter == 'unread' ? Icons.mark_email_read_outlined : Icons.notifications_off_outlined,
                                   size: 80,
                                   color: AppTheme.textSecondary.withOpacity(0.5),
                                 ),
                                 const SizedBox(height: AppTheme.spacingM),
                                 Text(
-                                  'Bildirim yok',
+                                  _filter == 'unread' ? 'Okunmamış bildirim yok' : 'Bildirim yok',
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: AppTheme.textSecondary,
                                   ),
-                                ),
-                                const SizedBox(height: AppTheme.spacingS),
-                                Text(
-                                  'Yeni gelişmeler olduğunda burada görünecek',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -238,15 +425,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             onRefresh: _loadNotifications,
                             child: ListView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                              itemCount: _notifications.length,
+                              itemCount: _filteredNotifications.length,
                               itemBuilder: (context, index) {
-                                final notification = _notifications[index];
+                                final notification = _filteredNotifications[index];
                                 return _NotificationCard(
                                   notification: notification,
                                   icon: _getNotificationIcon(notification.type),
                                   iconColor: _getNotificationColor(notification.type),
                                   onTap: () => _markAsRead(notification.id),
                                   onDismiss: () => _deleteNotification(notification.id),
+                                  onAcceptPartner: notification.type == 'ritual_invite' 
+                                    ? () {
+                                        final partnerId = notification.data?['partner_id']?.toString();
+                                        if (partnerId != null) {
+                                          _acceptPartnerRequest(notification.id, partnerId);
+                                        }
+                                      }
+                                    : null,
+                                  onRejectPartner: notification.type == 'ritual_invite'
+                                    ? () {
+                                        final partnerId = notification.data?['partner_id']?.toString();
+                                        if (partnerId != null) {
+                                          _rejectPartnerRequest(notification.id, partnerId);
+                                        }
+                                      }
+                                    : null,
                                 );
                               },
                             ),
@@ -266,6 +469,8 @@ class _NotificationCard extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
   final VoidCallback onDismiss;
+  final VoidCallback? onAcceptPartner;
+  final VoidCallback? onRejectPartner;
 
   const _NotificationCard({
     required this.notification,
@@ -273,6 +478,8 @@ class _NotificationCard extends StatelessWidget {
     required this.iconColor,
     required this.onTap,
     required this.onDismiss,
+    this.onAcceptPartner,
+    this.onRejectPartner,
   });
 
   String _formatTimeAgo(DateTime date) {
@@ -380,6 +587,39 @@ class _NotificationCard extends StatelessWidget {
                     fontSize: 11,
                   ),
                 ),
+                // Partner request action buttons
+                if (notification.type == 'ritual_invite' && !notification.isRead && onAcceptPartner != null && onRejectPartner != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onRejectPartner,
+                          icon: const Icon(Icons.close, size: 16),
+                          label: const Text('Reddet'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.errorColor,
+                            side: const BorderSide(color: AppTheme.errorColor),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: onAcceptPartner,
+                          icon: const Icon(Icons.check, size: 16),
+                          label: const Text('Kabul Et'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.successColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
             contentPadding: const EdgeInsets.symmetric(

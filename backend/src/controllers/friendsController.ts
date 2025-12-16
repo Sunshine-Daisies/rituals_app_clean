@@ -190,9 +190,10 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
       ['accepted', id]
     );
     
-    // Her iki kullanıcıya da XP ver
-    await xpService.addXp(userId, xpService.XP_REWARDS.friend_add, 'friend_add', friendship.requester_id);
-    await xpService.addXp(friendship.requester_id, xpService.XP_REWARDS.friend_add, 'friend_add', userId);
+    // Her iki kullanıcıya da XP ver (sourceId olarak friendship.id kullan)
+    const friendshipIdInt = parseInt(id as string, 10);
+    await xpService.addXp(userId, xpService.XP_REWARDS.friend_add, 'friend_add', friendshipIdInt);
+    await xpService.addXp(friendship.requester_id, xpService.XP_REWARDS.friend_add, 'friend_add', friendshipIdInt);
     
     // Gönderen kişiye bildirim
     const accepterProfile = await client.query(

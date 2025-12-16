@@ -1,0 +1,171 @@
+---
+sidebar_position: 3
+---
+
+import FullscreenDiagram from '@site/src/components/FullscreenDiagram';
+
+# User Flows
+
+This document outlines the primary user journeys within the Rituals App.
+
+## 1. Onboarding & Authentication
+
+The flow for a new or returning user accessing the application.
+
+<FullscreenDiagram definition={`
+flowchart LR
+    Start((App Launch)) --> Splash{Has Token?}
+    
+    Splash -->|No| LoginScreen[Login Screen]
+    Splash -->|Yes| VerifyToken{Verify Token}
+    
+    LoginScreen -->|Sign Up| Register[Register Screen]
+    LoginScreen -->|Sign In| AuthAPI[API: /login]
+    
+    Register -->|Success| AuthAPI
+    
+    AuthAPI -->|Success| SaveToken[Secure Storage]
+    SaveToken --> FetchProfile[Fetch User Profile]
+    
+    VerifyToken -->|Valid| FetchProfile
+    VerifyToken -->|Invalid| LoginScreen
+    
+    FetchProfile --> Home[Dashboard]
+`} />
+
+## 2. Core Loop (Daily Check-in)
+
+The primary action a user performs daily: completing a ritual.
+
+<FullscreenDiagram definition={`
+flowchart TD
+    %% Nodes
+    User([User])
+    Action[Taps Checkbox]
+    Feedback[App: Haptic & Animation]
+    API[API: Complete Ritual]
+    DB[(Database Update)]
+    CheckLevel{Level Up?}
+    Reward1[Show: +10 XP Toast]
+    Reward2[Show: Level Up Dialog!]
+
+    %% Flow
+    User --> Action
+    Action --> Feedback
+    Feedback --> API
+    API --> DB
+    DB --> CheckLevel
+    
+    CheckLevel -->|No| Reward1
+    CheckLevel -->|Yes| Reward2
+    
+    %% Styling
+    style User fill:#f9f,stroke:#333,stroke-width:2px
+    style DB fill:#bbf,stroke:#333,stroke-width:2px
+    style CheckLevel fill:#ff9,stroke:#333,stroke-width:2px
+`} />
+
+## 3. Ritual Creation Flow
+
+The process of setting up a new habit.
+
+<FullscreenDiagram definition={`
+flowchart LR
+    Start((Start)) --> Fab[Tap '+']
+    
+    subgraph Wizard [Creation Wizard]
+        direction LR
+        Step1[1. Basic Info] --> Step2[2. Frequency]
+        Step2 --> Step3[3. Reminder]
+        Step3 --> Step4[4. Styling]
+    end
+    
+    Fab --> Step1
+    Step4 --> Review[Review & Save]
+    Review --> API[API: Create Ritual]
+    API --> Success((Done))
+
+    %% Styling
+    style Wizard fill:#f5f5f5,stroke:#333,stroke-dasharray: 5 5
+    style Success fill:#9f9,stroke:#333,stroke-width:2px
+`} />
+
+## 4. Social Connection Flow
+
+How users find and connect with friends.
+
+<FullscreenDiagram definition={`
+sequenceDiagram
+    actor UserA as Requester
+    participant App
+    participant API
+    participant DB
+    actor UserB as Addressee
+
+    UserA->>App: Search "UserB"
+    App->>API: GET /users/search
+    API-->>App: Returns User List
+    
+    UserA->>App: Tap "Add Friend"
+    App->>API: POST /friends/request
+    API->>DB: Create Friendship (Pending)
+    API->>UserB: Send Push Notification
+    
+    UserB->>App: Opens Notification
+    App->>UserB: Show Request
+    UserB->>App: Tap "Accept"
+    App->>API: PUT /friends/accept
+    API->>DB: Update Status to 'Accepted'
+    API->>DB: Award XP (Social Bonus)
+    
+    API-->>UserA: Notify "Request Accepted"
+`} />
+
+## 5. Partnership Invitation Flow
+
+Sharing a ritual to track it together.
+
+<FullscreenDiagram definition={`
+flowchart TD
+    UserA([User A]) -->|Selects Ritual| Detail[Ritual Detail]
+    Detail -->|Taps Share| ShareSheet[Share Dialog]
+    ShareSheet -->|Selects Friend| API_Invite[API: Create Invite]
+    
+    API_Invite -->|Generates| Code[Invite Code / Link]
+    Code -->|Sent via Chat| UserB([User B])
+    
+    UserB -->|Clicks Link| AppB[Opens App]
+    AppB -->|Validates| API_Join[API: Join Partnership]
+    
+    API_Join --> DB[(Create Partnership Record)]
+    DB --> Success{Success}
+    
+    Success -->|Notify A| NotifA[User A: 'B joined!']
+    Success -->|Notify B| NotifB[User B: Ritual Added]
+    
+    style Code fill:#ff9,stroke:#333
+    style DB fill:#bbf,stroke:#333
+`} />
+
+## 6. AI Assistant Pipeline
+
+The secure flow of interacting with the AI Coach.
+
+<FullscreenDiagram definition={`
+flowchart LR
+    User([User]) -->|Message| ClientSecurity[LlmSecurityService]
+    
+    ClientSecurity -->|Contains Forbidden Word?| Block[Block Request]
+    ClientSecurity -->|Safe| Backend[Backend API]
+    
+    Backend -->|Rate Limit Check| Rate{Allowed?}
+    Rate -->|No| Error[429 Too Many Requests]
+    Rate -->|Yes| LLM[LLM Provider]
+    
+    LLM -->|Response| Backend
+    Backend -->|Log Usage| DB[(Usage Logs)]
+    Backend -->|Stream Response| User
+    
+    style ClientSecurity fill:#f99,stroke:#333,stroke-width:2px
+    style LLM fill:#9f9,stroke:#333,stroke-width:2px
+`} />

@@ -7,14 +7,19 @@ class SharedRitual {
   final String? ritualDescription;
   final String ownerId;
   final String ownerUsername;
+  final int? ownerLevel;
   final String? partnerId;
   final String? partnerUsername;
   final String? inviteCode;
   final String visibility; // 'private' | 'friends_only' | 'public'
   final int partnerStreak;
+  final int longestStreak;
   final DateTime? partnerAcceptedAt;
-  final String status; // 'pending' | 'active' | 'completed'
+  final DateTime? joinedAt;
+  final String status; // 'pending' | 'accepted' | 'rejected' | 'left'
   final DateTime createdAt;
+  final String? time;
+  final List<String>? days;
 
   SharedRitual({
     required this.ritualId,
@@ -22,39 +27,66 @@ class SharedRitual {
     this.ritualDescription,
     required this.ownerId,
     required this.ownerUsername,
+    this.ownerLevel,
     this.partnerId,
     this.partnerUsername,
     this.inviteCode,
     required this.visibility,
     required this.partnerStreak,
+    this.longestStreak = 0,
     this.partnerAcceptedAt,
+    this.joinedAt,
     required this.status,
     required this.createdAt,
+    this.time,
+    this.days,
   });
 
   factory SharedRitual.fromJson(Map<String, dynamic> json) {
+    // Parse days - can be string array or JSON string
+    List<String>? parsedDays;
+    if (json['days'] != null) {
+      if (json['days'] is List) {
+        parsedDays = (json['days'] as List).map((e) => e.toString()).toList();
+      } else if (json['days'] is String) {
+        try {
+          final decoded = json['days'];
+          if (decoded.startsWith('[')) {
+            parsedDays = (decoded as String).replaceAll('[', '').replaceAll(']', '').replaceAll('"', '').split(',').map((e) => e.trim()).toList();
+          }
+        } catch (_) {}
+      }
+    }
+
     return SharedRitual(
-      ritualId: json['ritual_id'] ?? json['ritualId'] ?? '',
-      ritualTitle: json['ritual_title'] ?? json['ritualTitle'] ?? json['title'] ?? '',
+      ritualId: (json['ritual_id'] ?? json['ritualId'] ?? '').toString(),
+      ritualTitle: json['ritual_name'] ?? json['ritual_title'] ?? json['ritualTitle'] ?? json['name'] ?? json['title'] ?? '',
       ritualDescription: json['ritual_description'] ?? json['ritualDescription'] ?? json['description'],
-      ownerId: json['owner_id'] ?? json['ownerId'] ?? '',
+      ownerId: (json['owner_id'] ?? json['ownerId'] ?? '').toString(),
       ownerUsername: json['owner_username'] ?? json['ownerUsername'] ?? '',
-      partnerId: json['partner_id'] ?? json['partnerId'],
+      ownerLevel: json['owner_level'] ?? json['ownerLevel'],
+      partnerId: json['partner_id']?.toString() ?? json['partnerId']?.toString(),
       partnerUsername: json['partner_username'] ?? json['partnerUsername'],
       inviteCode: json['invite_code'] ?? json['inviteCode'],
       visibility: json['visibility'] ?? 'private',
-      partnerStreak: json['partner_streak'] ?? json['partnerStreak'] ?? 0,
+      partnerStreak: json['current_streak'] ?? json['partner_streak'] ?? json['partnerStreak'] ?? 0,
+      longestStreak: json['longest_streak'] ?? json['longestStreak'] ?? 0,
       partnerAcceptedAt: json['partner_accepted_at'] != null 
           ? DateTime.parse(json['partner_accepted_at']) 
           : json['partnerAcceptedAt'] != null 
               ? DateTime.parse(json['partnerAcceptedAt'])
               : null,
+      joinedAt: json['joined_at'] != null 
+          ? DateTime.parse(json['joined_at']) 
+          : null,
       status: json['status'] ?? 'pending',
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'])
           : json['createdAt'] != null
               ? DateTime.parse(json['createdAt'])
               : DateTime.now(),
+      time: json['time'],
+      days: parsedDays,
     );
   }
 
@@ -65,19 +97,24 @@ class SharedRitual {
       'ritual_description': ritualDescription,
       'owner_id': ownerId,
       'owner_username': ownerUsername,
+      'owner_level': ownerLevel,
       'partner_id': partnerId,
       'partner_username': partnerUsername,
       'invite_code': inviteCode,
       'visibility': visibility,
-      'partner_streak': partnerStreak,
+      'current_streak': partnerStreak,
+      'longest_streak': longestStreak,
       'partner_accepted_at': partnerAcceptedAt?.toIso8601String(),
+      'joined_at': joinedAt?.toIso8601String(),
       'status': status,
       'created_at': createdAt.toIso8601String(),
+      'time': time,
+      'days': days,
     };
   }
 
   bool get hasPartner => partnerId != null;
-  bool get isActive => status == 'active';
+  bool get isActive => status == 'accepted';
   bool get isPending => status == 'pending';
 }
 

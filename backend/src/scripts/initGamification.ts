@@ -153,7 +153,7 @@ async function initGamification() {
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         amount INTEGER NOT NULL,
         source VARCHAR(100),
-        source_id INTEGER,
+        source_id TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -173,7 +173,7 @@ async function initGamification() {
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         amount INTEGER NOT NULL,
         source VARCHAR(100),
-        source_id INTEGER,
+        source_id TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

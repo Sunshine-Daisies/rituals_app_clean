@@ -9,14 +9,88 @@ import devicesRoutes from './routes/devicesRoutes';
 import gamificationRoutes from './routes/gamificationRoutes';
 import sharingRoutes from './routes/sharingRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import partnershipRoutes from './routes/partnershipRoutes';
+import testRoutes from './routes/testRoutes';
+import { initializeStreakScheduler, shutdownStreakScheduler } from './services/streakScheduler';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT || '3000', 10);
 
-app.use(cors());
+// Railway gibi proxy arkasında çalışırken gerekli
+app.enable('trust proxy');
+
+// CORS ayarları
+app.use(cors({
+  origin: '*', // Tüm originlere izin ver (Production'da daha spesifik olabilir)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.send('Rituals API is running. Go to /docs for documentation.');
+});
+
+// DB Setup Endpoint (Temporary)
+import pool from './config/db';
+import { setupFullDatabase } from './controllers/setupController';
+
+app.get('/setup-db', async (req, res) => {
+  // ... existing simple setup ...
+  try {
+    const createTablesQuery = `
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+      
+      -- (Existing tables)
+      CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      -- ... (rest of the simple setup)
+    `;
+    // We keep the old one for basic tables, but let's redirect to the full setup or just add a new endpoint
+    // Actually, let's just replace the old setup-db logic with the new one or add a new endpoint.
+    // The user is used to /setup-db. Let's make /setup-db do the basic stuff (which is already done) AND the new stuff.
+    // But to be safe, let's add /setup-full and tell the user to go there.
+    
+    // For now, let's just add the new endpoint.
+    res.send('Please use /setup-full for complete installation.');
+  } catch (error) {
+    res.status(500).send('Error: ' + error);
+  }
+});
+
+app.get('/setup-full', setupFullDatabase);
+
+// =================================================================
+// API DOCUMENTATION (Swagger)
+// =================================================================
+const swaggerOptions = {
+  customSiteTitle: "Rituals API Docs",
+  customCss: `
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info { margin: 20px 0; }
+  `,
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'none',
+    filter: true,
+  },
+};
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
+
+// Test endpoints (before auth middleware)
+app.use('/api/test', testRoutes);
 
 // Rotalar
 app.use('/api/auth', authRoutes);
@@ -25,13 +99,35 @@ app.use('/api/ritual-logs', ritualLogsRoutes);
 app.use('/api/llm-usage', llmUsageRoutes);
 app.use('/api/devices', devicesRoutes);
 app.use('/api', gamificationRoutes); // Gamification routes (/api/profile, /api/friends, etc.)
-app.use('/api/sharing', sharingRoutes); // Ritual sharing routes
+app.use('/api/sharing', sharingRoutes); // Ritual sharing routes (legacy)
+app.use('/api/partnerships', partnershipRoutes); // New equal partnership routes
 app.use('/api/notifications', notificationRoutes); // Push notification routes
 
 app.get('/', (req, res) => {
-  res.send('Rituals API Çalışıyor v1.3 - Gamification + Sharing + Notifications 🎮🤝🔔');
+  res.send('Rituals API Çalışıyor v1.4 - Equal Partnerships 🤝');
 });
 
-app.listen(port, () => {
-  console.log(`Server http://localhost:${port} adresinde çalışıyor`);
+app.listen(port, '0.0.0.0', async () => {
+  console.log(`Server http://0.0.0.0:${port} adresinde çalışıyor`);
+  
+  // Initialize streak scheduler for automatic streak checking
+  try {
+    await initializeStreakScheduler();
+    console.log('✅ Streak scheduler initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize streak scheduler:', error);
+  }
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  shutdownStreakScheduler();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  shutdownStreakScheduler();
+  process.exit(0);
 });

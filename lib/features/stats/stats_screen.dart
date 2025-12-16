@@ -1,281 +1,330 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../theme/app_theme.dart';
+import '../../services/gamification_service.dart';
+import '../../data/models/user_stats.dart';
 
-class StatsScreen extends StatelessWidget {
+class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Sample data - will come from API in real app
-    final stats = {
-      'totalRituals': 12,
-      'completedToday': 5,
-      'weeklyStreak': 7,
-      'completionRate': 85,
-    };
+  State<StatsScreen> createState() => _StatsScreenState();
+}
 
+class _StatsScreenState extends State<StatsScreen> {
+  bool _isLoading = true;
+  UserStats? _stats;
+  final _gamificationService = GamificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    setState(() => _isLoading = true);
+    try {
+      final stats = await _gamificationService.getUserStats();
+      if (mounted) {
+        setState(() {
+          _stats = stats;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('İstatistikler yüklenemedi')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // Custom App Bar
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppTheme.spacingL),
-                  child: Row(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                          boxShadow: AppTheme.cardShadow,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          onPressed: () => context.go('/home'),
-                          color: AppTheme.textPrimary,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : CustomScrollView(
+                  slivers: [
+                    // Header
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppTheme.spacingL),
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceColor,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                boxShadow: AppTheme.cardShadow,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.arrow_back),
+                                onPressed: () => context.go('/home'),
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: AppTheme.spacingM),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'İstatistikler',
+                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Gelişimini takip et',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: AppTheme.spacingM),
-                      Expanded(
+                    ),
+
+                    // Main Chart Section
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                        child: Container(
+                          height: 220,
+                          padding: const EdgeInsets.all(AppTheme.spacingL),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceColor,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                            boxShadow: AppTheme.cardShadow,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Haftalık Aktivite',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: AppTheme.spacingM),
+                              Expanded(
+                                child: _WeeklyChart(weeklyActivity: _stats?.weeklyActivity ?? []),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spacingL)),
+
+                    // Key Metrics Grid
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: AppTheme.spacingM,
+                          mainAxisSpacing: AppTheme.spacingM,
+                          childAspectRatio: 1.5,
+                        ),
+                        delegate: SliverChildListDelegate([
+                          _MetricCard(
+                            title: 'En Uzun Seri',
+                            value: '${_stats?.longestStreak ?? 0}',
+                            subtitle: 'Gün',
+                            icon: Icons.local_fire_department,
+                            color: Colors.orange,
+                          ),
+                          _MetricCard(
+                            title: 'Mevcut Seri',
+                            value: '${_stats?.currentBestStreak ?? 0}',
+                            subtitle: 'Gün',
+                            icon: Icons.bolt,
+                            color: Colors.yellow,
+                          ),
+                          _MetricCard(
+                            title: 'Toplam',
+                            value: '${_stats?.totalCompletions ?? 0}',
+                            subtitle: 'Tamamlanan',
+                            icon: Icons.check_circle_outline,
+                            color: Colors.green,
+                          ),
+                          _MetricCard(
+                            title: 'Başarı Oranı',
+                            value: _calculateCompletionRate(),
+                            subtitle: 'Günlük',
+                            icon: Icons.pie_chart,
+                            color: Colors.blue,
+                          ),
+                        ]),
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spacingL)),
+
+                    // Heatmap Section (Simplified as Grid)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Statistics',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Track your progress',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                          boxShadow: AppTheme.softShadow,
-                        ),
-                        child: const Icon(
-                          Icons.analytics,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Stats Cards
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: AppTheme.spacingM,
-                    mainAxisSpacing: AppTheme.spacingM,
-                    childAspectRatio: 1.3,
-                  ),
-                  delegate: SliverChildListDelegate([
-                    _StatCard(
-                      title: 'Total Rituals',
-                      value: '${stats['totalRituals']}',
-                      icon: Icons.psychology,
-                      gradient: AppTheme.primaryGradient,
-                    ),
-                    _StatCard(
-                      title: 'Completed Today',
-                      value: '${stats['completedToday']}',
-                      icon: Icons.check_circle,
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.successColor, Color(0xFF66BB6A)],
-                      ),
-                    ),
-                    _StatCard(
-                      title: 'Weekly Streak',
-                      value: '${stats['weeklyStreak']} days',
-                      icon: Icons.local_fire_department,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
-                      ),
-                    ),
-                    _StatCard(
-                      title: 'Completion Rate',
-                      value: '${stats['completionRate']}%',
-                      icon: Icons.trending_up,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-              
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppTheme.spacingL),
-              ),
-              
-              // Weekly Progress Card
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                  child: Container(
-                    padding: const EdgeInsets.all(AppTheme.spacingL),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusL),
-                      boxShadow: AppTheme.cardShadow,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.primaryGradient,
-                                borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                              ),
-                              child: const Icon(
-                                Icons.calendar_today,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: AppTheme.spacingM),
-                            Text(
-                              'Weekly Progress',
+                              'Son 30 Gün',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
                               ),
                             ),
+                            const SizedBox(height: AppTheme.spacingM),
+                            _MonthlyHeatmap(monthlyActivity: _stats?.monthlyActivity ?? []),
                           ],
                         ),
-                        const SizedBox(height: AppTheme.spacingL),
-                        
-                        // Week Days
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _DayProgress(day: 'Mon', completed: true, count: 5),
-                            _DayProgress(day: 'Tue', completed: true, count: 4),
-                            _DayProgress(day: 'Wed', completed: true, count: 6),
-                            _DayProgress(day: 'Thu', completed: false, count: 3),
-                            _DayProgress(day: 'Fri', completed: false, count: 0),
-                            _DayProgress(day: 'Sat', completed: false, count: 0),
-                            _DayProgress(day: 'Sun', completed: false, count: 0),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppTheme.spacingL),
-              ),
-              
-              // Recent Activities
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                  child: Container(
-                    padding: const EdgeInsets.all(AppTheme.spacingL),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusL),
-                      boxShadow: AppTheme.cardShadow,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+
+                    const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spacingL)),
+
+                    // Top Rituals List
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.accentGradient,
-                                borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                              ),
-                              child: const Icon(
-                                Icons.history,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: AppTheme.spacingM),
                             Text(
-                              'Recent Activities',
+                              'En İyi Ritüellerin',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
                               ),
                             ),
+                            const SizedBox(height: AppTheme.spacingM),
+                            if (_stats?.topRituals.isEmpty ?? true)
+                              const Text('Henüz veri yok')
+                            else
+                              ..._stats!.topRituals.map((ritual) => _TopRitualItem(ritual: ritual)),
                           ],
                         ),
-                        const SizedBox(height: AppTheme.spacingM),
-                        
-                        _ActivityItem(
-                          title: 'Morning Meditation',
-                          time: '2 hours ago',
-                          icon: Icons.self_improvement,
-                          color: AppTheme.primaryColor,
-                        ),
-                        _ActivityItem(
-                          title: 'Exercise Routine',
-                          time: '5 hours ago',
-                          icon: Icons.fitness_center,
-                          color: AppTheme.successColor,
-                        ),
-                        _ActivityItem(
-                          title: 'Evening Reading',
-                          time: 'Yesterday',
-                          icon: Icons.menu_book,
-                          color: AppTheme.accentColor,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spacingXXL)),
+                  ],
                 ),
-              ),
-              
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppTheme.spacingXXL),
-              ),
-            ],
+        ),
+      ),
+    );
+  }
+
+  String _calculateCompletionRate() {
+    if (_stats == null || _stats!.totalRituals == 0) return '0%';
+    final rate = (_stats!.completedToday / _stats!.totalRituals) * 100;
+    return '${rate.toStringAsFixed(0)}%';
+  }
+}
+
+class _WeeklyChart extends StatelessWidget {
+  final List<WeeklyActivity> weeklyActivity;
+
+  const _WeeklyChart({required this.weeklyActivity});
+
+  @override
+  Widget build(BuildContext context) {
+    if (weeklyActivity.isEmpty) return const Center(child: Text('Veri yok'));
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: (weeklyActivity.map((e) => e.count).fold(0, (p, c) => p > c ? p : c) + 2).toDouble(),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (group) => AppTheme.surfaceColor,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                rod.toY.round().toString(),
+                const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+              );
+            },
           ),
         ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (value.toInt() >= 0 && value.toInt() < weeklyActivity.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      weeklyActivity[value.toInt()].day,
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        gridData: const FlGridData(show: false),
+        borderData: FlBorderData(show: false),
+        barGroups: weeklyActivity.asMap().entries.map((entry) {
+          return BarChartGroupData(
+            x: entry.key,
+            barRods: [
+              BarChartRodData(
+                toY: entry.value.count.toDouble(),
+                color: AppTheme.primaryColor,
+                width: 16,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: (weeklyActivity.map((e) => e.count).fold(0, (p, c) => p > c ? p : c) + 2).toDouble(),
+                  color: AppTheme.backgroundColor,
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _MetricCard extends StatelessWidget {
   final String title;
   final String value;
+  final String subtitle;
   final IconData icon;
-  final LinearGradient gradient;
+  final Color color;
 
-  const _StatCard({
+  const _MetricCard({
     required this.title,
     required this.value,
+    required this.subtitle,
     required this.icon,
-    required this.gradient,
+    required this.color,
   });
 
   @override
@@ -283,55 +332,45 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingM),
       decoration: BoxDecoration(
-        gradient: gradient,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusL),
         boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(AppTheme.radiusS),
-            ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 20,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: color, size: 24),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textSecondary,
+                  fontSize: 10,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -339,87 +378,86 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _DayProgress extends StatelessWidget {
-  final String day;
-  final bool completed;
-  final int count;
+class _MonthlyHeatmap extends StatelessWidget {
+  final List<MonthlyActivity> monthlyActivity;
 
-  const _DayProgress({
-    required this.day,
-    required this.completed,
-    required this.count,
-  });
+  const _MonthlyHeatmap({required this.monthlyActivity});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            gradient: completed ? AppTheme.primaryGradient : null,
-            color: completed ? null : AppTheme.backgroundColor,
-            shape: BoxShape.circle,
-            boxShadow: completed ? AppTheme.softShadow : null,
+    // Son 30 gün için grid oluştur
+    // Basit bir implementasyon: 5 satır, 6 sütunluk grid
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 10,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+      ),
+      itemCount: 30,
+      itemBuilder: (context, index) {
+        // Tarihi hesapla (Bugünden geriye doğru)
+        final date = DateTime.now().subtract(Duration(days: 29 - index));
+        
+        // Bu tarihte aktivite var mı?
+        final activity = monthlyActivity.firstWhere(
+          (a) => _isSameDay(a.date, date),
+          orElse: () => MonthlyActivity(date: date, count: 0),
+        );
+
+        final count = activity.count;
+        Color color = AppTheme.surfaceColor;
+        if (count > 0) {
+          // Aktivite yoğunluğuna göre renk
+          final intensity = (count / 5).clamp(0.2, 1.0); // Max 5 aktivite varsayalım
+          color = AppTheme.primaryColor.withValues(alpha: intensity);
+        } else {
+           color = AppTheme.surfaceColor.withValues(alpha: 0.5); // Boş günler
+        }
+
+        return Tooltip(
+          message: '${date.day}/${date.month}: $count',
+          child: Container(
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
-          child: Center(
-            child: completed
-                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                : Text(
-                    '$count',
-                    style: TextStyle(
-                      color: count > 0 ? AppTheme.primaryColor : AppTheme.textLight,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          day,
-          style: TextStyle(
-            fontSize: 12,
-            color: completed ? AppTheme.textPrimary : AppTheme.textSecondary,
-            fontWeight: completed ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  bool _isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 }
 
-class _ActivityItem extends StatelessWidget {
-  final String title;
-  final String time;
-  final IconData icon;
-  final Color color;
+class _TopRitualItem extends StatelessWidget {
+  final TopRitual ritual;
 
-  const _ActivityItem({
-    required this.title,
-    required this.time,
-    required this.icon,
-    required this.color,
-  });
+  const _TopRitualItem({required this.ritual});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingS),
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
+      padding: const EdgeInsets.all(AppTheme.spacingM),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusM),
+        boxShadow: AppTheme.softShadow,
+      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusM),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppTheme.radiusS),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
+            child: const Icon(Icons.star, color: AppTheme.primaryColor, size: 20),
           ),
           const SizedBox(width: AppTheme.spacingM),
           Expanded(
@@ -427,28 +465,48 @@ class _ActivityItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textPrimary,
+                  ritual.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
-                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.repeat, size: 14, color: AppTheme.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${ritual.count} kez yapıldı',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right,
-            color: AppTheme.textLight,
-            size: 20,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.local_fire_department, size: 14, color: Colors.orange),
+                const SizedBox(width: 4),
+                Text(
+                  '${ritual.currentStreak}',
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

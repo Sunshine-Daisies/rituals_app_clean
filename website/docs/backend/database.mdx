@@ -1,0 +1,200 @@
+---
+sidebar_position: 3
+---
+
+import FullscreenDiagram from '@site/src/components/FullscreenDiagram';
+
+# Database Schema
+
+The application uses **PostgreSQL** as the primary relational database. Below is the comprehensive Entity-Relationship (ER) Diagram representing the full data structure.
+
+## ER Diagram
+
+<FullscreenDiagram definition={`
+erDiagram
+    %% Core User & Profile
+    USERS ||--|| USER_PROFILES : has
+    USERS ||--o{ DEVICES : owns
+    USERS ||--o{ USER_FCM_TOKENS : has
+    USERS ||--o{ NOTIFICATIONS : receives
+
+    %% Rituals System
+    USERS ||--o{ RITUALS : creates
+    RITUALS ||--o{ RITUAL_STEPS : contains
+    RITUALS ||--o{ RITUAL_LOGS : tracks
+    
+    %% Social & Sharing
+    USERS ||--o{ FRIENDSHIPS : requests
+    USERS ||--o{ FRIENDSHIPS : receives
+    
+    RITUALS ||--o{ SHARED_RITUALS : shared_as
+    USERS ||--o{ SHARED_RITUALS : owns
+    SHARED_RITUALS ||--o{ RITUAL_PARTNERS : includes
+    USERS ||--o{ RITUAL_PARTNERS : joins
+    
+    %% Gamification
+    USERS ||--o{ USER_BADGES : earns
+    BADGES ||--o{ USER_BADGES : awarded_to
+    USERS ||--o{ XP_HISTORY : logs
+    USERS ||--o{ COIN_HISTORY : logs
+    
+    %% Features
+    USERS ||--o{ LLM_USAGE : generates
+    USERS ||--o{ FREEZE_LOGS : uses
+    RITUAL_PARTNERS ||--o{ FREEZE_LOGS : protected_in
+
+    USERS {
+        uuid id PK
+        string email
+        string password_hash
+        timestamp created_at
+    }
+
+    USER_PROFILES {
+        int id PK
+        uuid user_id FK
+        string username
+        int xp
+        int level
+        int coins
+        int freeze_count
+        int longest_streak
+    }
+
+    RITUALS {
+        uuid id PK
+        uuid user_id FK
+        string name
+        string reminder_time
+        text[] reminder_days
+    }
+
+    RITUAL_STEPS {
+        uuid id PK
+        uuid ritual_id FK
+        string title
+        boolean is_completed
+        int order_index
+    }
+
+    RITUAL_LOGS {
+        uuid id PK
+        uuid ritual_id FK
+        int step_index
+        timestamp completed_at
+    }
+
+    SHARED_RITUALS {
+        int id PK
+        uuid ritual_id FK
+        uuid owner_id FK
+        string invite_code
+        boolean is_public
+    }
+
+    RITUAL_PARTNERS {
+        int id PK
+        int shared_ritual_id FK
+        uuid user_id FK
+        string status
+        int current_streak
+    }
+
+    FRIENDSHIPS {
+        int id PK
+        uuid requester_id FK
+        uuid addressee_id FK
+        string status
+    }
+
+    BADGES {
+        int id PK
+        string name
+        string description
+        int xp_reward
+        int coin_reward
+    }
+
+    USER_BADGES {
+        int id PK
+        uuid user_id FK
+        int badge_id FK
+        timestamp earned_at
+    }
+
+    XP_HISTORY {
+        int id PK
+        uuid user_id FK
+        int amount
+        string source
+    }
+
+    COIN_HISTORY {
+        int id PK
+        uuid user_id FK
+        int amount
+        string source
+    }
+
+    LLM_USAGE {
+        uuid id PK
+        uuid user_id FK
+        string model
+        int tokens_in
+        int tokens_out
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        uuid user_id FK
+        string type
+        string title
+        boolean is_read
+    }
+
+    DEVICES {
+        uuid id PK
+        uuid profile_id FK
+        string device_token
+        string platform
+    }
+    
+    USER_FCM_TOKENS {
+        int id PK
+        uuid user_id FK
+        string fcm_token
+    }
+    
+    FREEZE_LOGS {
+        int id PK
+        uuid user_id FK
+        int ritual_partner_id FK
+        int streak_saved
+    }
+`} />
+
+## Tables Overview
+
+### Core Module
+*   **`users`**: Base authentication table.
+*   **`user_profiles`**: Extended user data including gamification stats (XP, Level, Coins).
+*   **`devices` & `user_fcm_tokens`**: Manages device tokens for push notifications.
+
+### Rituals Module
+*   **`rituals`**: The main habit definitions.
+*   **`ritual_steps`**: Sub-tasks within a ritual (e.g., "Put on shoes" for "Run" ritual).
+*   **`ritual_logs`**: History of ritual completions.
+
+### Social Module
+*   **`friendships`**: Manages friend requests and connections.
+*   **`shared_rituals`**: Represents a ritual instance that has been shared for multiplayer participation.
+*   **`ritual_partners`**: Tracks the participants in a shared ritual and their individual streaks.
+
+### Gamification Module
+*   **`badges` & `user_badges`**: Achievement system.
+*   **`xp_history` & `coin_history`**: Audit logs for all points earned or spent.
+*   **`freeze_logs`**: Tracks when a "Streak Freeze" item was used to save a streak.
+
+### Features
+*   **`llm_usage`**: Logs interactions with the AI Assistant for quota and cost tracking.
+*   **`notifications`**: Stores in-app notifications history.

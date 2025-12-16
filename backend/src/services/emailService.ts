@@ -3,10 +3,15 @@ import nodemailer from 'nodemailer';
 // Gmail ayarları
 // process.env.EMAIL_USER ve process.env.EMAIL_PASS, docker-compose.yml veya .env dosyasından gelir.
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // STARTTLS kullan
   auth: {
     user: process.env.EMAIL_USER || 'ritualsapp01@gmail.com', 
     pass: process.env.EMAIL_PASS || 'xyle cmgd mnnr pxrf'
+  },
+  tls: {
+    rejectUnauthorized: false // Sertifika hatalarını görmezden gel
   }
 });
 

@@ -69,7 +69,7 @@ export async function addXp(
   userId: string,
   amount: number,
   source: string,
-  sourceId?: number
+  sourceId?: string | number | null
 ): Promise<{ newXp: number; newLevel: number; leveledUp: boolean; coinsEarned: number }> {
   const client = await pool.connect();
   
@@ -164,7 +164,6 @@ export async function getUserProfile(userId: string) {
     `SELECT 
       up.*,
       u.email,
-      u.name,
       (SELECT COUNT(*) FROM friendships WHERE (requester_id = $1 OR addressee_id = $1) AND status = 'accepted') as friends_count,
       (SELECT COUNT(*) FROM rituals WHERE user_id = $1) as rituals_count,
       (SELECT COUNT(*) FROM ritual_logs WHERE user_id = $1) as completions_count

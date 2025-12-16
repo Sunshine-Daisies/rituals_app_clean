@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
+import '../../services/friends_service.dart';
 import '../../theme/app_theme.dart';
 
 class LeaderboardScreen extends StatefulWidget {
@@ -13,16 +14,32 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   final GamificationService _gamificationService = GamificationService();
+  final FriendsService _friendsService = FriendsService();
   
   List<LeaderboardEntry> _leaderboard = [];
   int? _myRank;
   String _selectedType = 'global';
   bool _isLoading = true;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
+    _loadCurrentUser();
     _loadLeaderboard();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      final profile = await _gamificationService.getMyProfile();
+      if (mounted && profile != null) {
+        setState(() {
+          _currentUserId = profile.userId;
+        });
+      }
+    } catch (e) {
+      print('Error loading current user: $e');
+    }
   }
 
   Future<void> _loadLeaderboard() async {
@@ -146,15 +163,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           _loadLeaderboard();
                         },
                       ),
-                      _TypeButton(
-                        label: 'Haftalık',
-                        icon: Icons.calendar_today,
-                        isSelected: _selectedType == 'weekly',
-                        onTap: () {
-                          setState(() => _selectedType = 'weekly');
-                          _loadLeaderboard();
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -196,6 +204,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 return _LeaderboardCard(
                                   entry: entry,
                                   isWeekly: _selectedType == 'weekly',
+                                  currentUserId: _currentUserId,
+                                  onSendFriendRequest: (userId) async {
+                                    final result = await _friendsService.sendFriendRequest(userId);
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(result.message),
+                                          backgroundColor: result.success ? Colors.green : Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  },
                                 );
                               },
                             ),
@@ -260,10 +280,14 @@ class _TypeButton extends StatelessWidget {
 class _LeaderboardCard extends StatelessWidget {
   final LeaderboardEntry entry;
   final bool isWeekly;
+  final String? currentUserId;
+  final Function(String) onSendFriendRequest;
 
   const _LeaderboardCard({
     required this.entry,
     this.isWeekly = false,
+    required this.currentUserId,
+    required this.onSendFriendRequest,
   });
 
   Color _getRankColor(int rank) {
@@ -295,122 +319,106 @@ class _LeaderboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTopThree = entry.rank <= 3;
+    final isMe = currentUserId != null && entry.userId == currentUserId;
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-        boxShadow: AppTheme.cardShadow,
-        border: isTopThree
-            ? Border.all(
-                color: _getRankColor(entry.rank).withOpacity(0.5),
-                width: 2,
-              )
-            : null,
-      ),
-      child: ListTile(
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Rank
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isTopThree
-                    ? _getRankColor(entry.rank).withOpacity(0.2)
-                    : AppTheme.primaryColor.withOpacity(0.1),
-                shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () {
+        if (isMe) return;
+        
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Arkadaşlık İsteği'),
+            content: Text('${entry.username} adlı kullanıcıya arkadaşlık isteği göndermek istiyor musun?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('İptal'),
               ),
-              child: Center(
-                child: isTopThree
-                    ? Icon(
-                        _getRankIcon(entry.rank),
-                        color: _getRankColor(entry.rank),
-                        size: 24,
-                      )
-                    : Text(
-                        '${entry.rank}',
-                        style: TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: entry.rank >= 100 ? 12 : 16,
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onSendFriendRequest(entry.userId);
+                },
+                child: const Text('Gönder'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
+        decoration: BoxDecoration(
+          color: isMe ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          boxShadow: AppTheme.cardShadow,
+          border: isTopThree
+              ? Border.all(
+                  color: _getRankColor(entry.rank).withOpacity(0.5),
+                  width: 2,
+                )
+              : null,
+        ),
+        child: ListTile(
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Rank
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isTopThree
+                      ? _getRankColor(entry.rank).withOpacity(0.2)
+                      : AppTheme.primaryColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: isTopThree
+                      ? Icon(
+                          _getRankIcon(entry.rank),
+                          color: _getRankColor(entry.rank),
+                          size: 24,
+                        )
+                      : Text(
+                          '${entry.rank}',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: entry.rank >= 100 ? 12 : 16,
+                          ),
                         ),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Avatar
-            CircleAvatar(
-              backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-              child: Text(
-                entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                entry.username,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                'Lv.${entry.level}',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-        subtitle: Row(
-          children: [
-            const Icon(Icons.star, size: 14, color: Colors.amber),
-            const SizedBox(width: 4),
-            Text(
-              isWeekly && entry.weeklyXp != null
-                  ? '${entry.weeklyXp} XP (haftalık)'
-                  : '${entry.xp} XP',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            if (!isWeekly) ...[
-              const SizedBox(width: 12),
-              Icon(Icons.local_fire_department, size: 14, color: Colors.orange[400]),
-              const SizedBox(width: 4),
-              Text(
-                '${entry.longestStreak} gün',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
                 ),
               ),
             ],
-          ],
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingM,
-          vertical: AppTheme.spacingXS,
+          ),
+          title: Text(
+            entry.username,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Lv.${entry.level}',
+              style: const TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingM,
+            vertical: AppTheme.spacingXS,
+          ),
         ),
       ),
     );

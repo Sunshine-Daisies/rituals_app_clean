@@ -1,0 +1,26 @@
+{
+  "id": "mobile/architecture",
+  "title": "Architecture",
+  "description": "The mobile application is built using Flutter and follows a Feature-First architecture with Riverpod for state management. This approach ensures scalability by grouping code by domain (what it does) rather than layer (what it is).",
+  "source": "@site/docs/mobile/architecture.md",
+  "sourceDirName": "mobile",
+  "slug": "/mobile/architecture",
+  "permalink": "/docs/mobile/architecture",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Setup & Installation",
+    "permalink": "/docs/mobile/setup"
+  },
+  "next": {
+    "title": "User Flows",
+    "permalink": "/docs/mobile/user-flows"
+  }
+}

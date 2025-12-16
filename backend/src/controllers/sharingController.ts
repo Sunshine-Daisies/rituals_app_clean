@@ -407,7 +407,7 @@ export const getMyPartnerRituals = async (req: Request, res: Response) => {
 
     const result = await pool.query(
       `SELECT rp.*, sr.invite_code, sr.owner_id,
-              r.id as ritual_id, r.name as ritual_name, r.description, r.time, r.days,
+              r.id as ritual_id, r.name as ritual_name, r.reminder_time as time, r.reminder_days as days,
               up.username as owner_username, up.level as owner_level
        FROM ritual_partners rp
        JOIN shared_rituals sr ON rp.shared_ritual_id = sr.id

@@ -1,0 +1,26 @@
+{
+  "id": "features/rituals",
+  "title": "Rituals Management",
+  "description": "Rituals are the core unit of the application. A \"Ritual\" represents a habit or task that a user wants to perform regularly.",
+  "source": "@site/docs/features/rituals.md",
+  "sourceDirName": "features",
+  "slug": "/features/rituals",
+  "permalink": "/docs/features/rituals",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Gamification System",
+    "permalink": "/docs/features/gamification"
+  },
+  "next": {
+    "title": "Social & Community",
+    "permalink": "/docs/features/social"
+  }
+}

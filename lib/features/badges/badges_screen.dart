@@ -17,16 +17,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   List<Badge> _allBadges = [];
   List<BadgeProgress> _badgeProgress = [];
   bool _isLoading = true;
-  String _selectedCategory = 'all';
   late TabController _tabController;
-
-  final List<Map<String, String>> _categories = [
-    {'key': 'all', 'label': 'Tümü'},
-    {'key': 'milestone', 'label': 'Kilometre Taşı'},
-    {'key': 'streak', 'label': 'Streak'},
-    {'key': 'social', 'label': 'Sosyal'},
-    {'key': 'special', 'label': 'Özel'},
-  ];
 
   @override
   void initState() {
@@ -39,6 +30,12 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _loadData();
   }
 
   Future<void> _loadData() async {
@@ -63,11 +60,8 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   }
 
   List<Badge> get _filteredBadges {
-    if (_selectedCategory == 'all') return _allBadges;
-    return _allBadges.where((b) => b.category == _selectedCategory).toList();
+    return _allBadges.where((b) => b.earned).toList();
   }
-
-  int get _earnedCount => _allBadges.where((b) => b.earned).length;
 
   @override
   Widget build(BuildContext context) {
@@ -111,29 +105,6 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                         ),
                       ),
                     ),
-                    // Earned Count Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: AppTheme.primaryGradient,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.emoji_events, color: Colors.white, size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$_earnedCount/${_allBadges.length}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -141,23 +112,54 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
               // Tab Bar
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                  borderRadius: BorderRadius.circular(25),
                   boxShadow: AppTheme.cardShadow,
                 ),
                 child: TabBar(
                   controller: _tabController,
                   indicator: BoxDecoration(
                     gradient: AppTheme.primaryGradient,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                    borderRadius: BorderRadius.circular(21),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
                   labelColor: Colors.white,
                   unselectedLabelColor: AppTheme.textSecondary,
                   labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  overlayColor: MaterialStateProperty.all(Colors.transparent),
                   tabs: const [
-                    Tab(text: '🏆 Tüm Rozetler'),
-                    Tab(text: '📈 İlerleme'),
+                    Tab(
+                      height: 40,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('🏆'),
+                          SizedBox(width: 8),
+                          Text('Kazanılanlar'),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      height: 40,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('📈'),
+                          SizedBox(width: 8),
+                          Text('İlerleme'),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -186,47 +188,6 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   Widget _buildAllBadgesTab() {
     return Column(
       children: [
-        // Category Filters
-        SizedBox(
-          height: 40,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-            itemCount: _categories.length,
-            itemBuilder: (context, index) {
-              final category = _categories[index];
-              final isSelected = _selectedCategory == category['key'];
-              
-              return Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spacingS),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedCategory = category['key']!),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected 
-                          ? AppTheme.primaryColor 
-                          : AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: AppTheme.cardShadow,
-                    ),
-                    child: Text(
-                      category['label']!,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : AppTheme.textSecondary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        
-        const SizedBox(height: AppTheme.spacingM),
-        
         // Badges Grid
         Expanded(
           child: _filteredBadges.isEmpty
