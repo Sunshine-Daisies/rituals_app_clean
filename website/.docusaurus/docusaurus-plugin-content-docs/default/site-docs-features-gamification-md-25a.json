@@ -5,7 +5,7 @@
   "source": "@site/docs/features/gamification.md",
   "sourceDirName": "features",
   "slug": "/features/gamification",
-  "permalink": "/docs/features/gamification",
+  "permalink": "/rituals_app_clean/docs/features/gamification",
   "draft": false,
   "unlisted": false,
   "tags": [],
@@ -17,10 +17,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Authentication",
-    "permalink": "/docs/features/authentication"
+    "permalink": "/rituals_app_clean/docs/features/authentication"
   },
   "next": {
     "title": "Rituals Management",
-    "permalink": "/docs/features/rituals"
+    "permalink": "/rituals_app_clean/docs/features/rituals"
   }
 }

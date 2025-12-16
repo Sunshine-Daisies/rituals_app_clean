@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkrituals_app_docs=globalThis.webpackChunkrituals_app_docs||[]).push([[617],{617:(a,s,e)=>{e.d(s,{createPieServices:()=>c.f});var c=e(9150);e(7960)}}]);

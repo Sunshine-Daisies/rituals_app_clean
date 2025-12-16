@@ -3,154 +3,119 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/__docusaurus/debug',
-    component: ComponentCreator('/__docusaurus/debug', '5ff'),
+    path: '/rituals_app_clean/api',
+    component: ComponentCreator('/rituals_app_clean/api', 'be9'),
     exact: true
   },
   {
-    path: '/__docusaurus/debug/config',
-    component: ComponentCreator('/__docusaurus/debug/config', '5ba'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/content',
-    component: ComponentCreator('/__docusaurus/debug/content', 'a2b'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/globalData',
-    component: ComponentCreator('/__docusaurus/debug/globalData', 'c3c'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/metadata',
-    component: ComponentCreator('/__docusaurus/debug/metadata', '156'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/registry',
-    component: ComponentCreator('/__docusaurus/debug/registry', '88c'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/routes',
-    component: ComponentCreator('/__docusaurus/debug/routes', '000'),
-    exact: true
-  },
-  {
-    path: '/api',
-    component: ComponentCreator('/api', '24b'),
-    exact: true
-  },
-  {
-    path: '/docs',
-    component: ComponentCreator('/docs', 'd17'),
+    path: '/rituals_app_clean/docs',
+    component: ComponentCreator('/rituals_app_clean/docs', 'b80'),
     routes: [
       {
-        path: '/docs',
-        component: ComponentCreator('/docs', 'f20'),
+        path: '/rituals_app_clean/docs',
+        component: ComponentCreator('/rituals_app_clean/docs', 'd92'),
         routes: [
           {
-            path: '/docs',
-            component: ComponentCreator('/docs', '863'),
+            path: '/rituals_app_clean/docs',
+            component: ComponentCreator('/rituals_app_clean/docs', '602'),
             routes: [
               {
-                path: '/docs/backend/architecture',
-                component: ComponentCreator('/docs/backend/architecture', 'cdf'),
+                path: '/rituals_app_clean/docs/backend/architecture',
+                component: ComponentCreator('/rituals_app_clean/docs/backend/architecture', 'f85'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/backend/database',
-                component: ComponentCreator('/docs/backend/database', 'ca2'),
+                path: '/rituals_app_clean/docs/backend/database',
+                component: ComponentCreator('/rituals_app_clean/docs/backend/database', 'b59'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/backend/setup',
-                component: ComponentCreator('/docs/backend/setup', 'c6c'),
+                path: '/rituals_app_clean/docs/backend/setup',
+                component: ComponentCreator('/rituals_app_clean/docs/backend/setup', '26b'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/deployment',
-                component: ComponentCreator('/docs/deployment', '8f8'),
+                path: '/rituals_app_clean/docs/deployment',
+                component: ComponentCreator('/rituals_app_clean/docs/deployment', '1ff'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/features/ai-assistant',
-                component: ComponentCreator('/docs/features/ai-assistant', '4d6'),
+                path: '/rituals_app_clean/docs/features/ai-assistant',
+                component: ComponentCreator('/rituals_app_clean/docs/features/ai-assistant', 'd7a'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/features/analytics',
-                component: ComponentCreator('/docs/features/analytics', 'b97'),
+                path: '/rituals_app_clean/docs/features/analytics',
+                component: ComponentCreator('/rituals_app_clean/docs/features/analytics', '25e'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/features/authentication',
-                component: ComponentCreator('/docs/features/authentication', 'cb4'),
+                path: '/rituals_app_clean/docs/features/authentication',
+                component: ComponentCreator('/rituals_app_clean/docs/features/authentication', '230'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/features/gamification',
-                component: ComponentCreator('/docs/features/gamification', 'dd2'),
+                path: '/rituals_app_clean/docs/features/gamification',
+                component: ComponentCreator('/rituals_app_clean/docs/features/gamification', '0a3'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/features/notifications',
-                component: ComponentCreator('/docs/features/notifications', '883'),
+                path: '/rituals_app_clean/docs/features/notifications',
+                component: ComponentCreator('/rituals_app_clean/docs/features/notifications', '68c'),
                 exact: true
               },
               {
-                path: '/docs/features/profile',
-                component: ComponentCreator('/docs/features/profile', '8a7'),
+                path: '/rituals_app_clean/docs/features/profile',
+                component: ComponentCreator('/rituals_app_clean/docs/features/profile', '18b'),
                 exact: true
               },
               {
-                path: '/docs/features/rituals',
-                component: ComponentCreator('/docs/features/rituals', '16a'),
+                path: '/rituals_app_clean/docs/features/rituals',
+                component: ComponentCreator('/rituals_app_clean/docs/features/rituals', 'a7d'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/features/social',
-                component: ComponentCreator('/docs/features/social', '765'),
+                path: '/rituals_app_clean/docs/features/social',
+                component: ComponentCreator('/rituals_app_clean/docs/features/social', '5cf'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/intro',
-                component: ComponentCreator('/docs/intro', '61d'),
+                path: '/rituals_app_clean/docs/intro',
+                component: ComponentCreator('/rituals_app_clean/docs/intro', '743'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/mobile/architecture',
-                component: ComponentCreator('/docs/mobile/architecture', '50c'),
+                path: '/rituals_app_clean/docs/mobile/architecture',
+                component: ComponentCreator('/rituals_app_clean/docs/mobile/architecture', '05e'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/mobile/setup',
-                component: ComponentCreator('/docs/mobile/setup', 'e2f'),
+                path: '/rituals_app_clean/docs/mobile/setup',
+                component: ComponentCreator('/rituals_app_clean/docs/mobile/setup', '50a'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/mobile/user-flows',
-                component: ComponentCreator('/docs/mobile/user-flows', '9fa'),
+                path: '/rituals_app_clean/docs/mobile/user-flows',
+                component: ComponentCreator('/rituals_app_clean/docs/mobile/user-flows', 'a47'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/roadmap',
-                component: ComponentCreator('/docs/roadmap', 'ced'),
+                path: '/rituals_app_clean/docs/roadmap',
+                component: ComponentCreator('/rituals_app_clean/docs/roadmap', 'f71'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               }
@@ -161,8 +126,8 @@ export default [
     ]
   },
   {
-    path: '/',
-    component: ComponentCreator('/', '2e1'),
+    path: '/rituals_app_clean/',
+    component: ComponentCreator('/rituals_app_clean/', 'a7b'),
     exact: true
   },
   {

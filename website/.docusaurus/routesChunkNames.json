@@ -1,140 +1,97 @@
 {
-  "/__docusaurus/debug-5ff": {
-    "__comp": "__comp---theme-debug-config-23-a-2ff",
+  "/rituals_app_clean/api-be9": {
+    "__comp": "48dcf387",
     "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
-    }
-  },
-  "/__docusaurus/debug/config-5ba": {
-    "__comp": "__comp---theme-debug-config-23-a-2ff",
-    "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
-    }
-  },
-  "/__docusaurus/debug/content-a2b": {
-    "__comp": "__comp---theme-debug-contentba-8-ce7",
-    "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
+      "plugin": "a7456010"
     },
-    "__props": "__props---docusaurus-debug-content-3-c-0-be2"
+    "config": "5e9f5e1a"
   },
-  "/__docusaurus/debug/globalData-c3c": {
-    "__comp": "__comp---theme-debug-global-dataede-0fa",
+  "/rituals_app_clean/docs-b80": {
+    "__comp": "5e95c892",
     "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
+      "plugin": "aba21aa0"
     }
   },
-  "/__docusaurus/debug/metadata-156": {
-    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
-    "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
-    }
+  "/rituals_app_clean/docs-d92": {
+    "__comp": "a7bd4aaa",
+    "__props": "3d4a9a34"
   },
-  "/__docusaurus/debug/registry-88c": {
-    "__comp": "__comp---theme-debug-registry-679-501",
-    "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
-    }
+  "/rituals_app_clean/docs-602": {
+    "__comp": "a94703ab"
   },
-  "/__docusaurus/debug/routes-000": {
-    "__comp": "__comp---theme-debug-routes-946-699",
-    "__context": {
-      "plugin": "plugin---docusaurus-debugb-38-ad3"
-    }
+  "/rituals_app_clean/docs/backend/architecture-f85": {
+    "__comp": "17896441",
+    "content": "43b5c669"
   },
-  "/api-24b": {
-    "__comp": "__comp---site-src-pages-api-js-48-d-376",
+  "/rituals_app_clean/docs/backend/database-b59": {
+    "__comp": "17896441",
+    "content": "c4256b58"
+  },
+  "/rituals_app_clean/docs/backend/setup-26b": {
+    "__comp": "17896441",
+    "content": "5d6cc085"
+  },
+  "/rituals_app_clean/docs/deployment-1ff": {
+    "__comp": "17896441",
+    "content": "a3713279"
+  },
+  "/rituals_app_clean/docs/features/ai-assistant-d7a": {
+    "__comp": "17896441",
+    "content": "e449ba9e"
+  },
+  "/rituals_app_clean/docs/features/analytics-25e": {
+    "__comp": "17896441",
+    "content": "c5c5003c"
+  },
+  "/rituals_app_clean/docs/features/authentication-230": {
+    "__comp": "17896441",
+    "content": "cc0a2bf3"
+  },
+  "/rituals_app_clean/docs/features/gamification-0a3": {
+    "__comp": "17896441",
+    "content": "25a5422e"
+  },
+  "/rituals_app_clean/docs/features/notifications-68c": {
+    "__comp": "17896441",
+    "content": "73c433b4"
+  },
+  "/rituals_app_clean/docs/features/profile-18b": {
+    "__comp": "17896441",
+    "content": "49f19af5"
+  },
+  "/rituals_app_clean/docs/features/rituals-a7d": {
+    "__comp": "17896441",
+    "content": "94d3070b"
+  },
+  "/rituals_app_clean/docs/features/social-5cf": {
+    "__comp": "17896441",
+    "content": "28253c8e"
+  },
+  "/rituals_app_clean/docs/intro-743": {
+    "__comp": "17896441",
+    "content": "0e384e19"
+  },
+  "/rituals_app_clean/docs/mobile/architecture-05e": {
+    "__comp": "17896441",
+    "content": "0374ffc1"
+  },
+  "/rituals_app_clean/docs/mobile/setup-50a": {
+    "__comp": "17896441",
+    "content": "7fd27537"
+  },
+  "/rituals_app_clean/docs/mobile/user-flows-a47": {
+    "__comp": "17896441",
+    "content": "2a4f9135"
+  },
+  "/rituals_app_clean/docs/roadmap-f71": {
+    "__comp": "17896441",
+    "content": "0dffb83e"
+  },
+  "/rituals_app_clean/-a7b": {
+    "__comp": "c4f5d8e4",
     "__context": {
-      "plugin": "plugin---apia-74-5c6"
+      "plugin": "a7456010"
     },
-    "config": "config---api-5-e-9-841"
-  },
-  "/docs-d17": {
-    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
-    "__context": {
-      "plugin": "plugin---docsaba-d7c"
-    }
-  },
-  "/docs-f20": {
-    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
-    "__props": "__props---docs-005-788"
-  },
-  "/docs-863": {
-    "__comp": "__comp---theme-doc-roota-94-67a"
-  },
-  "/docs/backend/architecture-cdf": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-backend-architecture-43-b-d40"
-  },
-  "/docs/backend/database-ca2": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-backend-databasec-42-9f7"
-  },
-  "/docs/backend/setup-c6c": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-backend-setup-5-d-6-54f"
-  },
-  "/docs/deployment-8f8": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-deploymenta-37-88b"
-  },
-  "/docs/features/ai-assistant-4d6": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-ai-assistante-44-4a3"
-  },
-  "/docs/features/analytics-b97": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-analyticsc-5-c-c40"
-  },
-  "/docs/features/authentication-cb4": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-authenticationcc-0-471"
-  },
-  "/docs/features/gamification-dd2": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-gamification-25-a-fac"
-  },
-  "/docs/features/notifications-883": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-notifications-73-c-7cf"
-  },
-  "/docs/features/profile-8a7": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-profile-49-f-b20"
-  },
-  "/docs/features/rituals-16a": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-rituals-94-d-1c7"
-  },
-  "/docs/features/social-765": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-features-social-282-dd6"
-  },
-  "/docs/intro-61d": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-intro-0-e-3-be1"
-  },
-  "/docs/mobile/architecture-50c": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-mobile-architecture-037-95a"
-  },
-  "/docs/mobile/setup-e2f": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-mobile-setup-7-fd-324"
-  },
-  "/docs/mobile/user-flows-9fa": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-mobile-user-flows-2-a-4-1aa"
-  },
-  "/docs/roadmap-ced": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-roadmap-0-df-a69"
-  },
-  "/-2e1": {
-    "__comp": "__comp---site-src-pages-index-jsc-4-f-f99",
-    "__context": {
-      "plugin": "plugin---apia-74-5c6"
-    },
-    "config": "config---api-5-e-9-841"
+    "config": "5e9f5e1a"
   }
 }
