@@ -20,8 +20,23 @@ dotenv.config();
 const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
 
-app.use(cors());
+// Railway gibi proxy arkasında çalışırken gerekli
+app.enable('trust proxy');
+
+// CORS ayarları
+app.use(cors({
+  origin: '*', // Tüm originlere izin ver (Production'da daha spesifik olabilir)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.send('Rituals API is running. Go to /docs for documentation.');
+});
 
 // =================================================================
 // API DOCUMENTATION (Swagger)
