@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Uygulama ortam türleri
 enum Environment {
@@ -36,7 +37,8 @@ class AppConfig {
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
   
   /// Production server URL (domain)
-  static const String productionUrl = 'https://ritualsappclean-production.up.railway.app';
+  // .env dosyasından okumaya çalış, yoksa hardcoded değeri kullan
+  static String get productionUrl => dotenv.env['API_URL'] ?? 'https://ritualsappclean-production.up.railway.app';
 
   // ============================================
   // GETTERS

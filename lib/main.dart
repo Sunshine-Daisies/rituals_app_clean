@@ -11,17 +11,17 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize App Configuration
-  appConfig.autoDetect();
-  appConfig.printConfig();
-  
-  // Load environment variables from .env file
+  // Load environment variables from .env file FIRST
   try {
     await dotenv.load(fileName: ".env");
     print('Environment variables loaded successfully');
   } catch (e) {
     print('Failed to load .env file: $e');
   }
+  
+  // Initialize App Configuration
+  // appConfig.autoDetect();
+  appConfig.printConfig();
   
   // Initialize Firebase
   try {

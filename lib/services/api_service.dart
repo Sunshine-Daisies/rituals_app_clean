@@ -34,7 +34,7 @@ class ApiService {
   static String get baseUrl => appConfig.apiBaseUrl;
 
   /// Timeout süresi
-  static const Duration _timeout = Duration(seconds: 15);
+  static const Duration _timeout = Duration(seconds: 60);
 
   static Future<dynamic> get(String endpoint, {String? authToken}) async {
     final stopwatch = Stopwatch()..start();
