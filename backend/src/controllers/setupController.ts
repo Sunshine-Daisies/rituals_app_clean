@@ -34,9 +34,16 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
           reminder_days TEXT[],
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          is_public BOOLEAN DEFAULT FALSE
+          is_public BOOLEAN DEFAULT FALSE,
+          current_streak INTEGER DEFAULT 0,
+          longest_streak INTEGER DEFAULT 0
       );
     `);
+
+    // Add missing columns to rituals (Migration)
+    await client.query(`ALTER TABLE rituals ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE;`);
+    await client.query(`ALTER TABLE rituals ADD COLUMN IF NOT EXISTS current_streak INTEGER DEFAULT 0;`);
+    await client.query(`ALTER TABLE rituals ADD COLUMN IF NOT EXISTS longest_streak INTEGER DEFAULT 0;`);
 
     // Ensure ritual_logs table exists
     await client.query(`
@@ -261,6 +268,7 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
         user_id_2 UUID REFERENCES users(id) ON DELETE CASCADE,
         current_streak INTEGER DEFAULT 0,
         longest_streak INTEGER DEFAULT 0,
+        freeze_count INTEGER DEFAULT 2,
         last_both_completed_at TIMESTAMP,
         status VARCHAR(20) DEFAULT 'active',
         ended_by UUID REFERENCES users(id),
@@ -269,6 +277,9 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
         UNIQUE(ritual_id_1, ritual_id_2)
       );
     `);
+
+    // Add missing columns to ritual_partnerships (Migration)
+    await client.query(`ALTER TABLE ritual_partnerships ADD COLUMN IF NOT EXISTS freeze_count INTEGER DEFAULT 2;`);
 
     // ritual_invites
     await client.query(`
