@@ -6,10 +6,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 enum Environment {
   /// Geliştirme ortamı - Yerel ağ IP
   development,
-  
+
   /// Staging ortamı - Test server
   staging,
-  
+
   /// Production ortamı - Canlı server
   production,
 }
@@ -23,19 +23,17 @@ class AppConfig {
   AppConfig._internal();
 
   // Mevcut ortam
-  // Environment _environment = Environment.development;
-  Environment _environment = Environment.production; // Deploy sonrası production'a geçtik
+  Environment _environment = Environment.production;
 
   // ============================================
   // NETWORK IPs - Buraya IP adreslerini yaz
   // ============================================
-  
+
   /// Yerel ağ IP adresi (ipconfig ile bulunur)
-  static const String localNetworkIp = '192.168.1.7';
-  
+  static const String localNetworkIp = '192.168.1.5';
   /// Staging server URL (varsa)
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
-  
+
   /// Production server URL (domain)
   // .env dosyasından okumaya çalış, yoksa hardcoded değeri kullan
   static String get productionUrl => dotenv.env['API_URL'] ?? 'https://ritualsappclean-production.up.railway.app';
@@ -57,19 +55,20 @@ class AppConfig {
   String get apiBaseUrl {
     switch (_environment) {
       case Environment.development:
-        // Web için localhost
-        if (kIsWeb) return 'http://localhost:3001/api';
-        
-        // Mobil cihazlar için yerel ağ IP'si
-        if (Platform.isAndroid || Platform.isIOS) {
-          return 'http://$localNetworkIp:3001/api';
+        // Web için localhost, mobil için network IP
+        if (kIsWeb) return 'http://localhost:3000/api';
+        // Android emulator uses special host `10.0.2.2` to reach host machine.
+        if (!kIsWeb && Platform.isAndroid) {
+          return 'http://10.0.2.2:3000/api';
         }
-        
-        return 'http://localhost:3001/api';
-        
+        // iOS simulator and physical devices should use the LAN IP
+        if (!kIsWeb && Platform.isIOS) {
+          return 'http://$localNetworkIp:3000/api';
+        }
+        return 'http://localhost:3000/api';
       case Environment.staging:
         return '$stagingUrl/api';
-        
+
       case Environment.production:
         return '$productionUrl/api';
     }
@@ -79,15 +78,13 @@ class AppConfig {
   String get wsUrl {
     switch (_environment) {
       case Environment.development:
-        if (kIsWeb) return 'ws://localhost:3001';
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          return 'ws://$localNetworkIp:3001';
-        }
-        return 'ws://localhost:3001';
-        
+        if (kIsWeb) return 'ws://localhost:3000';
+        if (!kIsWeb && Platform.isAndroid) return 'ws://10.0.2.2:3000';
+        if (!kIsWeb && Platform.isIOS) return 'ws://$localNetworkIp:3000';
+        return 'ws://localhost:3000';
       case Environment.staging:
         return stagingUrl.replaceFirst('https', 'wss');
-        
+
       case Environment.production:
         return productionUrl.replaceFirst('https', 'wss');
     }

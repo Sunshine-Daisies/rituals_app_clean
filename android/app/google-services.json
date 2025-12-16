@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "544704032544",
+    "project_id": "rituals-app-73dfb",
+    "storage_bucket": "rituals-app-73dfb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:544704032544:android:c55ce590399dafb2ab7145",
+        "android_client_info": {
+          "package_name": "com.example.rituals_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqwPaihWC2SIiOE6vknvyzrFt-qdYMd3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

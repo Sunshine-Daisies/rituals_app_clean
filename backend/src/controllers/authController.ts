@@ -46,10 +46,10 @@ export const register = async (req: Request, res: Response) => {
     const username = generateUsername(email);
     await xpService.createUserProfile(userId, username);
 
-    // 6. Mail gönder (Asenkron - Cevabı beklemeyelim)
-    sendVerificationEmail(email, verificationToken).catch(err => {
-      console.error('Arka planda mail gönderme hatası:', err);
-    });
+    // 6. Mail gönder (arka planda — istemci cevabını engellemesin)
+    // Not: SMTP / nodemailer bazen ağa/kimlik doğrulamaya bağlı olarak yavaşlayabilir.
+    // Burada e-postayı arka planda gönderiyoruz, böylece istemci zaman aşımına uğramaz.
+    sendVerificationEmail(email, verificationToken).catch(err => console.error('sendVerificationEmail error:', err));
 
     // Token DÖNMÜYORUZ. Sadece mesaj.
     res.status(201).json({

@@ -141,7 +141,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Yeni Ritüel Oluştur',
+              'Create New Ritual',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
@@ -149,7 +149,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Nasıl devam etmek istersin?',
+              'How would you like to proceed?',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 32),
@@ -184,7 +184,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'AI ile Oluştur',
+                            'Create with AI',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -193,7 +193,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Yapay zeka ile sohbet ederek ritüelini planla',
+                            'Plan your ritual by chatting with AI',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 12,
@@ -240,7 +240,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Manuel Oluştur',
+                            'Create Manually',
                             style: TextStyle(
                               color: AppTheme.textPrimary,
                               fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Kendi ritüelini adım adım kendin yaz',
+                            'Write your own ritual step by step yourself',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,
@@ -275,7 +275,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateOptions(context),
-        label: const Text('Yeni Ritüel'),
+        label: const Text('New Ritual'),
         icon: const Icon(Icons.add),
         backgroundColor: AppTheme.primaryColor,
       ),
@@ -312,13 +312,13 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Ritüellerim',
+                                'My Rituals',
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
-                                'Kendi ve partner ritüellerin',
+                                'Your own and partner rituals',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppTheme.textSecondary,
                                 ),
@@ -336,7 +336,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(AppTheme.spacingL, AppTheme.spacingM, AppTheme.spacingL, AppTheme.spacingS),
                     child: Text(
-                      'Kişisel Ritüeller',
+                      'Personal Rituals',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
@@ -353,7 +353,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(AppTheme.spacingL, AppTheme.spacingL, AppTheme.spacingL, AppTheme.spacingS),
                     child: Text(
-                      'Partner Ritüelleri',
+                      'Partner Rituals',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.orange,
@@ -394,7 +394,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.spacingL),
-              child: Text('Hata: ${snapshot.error}', style: const TextStyle(color: AppTheme.errorColor)),
+              child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppTheme.errorColor)),
             ),
           );
         }
@@ -420,13 +420,13 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                     const Icon(Icons.psychology, size: 48, color: AppTheme.textSecondary),
                     const SizedBox(height: AppTheme.spacingM),
                     Text(
-                      'Henüz ritüel yok',
+                      'No rituals yet',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: AppTheme.spacingS),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.add),
-                      label: const Text('Yeni Ritüel'),
+                      label: const Text('New Ritual'),
                       onPressed: () => _showCreateOptions(context),
                     ),
                   ],
@@ -490,13 +490,13 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                     const Icon(Icons.people_outline, size: 48, color: AppTheme.textSecondary),
                     const SizedBox(height: AppTheme.spacingM),
                     Text(
-                      'Partner ritüeli yok',
+                      'No partner rituals',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: AppTheme.spacingS),
                     OutlinedButton.icon(
                       icon: const Icon(Icons.group_add),
-                      label: const Text('Ritüele Katıl'),
+                      label: const Text('Join Ritual'),
                       onPressed: () => context.go('/join-ritual'),
                       style: OutlinedButton.styleFrom(foregroundColor: Colors.orange),
                     ),
@@ -574,7 +574,7 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
         });
       } else {
         setState(() {
-          _error = result.error ?? 'Davet kodu oluşturulamadı';
+          _error = result.error ?? 'Invite code could not be created';
           _isLoading = false;
         });
       }
@@ -590,7 +590,7 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
     if (_inviteCode != null) {
       Clipboard.setData(ClipboardData(text: _inviteCode!));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kopyalandı!')),
+        const SnackBar(content: Text('Copied!')),
       );
       Navigator.pop(context);
     }
@@ -618,7 +618,7 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Partner Davet Et',
+            'Invite Partner',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
@@ -626,7 +626,7 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            '"${widget.ritual.name}" ritüeli için',
+            'for the ritual "${widget.ritual.name}"',
             style: TextStyle(color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 32),
@@ -667,7 +667,7 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.copy),
-                        label: const Text('Kopyala'),
+                        label: const Text('Copy'),
                         onPressed: _copyCode,
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -704,15 +704,15 @@ class _PartnerRitualCard extends StatefulWidget {
 class _PartnerRitualCardState extends State<_PartnerRitualCard> {
 
   String _formatDays(List<String>? days) {
-    if (days == null || days.isEmpty) return 'Her gün';
+    if (days == null || days.isEmpty) return 'Every day';
     const dayLabels = {
-      'Mon': 'Pzt',
-      'Tue': 'Sal',
-      'Wed': 'Çar',
-      'Thu': 'Per',
-      'Fri': 'Cum',
-      'Sat': 'Cmt',
-      'Sun': 'Paz',
+      'Mon': 'Mon',
+      'Tue': 'Tue',
+      'Wed': 'Wed',
+      'Thu': 'Thu',
+      'Fri': 'Fri',
+      'Sat': 'Sat',
+      'Sun': 'Sun',
     };
     return days.map((d) => dayLabels[d] ?? d).join(', ');
   }
@@ -943,7 +943,7 @@ class _PartnerRitualCardState extends State<_PartnerRitualCard> {
                       const Icon(Icons.emoji_events, size: 14, color: Colors.amber),
                       const SizedBox(width: 4),
                       Text(
-                        'En uzun seri: ${ritual.longestStreak} gün',
+                        'Longest streak: ${ritual.longestStreak} days',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -1132,7 +1132,7 @@ class _RitualCardState extends State<_RitualCard> {
                           onPressed: widget.onShare,
                           color: AppTheme.primaryColor,
                           iconSize: 20,
-                          tooltip: 'Partner ile Paylaş',
+                          tooltip: 'Share with Partner',
                         ),
                       ),
                       const SizedBox(width: AppTheme.spacingS),
@@ -1193,7 +1193,7 @@ class _RitualCardState extends State<_RitualCard> {
                                 ),
                               ),
                               Text(
-                                'Lv.${ritual.partner!.level} • En uzun seri: ${ritual.partner!.longestStreak} gün',
+                                'Lv.${ritual.partner!.level} • Longest streak: ${ritual.partner!.longestStreak} days',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppTheme.textSecondary,
                                   fontSize: 11,

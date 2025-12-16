@@ -121,13 +121,13 @@ class LlmSecurityService {
     
     // Çok fazla istek
     if (_requestCount >= _maxRequestsPerMinute) {
-      throw Exception('Çok fazla istek gönderildi. Lütfen ${60 - diff.inSeconds} saniye bekleyin.');
+      throw Exception('Too many requests sent. Please wait ${60 - diff.inSeconds} seconds.');
     }
     
     // Cooldown kontrolü
     if (diff < _cooldownPeriod) {
       final waitSeconds = _cooldownPeriod.inSeconds - diff.inSeconds;
-      throw Exception('Çok hızlı istek gönderiyorsunuz. Lütfen $waitSeconds saniye bekleyin.');
+      throw Exception('You are sending requests too quickly. Please wait $waitSeconds seconds.');
     }
     
     _requestCount++;
@@ -150,8 +150,8 @@ class LlmSecurityService {
     // Input validation
     if (!validateUserInput(userPrompt)) {
       throw Exception(
-        'Bu istek ritüel yönetimi kapsamında değil. '
-        'Lütfen ritüel, alışkanlık veya rutin yönetimiyle ilgili sorular sorun.'
+        'This request is not within the scope of ritual management. '
+        'Please ask questions related to rituals, habits, or routine management.'
       );
     }
     

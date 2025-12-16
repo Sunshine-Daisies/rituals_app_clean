@@ -92,13 +92,13 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
                         onPressed: () => context.go('/home'),
-                        tooltip: 'Geri',
+                        tooltip: 'Back',
                       ),
                     ),
                     const SizedBox(width: AppTheme.spacingM),
                     Expanded(
                       child: Text(
-                        'Rozetler',
+                        'Badges',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
@@ -145,7 +145,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                         children: [
                           Text('🏆'),
                           SizedBox(width: 8),
-                          Text('Kazanılanlar'),
+                          Text('Earned'),
                         ],
                       ),
                     ),
@@ -156,7 +156,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                         children: [
                           Text('📈'),
                           SizedBox(width: 8),
-                          Text('İlerleme'),
+                          Text('Progress'),
                         ],
                       ),
                     ),
@@ -202,7 +202,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                       ),
                       const SizedBox(height: AppTheme.spacingM),
                       Text(
-                        'Bu kategoride rozet yok',
+                        'No badges in this category',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -250,7 +250,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
         children: [
           if (inProgressBadges.isNotEmpty) ...[
             Text(
-              'Yaklaşan Rozetler 🎯',
+              'Upcoming Badges 🎯',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
@@ -263,7 +263,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
           if (earnedBadges.isNotEmpty) ...[
             const SizedBox(height: AppTheme.spacingL),
             Text(
-              'Kazanılan Rozetler ✅',
+              'Earned Badges ✅',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppTheme.successColor,
@@ -287,7 +287,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                     ),
                     const SizedBox(height: AppTheme.spacingM),
                     Text(
-                      'Henüz ilerleme yok',
+                      'No progress yet',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
@@ -399,7 +399,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                     const Icon(Icons.check_circle, color: AppTheme.successColor, size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      'Kazanıldı: ${_formatDate(badge.earnedAt!)}',
+                      'Earned: ${_formatDate(badge.earnedAt!)}',
                       style: const TextStyle(
                         color: AppTheme.successColor,
                         fontWeight: FontWeight.w600,
@@ -447,23 +447,23 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   }
 
   String _getRequirementText(Badge badge) {
-    if (badge.requirementType == null) return 'Henüz kazanılmadı';
+    if (badge.requirementType == null) return 'Not earned yet';
     
     switch (badge.requirementType) {
       case 'completions':
-        return '${badge.requirementValue} ritual tamamla';
+        return 'Complete ${badge.requirementValue} rituals';
       case 'streak':
-        return '${badge.requirementValue} günlük streak yap';
+        return 'Reach ${badge.requirementValue} day streak';
       case 'friends':
-        return '${badge.requirementValue} arkadaş edin';
+        return 'Make ${badge.requirementValue} friends';
       case 'rituals':
-        return '${badge.requirementValue} ritual oluştur';
+        return 'Create ${badge.requirementValue} rituals';
       case 'partner_rituals':
-        return '${badge.requirementValue} partner rituali tamamla';
+        return 'Complete ${badge.requirementValue} partner rituals';
       case 'freeze_used':
-        return '${badge.requirementValue} freeze kullan';
+        return 'Use ${badge.requirementValue} freeze';
       default:
-        return 'Henüz kazanılmadı';
+        return 'Not earned yet';
     }
   }
 }
@@ -691,7 +691,7 @@ class _BadgeProgressCard extends StatelessWidget {
                   ),
                 ] else if (showEarned && badge.earnedAt != null) ...[
                   Text(
-                    'Kazanıldı: ${badge.earnedAt!.day}.${badge.earnedAt!.month}.${badge.earnedAt!.year}',
+                    'Earned: ${badge.earnedAt!.day}.${badge.earnedAt!.month}.${badge.earnedAt!.year}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.successColor,
                       fontWeight: FontWeight.w500,

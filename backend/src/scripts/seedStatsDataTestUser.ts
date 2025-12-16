@@ -28,11 +28,11 @@ const seedData = async () => {
 
     // 2. Create Rituals
     const rituals = [
-      { name: 'Sabah Meditasyonu', streak: 5 },
-      { name: 'Kitap Okuma', streak: 12 },
-      { name: 'Su İçme', streak: 3 },
-      { name: 'Yürüyüş', streak: 0 },
-      { name: 'Kodlama', streak: 20 }
+      { name: 'Morning Meditation', streak: 5 },
+      { name: 'Reading Book', streak: 12 },
+      { name: 'Drink Water', streak: 3 },
+      { name: 'Walking', streak: 0 },
+      { name: 'Coding', streak: 20 }
     ];
 
     const ritualIds = [];
