@@ -33,7 +33,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     headers: {
       'Authorization': `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json',
-      'Content-Length': data.length
+      'Content-Length': Buffer.byteLength(data)
     }
   };
 
