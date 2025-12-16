@@ -35,9 +35,9 @@ export const register = async (req: Request, res: Response) => {
     // 3. Rastgele onay kodu oluştur
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    // 4. Kullanıcıyı kaydet (is_verified varsayılan TRUE yapıyoruz çünkü SMTP çalışmıyor)
+    // 4. Kullanıcıyı kaydet (is_verified varsayılan FALSE)
     const userResult = await pool.query(
-      'INSERT INTO users (email, password_hash, verification_token, is_verified) VALUES ($1, $2, $3, TRUE) RETURNING id',
+      'INSERT INTO users (email, password_hash, verification_token) VALUES ($1, $2, $3) RETURNING id',
       [email, passwordHash, verificationToken]
     );
 
@@ -46,14 +46,14 @@ export const register = async (req: Request, res: Response) => {
     const username = generateUsername(email);
     await xpService.createUserProfile(userId, username);
 
-    // 6. Mail gönderimi devre dışı (Railway SMTP engeli nedeniyle)
-    // sendVerificationEmail(email, verificationToken).catch(err => {
-    //   console.error('Arka planda mail gönderme hatası:', err);
-    // });
+    // 6. Mail gönder (Asenkron - Cevabı beklemeyelim)
+    sendVerificationEmail(email, verificationToken).catch(err => {
+      console.error('Arka planda mail gönderme hatası:', err);
+    });
 
     // Token DÖNMÜYORUZ. Sadece mesaj.
     res.status(201).json({
-      message: 'Kayıt başarılı! Giriş yapabilirsiniz.',
+      message: 'Kayıt başarılı! Lütfen e-posta adresine gelen onay linkine tıkla.',
     });
 
   } catch (err) {
