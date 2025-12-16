@@ -95,9 +95,10 @@ class _HomeScreenState extends State<HomeScreen> {
           print('  Ritual ${ritual.name}: ${isCompleted ? "✅" : "❌"}');
         }),
         ...partnerships.map((partnership) async {
-          final isCompleted = await _checkPartnershipCompletedToday(partnership.id);
+          // Kendi tamamlama durumumu kullan (myCompletedToday)
+          final isCompleted = partnership.myCompletedToday;
           partnershipStatus[partnership.id] = isCompleted;
-          print('  Partnership ${partnership.myRitualName}: ${isCompleted ? "✅" : "❌"}');
+          print('  Partnership ${partnership.myRitualName}: ${isCompleted ? "✅" : "❌"} (partner: ${partnership.partnerCompletedToday ? "✅" : "❌"})');
         }),
       ]);
       

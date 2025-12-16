@@ -259,6 +259,8 @@ class Partnership {
   final int currentStreak;
   final int longestStreak;
   final DateTime? lastBothCompletedAt;
+  final bool myCompletedToday;
+  final bool partnerCompletedToday;
   final DateTime createdAt;
 
   Partnership({
@@ -275,6 +277,8 @@ class Partnership {
     required this.currentStreak,
     required this.longestStreak,
     this.lastBothCompletedAt,
+    this.myCompletedToday = false,
+    this.partnerCompletedToday = false,
     required this.createdAt,
   });
 
@@ -297,6 +301,8 @@ class Partnership {
       lastBothCompletedAt: json['lastBothCompletedAt'] != null 
           ? DateTime.parse(json['lastBothCompletedAt']) 
           : null,
+      myCompletedToday: json['myCompletedToday'] ?? false,
+      partnerCompletedToday: json['partnerCompletedToday'] ?? false,
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
