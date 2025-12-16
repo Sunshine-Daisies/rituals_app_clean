@@ -1,29 +1,37 @@
-import { Pool, PoolConfig } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig: PoolConfig = process.env.DATABASE_URL
-  ? { 
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false } // Railway için genelde gereklidir
-    }
-  : {
-      user: process.env.DB_USER || 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      database: process.env.DB_NAME || 'rituals_db',
-      password: process.env.DB_PASSWORD || '123456',
-      port: parseInt(process.env.DB_PORT || '5432'),
-    };
+let pool: Pool;
 
-const pool = new Pool(dbConfig);
+if (process.env.DATABASE_URL) {
+  // Railway veya Production ortamı (Tek satırlık bağlantı)
+  console.log('🌍 Connecting to database using DATABASE_URL...');
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false // Railway SSL gerektirir
+    }
+  });
+} else {
+  // Local Development ortamı (Ayrı ayrı değişkenler)
+  console.log('💻 Connecting to database using individual variables...');
+  pool = new Pool({
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'rituals_db',
+    password: process.env.DB_PASSWORD || '123456',
+    port: parseInt(process.env.DB_PORT || '5432'),
+  });
+}
 
 pool.on('connect', () => {
-  console.log('Veritabanına bağlandı');
+  console.log('✅ Database connected successfully');
 });
 
 pool.on('error', (err) => {
-  console.error('Beklenmeyen veritabanı hatası', err);
+  console.error('❌ Unexpected error on idle client', err);
   process.exit(-1);
 });
 
