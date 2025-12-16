@@ -7,8 +7,19 @@ const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.
 // Firebase Admin SDK'yı başlat
 if (!admin.apps.length) {
   try {
+    let credential;
+
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      // Production: Environment variable'dan oku
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      credential = admin.credential.cert(serviceAccount);
+    } else {
+      // Development: Dosyadan oku
+      credential = admin.credential.cert(serviceAccountPath);
+    }
+
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccountPath),
+      credential: credential,
     });
     console.log('✅ Firebase Admin SDK initialized successfully');
   } catch (error) {
