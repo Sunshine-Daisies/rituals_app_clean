@@ -22,7 +22,8 @@ class AppConfig {
   AppConfig._internal();
 
   // Mevcut ortam
-  Environment _environment = Environment.development;
+  // Environment _environment = Environment.development;
+  Environment _environment = Environment.production; // Deploy sonrası production'a geçtik
 
   // ============================================
   // NETWORK IPs - Buraya IP adreslerini yaz
@@ -35,7 +36,7 @@ class AppConfig {
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
   
   /// Production server URL (domain)
-  static const String productionUrl = 'https://api.yourdomain.com';
+  static const String productionUrl = 'https://ritualsappclean-production.up.railway.app';
 
   // ============================================
   // GETTERS
