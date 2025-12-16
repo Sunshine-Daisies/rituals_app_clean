@@ -97,6 +97,8 @@ class LlmService {
     print('🔸 [RITUAL INTENT OBJECT]:');
     print('  Intent: ${intent.intent}');
     print('  Name: ${intent.ritualName}');
+    print('  Desc: ${intent.description}');
+    print('  Icon: ${intent.icon}');
     print('  Steps: ${intent.steps}');
     print('  Reminder Time: ${intent.reminderTime}');
     print('  Reminder Days: ${intent.reminderDays}');
@@ -110,6 +112,8 @@ class LlmService {
 class RitualIntent {
   final String intent; // create_ritual, ...
   final String? ritualName;
+  final String? description;
+  final String? icon;
   final List<String>? steps;
   final String? reminderTime; // HH:mm
   final List<String>? reminderDays; // Mon..Sun
@@ -117,6 +121,8 @@ class RitualIntent {
   RitualIntent({
     required this.intent,
     this.ritualName,
+    this.description,
+    this.icon,
     this.steps,
     this.reminderTime,
     this.reminderDays,
@@ -147,6 +153,8 @@ class RitualIntent {
     return RitualIntent(
       intent: intent,
       ritualName: _safeString(j['ritual_name']),
+      description: _safeString(j['description']),
+      icon: _safeString(j['icon']),
       steps: steps,
       reminderTime: time,
       reminderDays: days,
@@ -158,6 +166,8 @@ class RitualIntent {
     return {
       'profile_id': profileId,
       if (ritualName != null) 'name': ritualName,
+      if (description != null) 'description': description,
+      if (icon != null) 'icon': icon,
       if (steps != null) 'steps': steps, // jsonb
       if (reminderTime != null) 'reminder_time': reminderTime, // time 'HH:mm'
       if (reminderDays != null) 'reminder_days': reminderDays, // text[]
