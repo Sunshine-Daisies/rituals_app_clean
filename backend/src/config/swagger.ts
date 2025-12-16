@@ -23,8 +23,8 @@ const options: swaggerJsdoc.Options = {
         description: 'Local Development Server',
       },
       {
-        url: 'https://api.rituals.app/api',
-        description: 'Production Server (Coming Soon)',
+        url: 'https://ritualsappclean-production.up.railway.app/api',
+        description: 'Production Server',
       },
     ],
     tags: [

@@ -4,8 +4,8 @@ import clsx from 'clsx';
 import styles from './index.module.css'; // Reusing styles for consistency
 
 export default function ApiDocs() {
-  // Bu URL ileride canlı sunucu adresiyle değiştirilecek
-  const API_URL = 'http://localhost:3001';
+  // Canlı sunucu adresi
+  const API_URL = 'https://ritualsappclean-production.up.railway.app';
   const SWAGGER_URL = `${API_URL}/docs/`;
 
   return (
