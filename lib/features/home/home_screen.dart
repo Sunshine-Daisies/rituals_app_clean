@@ -52,72 +52,79 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _loadRituals() async {
+  void _loadRituals() {
+    final ritualsFuture = _fetchRitualsWithStatus();
+    final partnershipsFuture = _fetchPartnershipsWithStatus();
+    
     setState(() {
-      _myRitualsFuture = RitualsService.getRituals('temp_user_id');
-      _partnershipsFuture = PartnershipService.getMyPartnerships();
+      _myRitualsFuture = ritualsFuture;
+      _partnershipsFuture = partnershipsFuture;
       _pendingRequestsFuture = PartnershipService.getPendingRequests();
     });
     
     _loadUnreadNotifications();
     
-    // Tamamlanma durumunu yükle
-    await _loadCompletionStatus();
+    // Timer'ları kurmak için verilerin gelmesini bekle
+    Future.wait([ritualsFuture, partnershipsFuture]).then((results) {
+      if (mounted) {
+        final rituals = results[0] as List<Ritual>;
+        final partnerships = results[1] as List<Partnership>;
+        _scheduleRitualRefreshTimers(rituals, partnerships);
+      }
+    });
+  }
+
+  Future<List<Ritual>> _fetchRitualsWithStatus() async {
+    final rituals = await RitualsService.getRituals('temp_user_id');
+    
+    // Status fetch logic
+    final statusUpdates = <String, bool>{};
+    await Future.wait(rituals.map((r) async {
+      try {
+        final response = await RitualLogsService.getCompletionStatus(r.id);
+        statusUpdates[r.id] = response['completedToday'] ?? false;
+      } catch (e) {
+        statusUpdates[r.id] = false;
+      }
+    }));
+    
+    // Update map directly (FutureBuilder will see this when it rebuilds)
+    _ritualCompletionStatus.addAll(statusUpdates);
+    return rituals;
+  }
+
+  Future<List<Partnership>> _fetchPartnershipsWithStatus() async {
+    final partnerships = await PartnershipService.getMyPartnerships();
+    
+    final statusUpdates = <int, bool>{};
+    for (var p in partnerships) {
+       statusUpdates[p.id] = p.myCompletedToday;
+    }
+    
+    _partnershipCompletionStatus.addAll(statusUpdates);
+    return partnerships;
   }
 
   Future<void> _loadUnreadNotifications() async {
     try {
       final result = await _gamificationService.getNotifications();
       if (mounted && result != null) {
-        setState(() {
-          _unreadNotificationCount = result.unreadCount;
-        });
+        // Sadece sayı değiştiyse ekranı yenile
+        if (_unreadNotificationCount != result.unreadCount) {
+          setState(() {
+            _unreadNotificationCount = result.unreadCount;
+          });
+        }
       }
     } catch (e) {
       print('Error loading notifications: $e');
     }
   }
 
-  Future<void> _loadCompletionStatus() async {
-    try {
-      print('🔍 Loading completion status...');
-      final rituals = await _myRitualsFuture;
-      final partnerships = await _partnershipsFuture;
-      
-      final ritualStatus = <String, bool>{};
-      final partnershipStatus = <int, bool>{};
-      
-      // Paralel kontroller
-      await Future.wait([
-        ...rituals.map((ritual) async {
-          final isCompleted = await _checkRitualCompletedToday(ritual.id);
-          ritualStatus[ritual.id] = isCompleted;
-          print('  Ritual ${ritual.name}: ${isCompleted ? "✅" : "❌"}');
-        }),
-        ...partnerships.map((partnership) async {
-          // Kendi tamamlama durumumu kullan (myCompletedToday)
-          final isCompleted = partnership.myCompletedToday;
-          partnershipStatus[partnership.id] = isCompleted;
-          print('  Partnership ${partnership.myRitualName}: ${isCompleted ? "✅" : "❌"} (partner: ${partnership.partnerCompletedToday ? "✅" : "❌"})');
-        }),
-      ]);
-      
-      if (mounted) {
-        setState(() {
-          _ritualCompletionStatus = ritualStatus;
-          _partnershipCompletionStatus = partnershipStatus;
-        });
-        print('✅ Completion status loaded');
-        
-        // Ritüellerin belirlenen saatlerinde refresh için zamanlayicilar kur
-        _scheduleRitualRefreshTimers(rituals, partnerships);
-      }
-    } catch (e) {
-      print('❌ Error loading completion status: $e');
-    }
-  }
-
-
+  // _loadCompletionStatus artık kullanılmıyor, çünkü status fetch işlemi
+  // _fetchRitualsWithStatus ve _fetchPartnershipsWithStatus içine taşındı.
+  // Ancak eski koddan kalan referansları temizlemek için boş bırakabiliriz veya silebiliriz.
+  // Aşağıdaki metod artık çağrılmıyor.
 
   Future<bool> _checkRitualCompletedToday(String ritualId) async {
     try {
