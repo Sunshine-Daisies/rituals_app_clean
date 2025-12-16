@@ -18,7 +18,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./src:/app/src # Canlı kod değişimi için (Hot Reload)
+      - ./backend/src:/app/src # Canlı kod değişimi için (Hot Reload)
       - /backend/app/node_modules
 
   # Veritabanı Servisi
