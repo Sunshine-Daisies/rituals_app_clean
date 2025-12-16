@@ -38,6 +38,78 @@ app.get('/', (req, res) => {
   res.send('Rituals API is running. Go to /docs for documentation.');
 });
 
+// DB Setup Endpoint (Temporary)
+import pool from './config/db';
+app.get('/setup-db', async (req, res) => {
+  try {
+    const createTablesQuery = `
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+      CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS rituals (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          reminder_time TEXT,
+          reminder_days TEXT[],
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS ritual_steps (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          ritual_id UUID REFERENCES rituals(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          is_completed BOOLEAN DEFAULT FALSE,
+          order_index INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS ritual_logs (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          ritual_id UUID REFERENCES rituals(id) ON DELETE CASCADE,
+          step_index INTEGER,
+          source TEXT,
+          completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS llm_usage (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          model TEXT,
+          tokens_in INTEGER,
+          tokens_out INTEGER,
+          session_id TEXT,
+          intent TEXT,
+          prompt_type TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS devices (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          profile_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          device_token TEXT NOT NULL,
+          platform TEXT,
+          app_version TEXT,
+          locale TEXT,
+          last_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await pool.query(createTablesQuery);
+    res.send('Database tables created successfully!');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error creating tables: ' + error);
+  }
+});
+
 // =================================================================
 // API DOCUMENTATION (Swagger)
 // =================================================================
