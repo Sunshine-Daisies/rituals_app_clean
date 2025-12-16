@@ -4,6 +4,25 @@ import pool from '../config/db';
 
 const router = Router();
 
+// Delete user by email (for testing purposes)
+router.delete('/user/:email', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+    console.log(`🗑️ Deleting user with email: ${email}`);
+    
+    const result = await pool.query('DELETE FROM users WHERE email = $1 RETURNING id', [email]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({ success: true, message: `User ${email} deleted successfully` });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 // Test endpoint for streak check
 router.post('/test-streak-check/:userId', async (req: Request, res: Response) => {
   try {
