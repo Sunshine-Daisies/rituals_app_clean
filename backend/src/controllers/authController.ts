@@ -46,8 +46,10 @@ export const register = async (req: Request, res: Response) => {
     const username = generateUsername(email);
     await xpService.createUserProfile(userId, username);
 
-    // 6. Mail gönder
-    await sendVerificationEmail(email, verificationToken);
+    // 6. Mail gönder (Asenkron - Cevabı beklemeyelim)
+    sendVerificationEmail(email, verificationToken).catch(err => {
+      console.error('Arka planda mail gönderme hatası:', err);
+    });
 
     // Token DÖNMÜYORUZ. Sadece mesaj.
     res.status(201).json({
