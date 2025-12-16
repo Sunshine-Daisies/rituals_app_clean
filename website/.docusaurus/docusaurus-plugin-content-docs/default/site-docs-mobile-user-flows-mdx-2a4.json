@@ -1,0 +1,26 @@
+{
+  "id": "mobile/user-flows",
+  "title": "User Flows",
+  "description": "This document outlines the primary user journeys within the Rituals App.",
+  "source": "@site/docs/mobile/user-flows.mdx",
+  "sourceDirName": "mobile",
+  "slug": "/mobile/user-flows",
+  "permalink": "/docs/mobile/user-flows",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Architecture",
+    "permalink": "/docs/mobile/architecture"
+  },
+  "next": {
+    "title": "Authentication",
+    "permalink": "/docs/features/authentication"
+  }
+}

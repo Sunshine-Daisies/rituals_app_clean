@@ -1,0 +1,257 @@
+/* Animated Background for Hero */
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+.heroBanner {
+  padding: 0; /* Remove padding to control height better */
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  /* Vibrant, animated gradient */
+  background: linear-gradient(-45deg, #1A1A2E, #16213E, #2a2a4a, #3a1c71);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+  color: white;
+  height: calc(100vh - 60px); /* Exact height minus navbar (approx 60px) */
+  min-height: unset; /* Remove min-height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* clip-path removed for full screen immersion */
+}
+
+.giantLogo {
+  position: absolute;
+  bottom: -30%;
+  right: -10%;
+  height: 120vh; /* Slightly smaller to avoid scroll issues if any */
+  width: auto;
+  opacity: 0.15; /* Subtle watermark effect */
+  transform: rotate(-15deg);
+  pointer-events: none;
+  z-index: 0;
+  filter: drop-shadow(0 0 50px rgba(108, 99, 255, 0.3));
+  animation: floatLogo 20s ease-in-out infinite;
+}
+
+@keyframes floatLogo {
+  0% { transform: rotate(-15deg) translateY(0px); }
+  50% { transform: rotate(-10deg) translateY(-30px); }
+  100% { transform: rotate(-15deg) translateY(0px); }
+}
+
+.heroBanner::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: radial-gradient(circle at center, transparent 0%, #000 120%);
+  pointer-events: none;
+  z-index: 1; /* Above logo, below text */
+}
+
+.heroBanner .container {
+  z-index: 2; /* Ensure text is on top */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.techStack {
+  margin-top: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  animation: fadeIn 2s ease-out;
+}
+
+.dot {
+  color: var(--ifm-color-primary);
+  font-size: 1.5rem;
+  line-height: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.heroBanner h1 {
+  font-size: 6rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  margin-bottom: 1rem;
+  background: linear-gradient(to right, #fff, #a29cff, #6C63FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(108, 99, 255, 0.5);
+  z-index: 1;
+  animation: float 6s ease-in-out infinite;
+}
+
+.heroBanner p {
+  font-size: 1.8rem;
+  color: #e0e0ff;
+  max-width: 700px;
+  margin: 0 auto 3rem auto;
+  line-height: 1.4;
+  font-weight: 300;
+  z-index: 1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  z-index: 1;
+}
+
+/* Features Section */
+.features {
+  display: flex;
+  align-items: center;
+  padding: 8rem 0;
+  width: 100%;
+  background-color: #0f0f1a;
+  position: relative;
+  margin-top: -5rem; /* Overlap with hero */
+  padding-top: 10rem;
+}
+
+.featureCard {
+  height: 100%;
+  padding: 3rem;
+  border-radius: 2rem;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.featureCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #6C63FF, #a29cff);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-15px) scale(1.02);
+  background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5), 
+              0 0 30px rgba(108, 99, 255, 0.3);
+  border-color: rgba(108, 99, 255, 0.3);
+}
+
+.featureCard:hover::before {
+  transform: scaleX(1);
+}
+
+.featureCard h3 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.featureCard p {
+  color: #b0b0d0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  flex-grow: 1;
+  margin-bottom: 2rem;
+}
+
+/* Button overrides */
+.heroButtonPrimary {
+  background: linear-gradient(45deg, #6C63FF, #5a52e6);
+  border: none;
+  color: white;
+  padding: 1.2rem 3rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 100px;
+  transition: all 0.3s;
+  box-shadow: 0 10px 30px rgba(108, 99, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.heroButtonPrimary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(108, 99, 255, 0.6);
+  color: white;
+  text-decoration: none;
+}
+
+.heroButtonSecondary {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 1.2rem 3rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 100px;
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.heroButtonSecondary:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: white;
+  transform: translateY(-3px);
+  color: white;
+  text-decoration: none;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 6rem 2rem;
+    min-height: 70vh;
+    clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
+  }
+  .heroBanner h1 {
+    font-size: 3.5rem;
+  }
+  .features {
+    padding-top: 6rem;
+  }
+}
+

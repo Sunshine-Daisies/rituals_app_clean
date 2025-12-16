@@ -1,0 +1,17 @@
+{
+  "id": "features/notifications",
+  "title": "Notifications",
+  "description": "Notifications are crucial for habit formation. The Rituals App uses a hybrid approach combining local scheduling and remote push notifications.",
+  "source": "@site/docs/features/notifications.md",
+  "sourceDirName": "features",
+  "slug": "/features/notifications",
+  "permalink": "/docs/features/notifications",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  }
+}

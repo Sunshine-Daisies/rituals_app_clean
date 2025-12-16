@@ -1,0 +1,26 @@
+{
+  "id": "backend/database",
+  "title": "Database Schema",
+  "description": "The application uses PostgreSQL as the primary relational database. Below is the comprehensive Entity-Relationship (ER) Diagram representing the full data structure.",
+  "source": "@site/docs/backend/database.mdx",
+  "sourceDirName": "backend",
+  "slug": "/backend/database",
+  "permalink": "/docs/backend/database",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Architecture",
+    "permalink": "/docs/backend/architecture"
+  },
+  "next": {
+    "title": "Setup & Installation",
+    "permalink": "/docs/mobile/setup"
+  }
+}

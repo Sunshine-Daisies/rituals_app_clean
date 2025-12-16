@@ -29,7 +29,7 @@ class AppConfig {
   // ============================================
   
   /// Yerel ağ IP adresi (ipconfig ile bulunur)
-  static const String localNetworkIp = '192.168.1.5';
+  static const String localNetworkIp = '192.168.1.7';
   
   /// Staging server URL (varsa)
   static const String stagingUrl = 'https://staging-api.yourdomain.com';
@@ -55,21 +55,14 @@ class AppConfig {
     switch (_environment) {
       case Environment.development:
         // Web için localhost
-        if (kIsWeb) return 'http://localhost:3000/api';
+        if (kIsWeb) return 'http://localhost:3001/api';
         
-        // Android için
-        if (Platform.isAndroid) {
-          // Android Emulator için 10.0.2.2
-          // Eğer gerçek cihaz kullanıyorsanız burayı bilgisayarınızın IP adresi yapın (örn: 192.168.1.x)
-          return 'http://10.0.2.2:3000/api';
+        // Mobil cihazlar için yerel ağ IP'si
+        if (Platform.isAndroid || Platform.isIOS) {
+          return 'http://$localNetworkIp:3001/api';
         }
         
-        // iOS Simulator için localhost
-        if (Platform.isIOS) {
-          return 'http://localhost:3000/api';
-        }
-        
-        return 'http://localhost:3000/api';
+        return 'http://localhost:3001/api';
         
       case Environment.staging:
         return '$stagingUrl/api';
@@ -83,11 +76,11 @@ class AppConfig {
   String get wsUrl {
     switch (_environment) {
       case Environment.development:
-        if (kIsWeb) return 'ws://localhost:3000';
+        if (kIsWeb) return 'ws://localhost:3001';
         if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          return 'ws://$localNetworkIp:3000';
+          return 'ws://$localNetworkIp:3001';
         }
-        return 'ws://localhost:3000';
+        return 'ws://localhost:3001';
         
       case Environment.staging:
         return stagingUrl.replaceFirst('https', 'wss');

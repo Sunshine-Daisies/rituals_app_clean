@@ -1,0 +1,111 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "backend/architecture",
+              "path": "/docs/backend/architecture",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "backend/database",
+              "path": "/docs/backend/database",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "backend/setup",
+              "path": "/docs/backend/setup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "deployment",
+              "path": "/docs/deployment",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/ai-assistant",
+              "path": "/docs/features/ai-assistant",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/analytics",
+              "path": "/docs/features/analytics",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/authentication",
+              "path": "/docs/features/authentication",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/gamification",
+              "path": "/docs/features/gamification",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/notifications",
+              "path": "/docs/features/notifications"
+            },
+            {
+              "id": "features/profile",
+              "path": "/docs/features/profile"
+            },
+            {
+              "id": "features/rituals",
+              "path": "/docs/features/rituals",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/social",
+              "path": "/docs/features/social",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/docs/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "mobile/architecture",
+              "path": "/docs/mobile/architecture",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "mobile/setup",
+              "path": "/docs/mobile/setup",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "mobile/user-flows",
+              "path": "/docs/mobile/user-flows",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "roadmap",
+              "path": "/docs/roadmap",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/docs/intro",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

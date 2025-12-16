@@ -1,0 +1,26 @@
+{
+  "id": "mobile/setup",
+  "title": "Setup & Installation",
+  "description": "This guide covers the complete setup process for the Flutter mobile application.",
+  "source": "@site/docs/mobile/setup.md",
+  "sourceDirName": "mobile",
+  "slug": "/mobile/setup",
+  "permalink": "/docs/mobile/setup",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Database Schema",
+    "permalink": "/docs/backend/database"
+  },
+  "next": {
+    "title": "Architecture",
+    "permalink": "/docs/mobile/architecture"
+  }
+}

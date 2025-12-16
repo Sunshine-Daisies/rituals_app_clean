@@ -1,0 +1,17 @@
+{
+  "id": "features/profile",
+  "title": "Profile & Settings",
+  "description": "The Profile section allows users to manage their identity, preferences, and account security.",
+  "source": "@site/docs/features/profile.md",
+  "sourceDirName": "features",
+  "slug": "/features/profile",
+  "permalink": "/docs/features/profile",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "sidebar_position": 6
+  }
+}

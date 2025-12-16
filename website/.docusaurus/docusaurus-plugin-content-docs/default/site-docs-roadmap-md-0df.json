@@ -1,0 +1,22 @@
+{
+  "id": "roadmap",
+  "title": "Roadmap",
+  "description": "This document outlines the development plan for the Rituals App, focusing on the Gamification System and future features.",
+  "source": "@site/docs/roadmap.md",
+  "sourceDirName": ".",
+  "slug": "/roadmap",
+  "permalink": "/docs/roadmap",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Deployment Guide",
+    "permalink": "/docs/deployment"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "features/analytics",
+  "title": "Analytics",
+  "description": "Understanding your progress is key to long-term habit retention. The Analytics module provides visual insights into your performance.",
+  "source": "@site/docs/features/analytics.md",
+  "sourceDirName": "features",
+  "slug": "/features/analytics",
+  "permalink": "/docs/features/analytics",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "AI Assistant",
+    "permalink": "/docs/features/ai-assistant"
+  },
+  "next": {
+    "title": "Deployment Guide",
+    "permalink": "/docs/deployment"
+  }
+}

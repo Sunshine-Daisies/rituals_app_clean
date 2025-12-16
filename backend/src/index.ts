@@ -12,6 +12,8 @@ import notificationRoutes from './routes/notificationRoutes';
 import partnershipRoutes from './routes/partnershipRoutes';
 import testRoutes from './routes/testRoutes';
 import { initializeStreakScheduler, shutdownStreakScheduler } from './services/streakScheduler';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger';
 
 dotenv.config();
 
@@ -20,6 +22,24 @@ const port = parseInt(process.env.PORT || '3000', 10);
 
 app.use(cors());
 app.use(express.json());
+
+// =================================================================
+// API DOCUMENTATION (Swagger)
+// =================================================================
+const swaggerOptions = {
+  customSiteTitle: "Rituals API Docs",
+  customCss: `
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info { margin: 20px 0; }
+  `,
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'none',
+    filter: true,
+  },
+};
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
 
 // Test endpoints (before auth middleware)
 app.use('/api/test', testRoutes);
