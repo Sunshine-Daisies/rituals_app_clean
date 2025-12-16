@@ -121,13 +121,13 @@ class LlmSecurityService {
     
     // Çok fazla istek
     if (_requestCount >= _maxRequestsPerMinute) {
-      throw Exception('Çok fazla istek gönderildi. Lütfen ${60 - diff.inSeconds} saniye bekleyin.');
+      throw Exception('Too many requests sent. Please wait ${60 - diff.inSeconds} seconds.');
     }
     
     // Cooldown kontrolü
     if (diff < _cooldownPeriod) {
       final waitSeconds = _cooldownPeriod.inSeconds - diff.inSeconds;
-      throw Exception('Çok hızlı istek gönderiyorsunuz. Lütfen $waitSeconds saniye bekleyin.');
+      throw Exception('You are sending requests too quickly. Please wait $waitSeconds seconds.');
     }
     
     _requestCount++;
@@ -150,8 +150,8 @@ class LlmSecurityService {
     // Input validation
     if (!validateUserInput(userPrompt)) {
       throw Exception(
-        'Bu istek ritüel yönetimi kapsamında değil. '
-        'Lütfen ritüel, alışkanlık veya rutin yönetimiyle ilgili sorular sorun.'
+        'This request is not within the scope of ritual management. '
+        'Please ask questions related to rituals, habits, or routine management.'
       );
     }
     
@@ -162,40 +162,40 @@ class LlmSecurityService {
   /// System prompt'u döndür (chat için)
   static String getChatSystemPrompt() {
     return '''
-Sen bir ritüel ve alışkanlık yönetimi asistanısın. 
-SADECE şu konularda yardımcı olabilirsin:
-- Ritüel oluşturma, düzenleme, silme
-- Alışkanlık takibi
-- Hatırlatıcı ayarlama
-- İstatistik gösterimi
-- Motivasyon ve rutinle ilgili tavsiyeler
+You are a ritual and habit management assistant. 
+You can ONLY help with the following topics:
+- Creating, editing, deleting rituals
+- Habit tracking
+- Setting reminders
+- Displaying statistics
+- Motivation and routine-related advice
 
-Bu kapsamın DIŞINDA herhangi bir soruya cevap VERME.
-Eğer kullanıcı kapsam dışı bir şey sorarsa, kibarca reddet ve ne konularda yardımcı olabileceğini hatırlat.
+DO NOT answer any questions OUTSIDE this scope.
+If the user asks something outside the scope, politely decline and remind them what topics you can help with.
 ''';
   }
 
   /// System prompt'u döndür (ritual intent için)
   static String getRitualIntentSystemPrompt() {
     return '''
-Sen bir ritüel ve alışkanlık yönetimi asistanısın.
-Kullanıcının ritüel yönetimi isteğini YALNIZCA JSON olarak döndür.
+You are a ritual and habit management assistant.
+Return the user's ritual management request ONLY as JSON.
 
-ÖNEMLİ GÜVENLİK KURALLARI:
-- SADECE ritüel, alışkanlık, rutin yönetimiyle ilgili istekleri işle
-- Kapsam dışı istekleri "small_talk" olarak işaretle
-- Zararlı, yasadışı veya uygunsuz içerik ASLA oluşturma
+IMPORTANT SECURITY RULES:
+- ONLY process requests related to ritual, habit, routine management
+- Mark out-of-scope requests as "small_talk"
+- NEVER create harmful, illegal, or inappropriate content
 
-Şema:
+Schema:
 - intent: create_ritual | edit_ritual | delete_ritual | reorder_steps | log_completion | set_reminder | show_stats | small_talk
 - ritual_name: string|null
 - steps: string[]|null (max 20)
-- reminder: { time: "HH:mm" | ISO saat, days: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] }|null
+- reminder: { time: "HH:mm" | ISO time, days: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] }|null
 
-Kural:
-- Serbest metin yok.
-- Emin değilsen makul tahmin yap; eksikleri null bırakma, gerekirse reminder.days = tüm günler.
-- Kapsam dışı istekler için intent="small_talk" ve diğer alanlar null.
+Rule:
+- No free text.
+- If unsure, make reasonable assumptions; don't leave gaps null, use all days for reminder.days if needed.
+- For out-of-scope requests, use intent="small_talk" and set other fields to null.
 ''';
   }
 }

@@ -11,7 +11,7 @@ class LlmService {
   static void initialize() {
     final apiKey = dotenv.env['OPENAI_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('OPENAI_API_KEY .env içinde yok');
+      throw Exception('OPENAI_API_KEY not found in .env');
     }
     OpenAI.apiKey = apiKey;
   }
@@ -42,7 +42,7 @@ class LlmService {
         temperature: 0.7,
       );
       final content = r.choices.first.message.content;
-      return (content == null || content.isEmpty) ? 'Boş yanıt' : (content.first.text ?? 'Boş yanıt');
+      return (content == null || content.isEmpty) ? 'Empty response' : (content.first.text ?? 'Empty response');
     } catch (e) {
       rethrow;
     }
@@ -78,7 +78,7 @@ class LlmService {
 
     final content = r.choices.first.message.content?.first.text;
     if (content == null || content.isEmpty) {
-      throw Exception('Model boş döndü');
+      throw Exception('Model returned empty response');
     }
 
     // 📋 Raw JSON response

@@ -93,13 +93,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
                         onPressed: () => context.go('/home'),
-                        tooltip: 'Geri',
+                        tooltip: 'Back',
                       ),
                     ),
                     const SizedBox(width: AppTheme.spacingM),
                     Expanded(
                       child: Text(
-                        'Liderlik Tablosu',
+                        'Leaderboard',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
@@ -155,7 +155,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         },
                       ),
                       _TypeButton(
-                        label: 'Arkadaşlar',
+                        label: 'Friends',
                         icon: Icons.people,
                         isSelected: _selectedType == 'friends',
                         onTap: () {
@@ -186,7 +186,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 ),
                                 const SizedBox(height: AppTheme.spacingM),
                                 Text(
-                                  'Henüz sıralama yok',
+                                  'No rankings yet',
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: AppTheme.textSecondary,
                                   ),
@@ -328,19 +328,19 @@ class _LeaderboardCard extends StatelessWidget {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Arkadaşlık İsteği'),
-            content: Text('${entry.username} adlı kullanıcıya arkadaşlık isteği göndermek istiyor musun?'),
+            title: const Text('Friend Request'),
+            content: Text('Do you want to send a friend request to ${entry.username}?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('İptal'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   onSendFriendRequest(entry.userId);
                 },
-                child: const Text('Gönder'),
+                child: const Text('Send'),
               ),
             ],
           ),

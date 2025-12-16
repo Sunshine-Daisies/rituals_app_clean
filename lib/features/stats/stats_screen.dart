@@ -37,7 +37,7 @@ class _StatsScreenState extends State<StatsScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('İstatistikler yüklenemedi')),
+          const SnackBar(content: Text('Failed to load statistics')),
         );
       }
     }
@@ -79,13 +79,13 @@ class _StatsScreenState extends State<StatsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'İstatistikler',
+                                    'Statistics',
                                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
-                                    'Gelişimini takip et',
+                                    'Track your progress',
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: AppTheme.textSecondary,
                                     ),
@@ -114,7 +114,7 @@ class _StatsScreenState extends State<StatsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Haftalık Aktivite',
+                                'Weekly Activity',
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -143,30 +143,30 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                         delegate: SliverChildListDelegate([
                           _MetricCard(
-                            title: 'En Uzun Seri',
+                            title: 'Longest Streak',
                             value: '${_stats?.longestStreak ?? 0}',
-                            subtitle: 'Gün',
+                            subtitle: 'Days',
                             icon: Icons.local_fire_department,
                             color: Colors.orange,
                           ),
                           _MetricCard(
-                            title: 'Mevcut Seri',
+                            title: 'Current Streak',
                             value: '${_stats?.currentBestStreak ?? 0}',
-                            subtitle: 'Gün',
+                            subtitle: 'Days',
                             icon: Icons.bolt,
                             color: Colors.yellow,
                           ),
                           _MetricCard(
-                            title: 'Toplam',
+                            title: 'Total',
                             value: '${_stats?.totalCompletions ?? 0}',
-                            subtitle: 'Tamamlanan',
+                            subtitle: 'Completed',
                             icon: Icons.check_circle_outline,
                             color: Colors.green,
                           ),
                           _MetricCard(
-                            title: 'Başarı Oranı',
+                            title: 'Success Rate',
                             value: _calculateCompletionRate(),
-                            subtitle: 'Günlük',
+                            subtitle: 'Daily',
                             icon: Icons.pie_chart,
                             color: Colors.blue,
                           ),
@@ -184,7 +184,7 @@ class _StatsScreenState extends State<StatsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Son 30 Gün',
+                              'Last 30 Days',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -206,14 +206,14 @@ class _StatsScreenState extends State<StatsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'En İyi Ritüellerin',
+                              'Your Top Rituals',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: AppTheme.spacingM),
                             if (_stats?.topRituals.isEmpty ?? true)
-                              const Text('Henüz veri yok')
+                              const Text('No data yet')
                             else
                               ..._stats!.topRituals.map((ritual) => _TopRitualItem(ritual: ritual)),
                           ],
@@ -243,7 +243,7 @@ class _WeeklyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (weeklyActivity.isEmpty) return const Center(child: Text('Veri yok'));
+    if (weeklyActivity.isEmpty) return const Center(child: Text('No data'));
 
     return BarChart(
       BarChartData(
@@ -477,7 +477,7 @@ class _TopRitualItem extends StatelessWidget {
                     Icon(Icons.repeat, size: 14, color: AppTheme.textSecondary),
                     const SizedBox(width: 4),
                     Text(
-                      '${ritual.count} kez yapıldı',
+                      '${ritual.count} times completed',
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 12,

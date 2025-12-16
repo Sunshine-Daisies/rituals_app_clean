@@ -608,7 +608,7 @@ export const getUserStats = async (req: Request, res: Response) => {
         )::date AS date
       )
       SELECT 
-        to_char(d.date, 'Dy') as day,
+        EXTRACT(DOW FROM d.date) as day_index,
         COUNT(rl.id) as count
       FROM dates d
       LEFT JOIN ritual_logs rl ON DATE(rl.completed_at) = d.date 
@@ -647,7 +647,10 @@ export const getUserStats = async (req: Request, res: Response) => {
       totalCompletions: parseInt(basicStats.rows[0].total_completions),
       longestStreak: parseInt(basicStats.rows[0].longest_streak || '0'),
       currentBestStreak: parseInt(basicStats.rows[0].current_best_streak || '0'),
-      weeklyActivity: weeklyActivity.rows,
+      weeklyActivity: weeklyActivity.rows.map((row: any) => ({
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][parseInt(row.day_index)],
+        count: parseInt(row.count)
+      })),
       topRituals: topRituals.rows,
       monthlyActivity: monthlyActivity.rows,
     });

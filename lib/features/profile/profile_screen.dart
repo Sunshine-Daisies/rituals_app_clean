@@ -43,11 +43,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (_profile == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Profil bilgileri alınamadı. Bağlantınızı kontrol edin.'),
+              content: const Text('Failed to load profile. Check your connection.'),
               backgroundColor: AppTheme.errorColor,
               behavior: SnackBarBehavior.floating,
               action: SnackBarAction(
-                label: 'Tekrar Dene',
+                label: 'Try Again',
                 textColor: Colors.white,
                 onPressed: _loadData,
               ),
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
+            content: Text('Error: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -82,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 12),
-                Expanded(child: Text('Çıkış hatası: $e')),
+                Expanded(child: Text('Logout error: $e')),
               ],
             ),
             backgroundColor: AppTheme.errorColor,
@@ -174,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(width: 16),
           const Text(
-            'Profil',
+            'Profile',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -195,22 +195,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _ProfileOption(
           icon: Icons.emoji_events,
-          title: 'Rozetlerim',
-          subtitle: 'Kazandığın rozet ve başarılar',
+          title: 'My Badges',
+          subtitle: 'Badges and achievements earned',
           onTap: () => context.push('/badges'),
         ),
         const SizedBox(height: 12),
         _ProfileOption(
           icon: Icons.leaderboard,
-          title: 'Liderlik Tablosu',
-          subtitle: 'Sıralamadaki yerini gör',
+          title: 'Leaderboard',
+          subtitle: 'See your rank',
           onTap: () => context.push('/leaderboard'),
         ),
         const SizedBox(height: 12),
         _ProfileOption(
           icon: Icons.analytics,
-          title: 'İstatistikler',
-          subtitle: 'İlerleme ve başarılarını görüntüle',
+          title: 'Statistics',
+          subtitle: 'View progress and achievements',
           onTap: () => context.go('/stats'),
         ),
       ],
@@ -232,7 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: ElevatedButton.icon(
         icon: const Icon(Icons.logout, color: Colors.white),
         label: const Text(
-          'Çıkış Yap',
+          'Log Out',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -266,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Versiyon 1.1.0',
+          'Version 1.1.0',
           style: TextStyle(
             fontSize: 12,
             color: AppTheme.textSecondary.withOpacity(0.5),
@@ -291,14 +291,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(Icons.error_outline, color: AppTheme.errorColor.withOpacity(0.8), size: 48),
               const SizedBox(height: 16),
               Text(
-                'Profil yüklenemedi',
+                'Profile could not be loaded',
                 style: TextStyle(color: AppTheme.textPrimary.withOpacity(0.7)),
               ),
               const SizedBox(height: 8),
               TextButton.icon(
                 onPressed: _loadData,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Tekrar Dene'),
+                label: const Text('Try Again'),
               ),
             ],
           ),
@@ -403,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'XP İlerlemesi',
+                    'XP Progress',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -469,7 +469,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.people,
             iconColor: AppTheme.primaryColor,
             value: friendCount.toString(),
-            label: 'Arkadaş',
+            label: 'Friends',
             onTap: () => context.push('/friends'),
           ),
         ),
@@ -489,14 +489,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             const Icon(Icons.monetization_on, color: Colors.amber, size: 28),
             const SizedBox(width: 8),
-            const Text('Coin Mağazası'),
+            const Text('Coin Store'),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Daha fazla coin alarak özelliklerin kilidini açabilirsin!',
+              'Unlock features by getting more coins!',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 20),
@@ -523,7 +523,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -571,7 +571,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Bir hata oluştu'),
+            content: const Text('An error occurred'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -603,12 +603,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Mevcut freeze hakkın: $freezeCount',
+              'Current freeze count: $freezeCount',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 12),
             Text(
-              'Streak freeze, bir günlük ritüel kaçırmanda streak\'ini korumanı sağlar.',
+              'Streak freeze protects your streak if you miss a daily ritual.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppTheme.textSecondary,
               ),
@@ -630,7 +630,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const Spacer(),
                   Text(
-                    'Bakiye: $coins',
+                    'Balance: $coins',
                     style: TextStyle(
                       color: coins >= freezeCost ? AppTheme.successColor : AppTheme.errorColor,
                       fontWeight: FontWeight.bold,
@@ -644,11 +644,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
+            child: const Text('Close'),
           ),
           ElevatedButton.icon(
             icon: const Icon(Icons.shopping_cart, size: 18),
-            label: const Text('Satın Al'),
+            label: const Text('Buy'),
             style: ElevatedButton.styleFrom(
               backgroundColor: coins >= freezeCost ? AppTheme.primaryColor : Colors.grey,
             ),
@@ -669,7 +669,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(result?.message ?? 'Hata oluştu'),
+                      content: Text(result?.message ?? 'Error occurred'),
                       backgroundColor: AppTheme.errorColor,
                     ),
                   );
@@ -796,7 +796,7 @@ class _CoinPackageCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
-                        'POPÜLER',
+                        'POPULAR',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,

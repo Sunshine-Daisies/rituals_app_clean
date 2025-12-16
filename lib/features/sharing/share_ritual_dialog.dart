@@ -38,7 +38,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
         });
       } else {
         setState(() {
-          _errorMessage = result.error ?? 'Davet kodu oluşturulamadı';
+          _errorMessage = result.error ?? 'Failed to create invite code';
           _isCreatingInvite = false;
         });
       }
@@ -77,7 +77,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
       Clipboard.setData(ClipboardData(text: _invite!.inviteCode!));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Davet kodu kopyalandı!'),
+          content: Text('Invite code copied!'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -86,11 +86,11 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
 
   void _shareCode() {
     if (_invite?.inviteCode != null) {
-      final shareText = '${widget.ritualTitle} ritualime katıl!\n\nDavet Kodu: ${_invite!.inviteCode}\n\nUygulamada "Rituale Katıl" seçeneğini kullanarak bu kodu gir.';
+      final shareText = 'Join my ritual: ${widget.ritualTitle}!\n\nInvite Code: ${_invite!.inviteCode}\n\nUse the "Join Ritual" option in the app to enter this code.';
       Clipboard.setData(ClipboardData(text: shareText));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Paylaşım metni kopyalandı!'),
+          content: Text('Share text copied!'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -233,7 +233,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                   child: Column(
                     children: [
                       const Text(
-                        'Davet Kodu',
+                        'Invite Code',
                         style: TextStyle(
                           color: Colors.white70,
                           fontWeight: FontWeight.w500,
@@ -273,7 +273,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                           OutlinedButton.icon(
                             onPressed: _copyCode,
                             icon: const Icon(Icons.copy, size: 18, color: Colors.white),
-                            label: const Text('Kopyala', style: TextStyle(color: Colors.white)),
+                            label: const Text('Copy', style: TextStyle(color: Colors.white)),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Colors.white54),
                             ),
@@ -282,7 +282,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                           ElevatedButton.icon(
                             onPressed: _shareCode,
                             icon: const Icon(Icons.send, size: 18),
-                            label: const Text('Gönder'),
+                            label: const Text('Send'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: AppTheme.primaryColor,
@@ -295,7 +295,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Bu kodu partnerinle paylaş. Katılım isteği geldiğinde onaylamanız gerekecek.',
+                  'Share this code with your partner. You will need to approve their join request when it arrives.',
                   style: TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,
@@ -307,7 +307,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                 TextButton.icon(
                   onPressed: _isCreatingInvite ? null : _cancelInvite,
                   icon: const Icon(Icons.cancel, size: 18),
-                  label: const Text('Daveti İptal Et'),
+                  label: const Text('Cancel Invite'),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.red,
                   ),
@@ -336,7 +336,7 @@ class _ShareRitualDialogState extends State<ShareRitualDialog> {
                               ),
                             )
                           : const Icon(Icons.link),
-                      label: Text(_isCreatingInvite ? 'Kod Oluşturuluyor...' : 'Davet Kodu Oluştur'),
+                      label: Text(_isCreatingInvite ? 'Creating Code...' : 'Create Invite Code'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
