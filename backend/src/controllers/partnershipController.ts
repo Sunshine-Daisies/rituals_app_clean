@@ -431,16 +431,41 @@ export const getMyPartnerships = async (req: Request, res: Response) => {
       [userId]
     );
 
-    // Kullanıcı perspektifinden formatla
-    const partnerships = result.rows.map(p => {
+    // Bugünün başlangıcı ve sonu
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Kullanıcı perspektifinden formatla ve bugünkü tamamlama durumlarını kontrol et
+    const partnerships = await Promise.all(result.rows.map(async (p) => {
       const isUser1 = p.user_id_1 === userId;
+      const myRitualId = isUser1 ? p.ritual_id_1 : p.ritual_id_2;
+      const partnerRitualId = isUser1 ? p.ritual_id_2 : p.ritual_id_1;
+
+      // Benim bugünkü tamamlama durumum
+      const myCompletionCheck = await pool.query(
+        `SELECT 1 FROM ritual_logs 
+         WHERE ritual_id = $1 AND step_index = -1 
+         AND completed_at >= $2 AND completed_at < $3`,
+        [myRitualId, today.toISOString(), tomorrow.toISOString()]
+      );
+
+      // Partnerin bugünkü tamamlama durumu
+      const partnerCompletionCheck = await pool.query(
+        `SELECT 1 FROM ritual_logs 
+         WHERE ritual_id = $1 AND step_index = -1 
+         AND completed_at >= $2 AND completed_at < $3`,
+        [partnerRitualId, today.toISOString(), tomorrow.toISOString()]
+      );
+
       return {
         id: p.id,
-        myRitualId: isUser1 ? p.ritual_id_1 : p.ritual_id_2,
+        myRitualId: myRitualId,
         myRitualName: isUser1 ? p.ritual_name_1 : p.ritual_name_2,
         myRitualTime: isUser1 ? p.time_1 : p.time_2,
         myRitualDays: isUser1 ? p.days_1 : p.days_2,
-        partnerRitualId: isUser1 ? p.ritual_id_2 : p.ritual_id_1,
+        partnerRitualId: partnerRitualId,
         partnerRitualName: isUser1 ? p.ritual_name_2 : p.ritual_name_1,
         partnerUserId: isUser1 ? p.user_id_2 : p.user_id_1,
         partnerUsername: isUser1 ? p.username_2 : p.username_1,
@@ -448,9 +473,11 @@ export const getMyPartnerships = async (req: Request, res: Response) => {
         currentStreak: p.current_streak,
         longestStreak: p.longest_streak,
         lastBothCompletedAt: p.last_both_completed_at,
+        myCompletedToday: myCompletionCheck.rows.length > 0,
+        partnerCompletedToday: partnerCompletionCheck.rows.length > 0,
         createdAt: p.created_at,
       };
-    });
+    }));
 
     res.json(partnerships);
   } catch (error) {
