@@ -118,266 +118,271 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingL),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // App Logo with Gradient
-                      Container(
-                        padding: const EdgeInsets.all(AppTheme.spacingM),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: AppTheme.mediumShadow,
-                          color: Colors.white,
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/icon/app_icon.png',
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
+      body: Stack(
+        children: [
+          // 1. Background Gradient (Full Screen)
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppTheme.backgroundGradient,
+            ),
+          ),
+          
+          // 2. Transparent Background Logo (Centered & Large)
+          Center(
+            child: Opacity(
+              opacity: 0.05, // Very subtle watermark
+              child: Image.asset(
+                'assets/icon/app_icon.png',
+                width: 400,
+                height: 400,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+
+          // 3. Foreground Content (Scrollable)
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.spacingL),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: AppTheme.spacingXL),
+                        
+                        // App Title
+                        Text(
+                          'Rituals',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
                           ),
                         ),
-                      ),
-                    const SizedBox(height: AppTheme.spacingL),
-                    
-                    // App Title
-                    Text(
-                      'Rituals',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingS),
-                    Text(
-                      'Manage your daily rituals',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingXXL),
+                        const SizedBox(height: AppTheme.spacingS),
+                        Text(
+                          'Manage your daily rituals',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spacingXXL),
 
-                    // Auth Card
-                    Container(
-                      padding: const EdgeInsets.all(AppTheme.spacingL),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-                        boxShadow: AppTheme.cardShadow,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Toggle Buttons
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppTheme.backgroundColor,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: _ToggleButton(
-                                    text: 'Sign In',
-                                    isSelected: _isLogin,
-                                    onTap: () {
-                                      setState(() {
-                                        _isLogin = true;
-                                        _errorMessage = '';
-                                      });
-                                    },
-                                  ),
+                        // Auth Card
+                        Container(
+                          padding: const EdgeInsets.all(AppTheme.spacingL),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceColor.withOpacity(0.95), // Slight transparency for glass effect
+                            borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+                            boxShadow: AppTheme.cardShadow,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Toggle Buttons
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppTheme.backgroundColor,
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
                                 ),
-                                Expanded(
-                                  child: _ToggleButton(
-                                    text: 'Sign Up',
-                                    isSelected: !_isLogin,
-                                    onTap: () {
-                                      setState(() {
-                                        _isLogin = false;
-                                        _errorMessage = '';
-                                      });
-                                    },
-                                  ),
+                                padding: const EdgeInsets.all(4),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: _ToggleButton(
+                                        text: 'Sign In',
+                                        isSelected: _isLogin,
+                                        onTap: () {
+                                          setState(() {
+                                            _isLogin = true;
+                                            _errorMessage = '';
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: _ToggleButton(
+                                        text: 'Sign Up',
+                                        isSelected: !_isLogin,
+                                        onTap: () {
+                                          setState(() {
+                                            _isLogin = false;
+                                            _errorMessage = '';
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                              const SizedBox(height: AppTheme.spacingL),
+
+                              // Name field (only for signup)
+                              if (!_isLogin) ...[
+                                _CustomTextField(
+                                  controller: _nameController,
+                                  label: 'Full Name (Optional)',
+                                  icon: Icons.person_outline,
+                                ),
+                                const SizedBox(height: AppTheme.spacingM),
                               ],
-                            ),
-                          ),
-                          const SizedBox(height: AppTheme.spacingL),
 
-                          // Name field (only for signup)
-                          if (!_isLogin) ...[
-                            _CustomTextField(
-                              controller: _nameController,
-                              label: 'Full Name (Optional)',
-                              icon: Icons.person_outline,
-                            ),
-                            const SizedBox(height: AppTheme.spacingM),
-                          ],
-
-                          // Email field
-                          _CustomTextField(
-                            controller: _emailController,
-                            label: 'Email',
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Email is required';
-                              }
-                              if (!value.contains('@')) {
-                                return 'Enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: AppTheme.spacingM),
-
-                          // Password field
-                          _CustomTextField(
-                            controller: _passwordController,
-                            label: 'Password',
-                            icon: Icons.lock_outline,
-                            obscureText: _obscurePassword,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword 
-                                    ? Icons.visibility_outlined 
-                                    : Icons.visibility_off_outlined,
-                                color: AppTheme.textSecondary,
+                              // Email field
+                              _CustomTextField(
+                                controller: _emailController,
+                                label: 'Email',
+                                icon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Email is required';
+                                  }
+                                  if (!value.contains('@')) {
+                                    return 'Enter a valid email';
+                                  }
+                                  return null;
+                                },
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-                              if (value.length < 6) {
-                                return 'Password must be at least 6 characters';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: AppTheme.spacingS),
+                              const SizedBox(height: AppTheme.spacingM),
 
-                          if (_isLogin)
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: _showForgotPasswordDialog,
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'Forgot Password?',
-                                  style: TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                              // Password field
+                              _CustomTextField(
+                                controller: _passwordController,
+                                label: 'Password',
+                                icon: Icons.lock_outline,
+                                obscureText: _obscurePassword,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword 
+                                        ? Icons.visibility_outlined 
+                                        : Icons.visibility_off_outlined,
+                                    color: AppTheme.textSecondary,
                                   ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Password is required';
+                                  }
+                                  if (value.length < 6) {
+                                    return 'Password must be at least 6 characters';
+                                  }
+                                  return null;
+                                },
                               ),
-                            ),
-                          const SizedBox(height: AppTheme.spacingL),
+                              const SizedBox(height: AppTheme.spacingS),
 
-                          // Error message
-                          if (_errorMessage.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.all(AppTheme.spacingM),
-                              margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
-                              decoration: BoxDecoration(
-                                color: AppTheme.errorColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                border: Border.all(
-                                  color: AppTheme.errorColor.withOpacity(0.3),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: AppTheme.errorColor,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: AppTheme.spacingS),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage,
-                                      style: const TextStyle(
-                                        color: AppTheme.errorColor,
+                              if (_isLogin)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: _showForgotPasswordDialog,
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text(
+                                      'Forgot Password?',
+                                      style: TextStyle(
+                                        color: AppTheme.primaryColor,
                                         fontSize: 13,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              const SizedBox(height: AppTheme.spacingL),
 
-                          // Submit button
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: AppTheme.primaryGradient,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                              boxShadow: AppTheme.softShadow,
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleAuth,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                      ),
-                                    )
-                                  : Text(
-                                      _isLogin ? 'Sign In' : 'Sign Up',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
+                              // Error message
+                              if (_errorMessage.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.all(AppTheme.spacingM),
+                                  margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.errorColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                    border: Border.all(
+                                      color: AppTheme.errorColor.withOpacity(0.3),
                                     ),
-                            ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.error_outline,
+                                        color: AppTheme.errorColor,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: AppTheme.spacingS),
+                                      Expanded(
+                                        child: Text(
+                                          _errorMessage,
+                                          style: const TextStyle(
+                                            color: AppTheme.errorColor,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              // Submit button
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.primaryGradient,
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                  boxShadow: AppTheme.softShadow,
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _handleAuth,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : Text(
+                                          _isLogin ? 'Sign In' : 'Sign Up',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        
+                        const SizedBox(height: AppTheme.spacingXL),
+                      ],
                     ),
-                    
-                    const SizedBox(height: AppTheme.spacingXL),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
