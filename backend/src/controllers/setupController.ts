@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 
-export const setupFullDatabase = async (req: Request, res: Response) => {
+export const runMigrations = async () => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -23,6 +23,8 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
     // Add missing columns to users
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT;`);
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE;`);
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token TEXT;`);
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires BIGINT;`);
 
     // Ensure rituals table exists
     await client.query(`
@@ -62,7 +64,7 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
     // ============================================
     // 1. GAMIFICATION TABLES
     // ============================================
-    
+
     // user_profiles
     await client.query(`
       CREATE TABLE IF NOT EXISTS user_profiles (
@@ -313,12 +315,21 @@ export const setupFullDatabase = async (req: Request, res: Response) => {
     `);
 
     await client.query('COMMIT');
-    res.send('✅ All tables (Gamification & Partnerships) created successfully!');
+    console.log('✅ Database migrations checked/applied successfully.');
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Setup error:', error);
-    res.status(500).send('Error setting up database: ' + error);
+    console.error('Migration error:', error);
+    throw error;
   } finally {
     client.release();
+  }
+};
+
+export const setupFullDatabase = async (req: Request, res: Response) => {
+  try {
+    await runMigrations();
+    res.send('✅ All tables (Gamification & Partnerships) created successfully!');
+  } catch (error) {
+    res.status(500).send('Error setting up database: ' + error);
   }
 };

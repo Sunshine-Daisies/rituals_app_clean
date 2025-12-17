@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
 
 // DB Setup Endpoint (Temporary)
 import pool from './config/db';
-import { setupFullDatabase } from './controllers/setupController';
+import { setupFullDatabase, runMigrations } from './controllers/setupController';
 
 app.get('/setup-db', async (req, res) => {
   // ... existing simple setup ...
@@ -61,7 +61,7 @@ app.get('/setup-db', async (req, res) => {
     // Actually, let's just replace the old setup-db logic with the new one or add a new endpoint.
     // The user is used to /setup-db. Let's make /setup-db do the basic stuff (which is already done) AND the new stuff.
     // But to be safe, let's add /setup-full and tell the user to go there.
-    
+
     // For now, let's just add the new endpoint.
     res.send('Please use /setup-full for complete installation.');
   } catch (error) {
@@ -109,13 +109,16 @@ app.get('/', (req, res) => {
 
 app.listen(port, '0.0.0.0', async () => {
   console.log(`Server http://0.0.0.0:${port} adresinde çalışıyor`);
-  
+
   // Initialize streak scheduler for automatic streak checking
   try {
+    await runMigrations();
+    console.log('✅ Database migrations applied successfully');
+
     await initializeStreakScheduler();
     console.log('✅ Streak scheduler initialized successfully');
   } catch (error) {
-    console.error('❌ Failed to initialize streak scheduler:', error);
+    console.error('❌ Startup error:', error);
   }
 });
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, verifyEmail } from '../controllers/authController';
+import { register, login, verifyEmail, forgotPassword, resetPasswordPage, resetPassword } from '../controllers/authController';
 
 const router = Router();
 
@@ -124,5 +124,8 @@ router.post('/login', login);
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/verify', verifyEmail);
+router.post('/forgot-password', forgotPassword);
+router.get('/reset-password-page', resetPasswordPage);
+router.post('/reset-password', resetPassword);
 
 export default router;

@@ -44,16 +44,28 @@ class AuthService {
     }
   }
 
-  static Future<void> register(String email, String password) async {
+  static Future<void> register(String email, String password, {String? name}) async {
     try {
       await ApiService.post('/auth/register', {
         'email': email,
         'password': password,
+        'name': name,
       });
       
       // Token dönmüyor, sadece başarılı olduğunu biliyoruz.
     } catch (e) {
       throw Exception('Kayıt başarısız: $e');
+    }
+  }
+
+  static Future<void> forgotPassword(String email) async {
+    try {
+      // Backend returns success message even if email not found (security)
+      await ApiService.post('/auth/forgot-password', {
+        'email': email,
+      });
+    } catch (e) {
+      throw Exception('İşlem başarısız: $e');
     }
   }
 

@@ -69,6 +69,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         await AuthService.register(
           _emailController.text.trim(),
           _passwordController.text,
+          name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
         );
         
         if (mounted) {
@@ -79,7 +80,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   Icon(Icons.check_circle, color: Colors.white),
                   SizedBox(width: 12),
                   Expanded(
-                    child: Text('Kayıt başarılı! Lütfen e-postana gelen linke tıkla.'),
+                    child: Text('Registration successful! Please check your email to verify your account.'),
                   ),
                 ],
               ),
@@ -273,6 +274,28 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                               return null;
                             },
                           ),
+                          const SizedBox(height: AppTheme.spacingS),
+
+                          if (_isLogin)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _showForgotPasswordDialog,
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: AppTheme.spacingL),
 
                           // Error message
@@ -352,6 +375,78 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showForgotPasswordDialog() async {
+    final emailController = TextEditingController();
+    
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusL)),
+        title: const Text('Forgot Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your email address and we will send you a reset link.',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryColor),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (emailController.text.isEmpty) return;
+              Navigator.pop(context);
+              
+              try {
+                await AuthService.forgotPassword(emailController.text.trim());
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Password reset link sent to your email.'),
+                      backgroundColor: AppTheme.successColor,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString().replaceAll('Exception: ', '')),
+                      backgroundColor: AppTheme.errorColor,
+                      behavior: SnackBarBehavior.floating, 
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Send'),
+          ),
+        ],
       ),
     );
   }
