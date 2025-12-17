@@ -134,19 +134,22 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // App Logo with Gradient
-                    Container(
-                      padding: const EdgeInsets.all(AppTheme.spacingL),
-                      decoration: BoxDecoration(
-                        gradient: AppTheme.primaryGradient,
-                        shape: BoxShape.circle,
-                        boxShadow: AppTheme.mediumShadow,
+                      Container(
+                        padding: const EdgeInsets.all(AppTheme.spacingM),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: AppTheme.mediumShadow,
+                          color: Colors.white,
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/icon/app_icon.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.self_improvement,
-                        size: 60,
-                        color: Colors.white,
-                      ),
-                    ),
                     const SizedBox(height: AppTheme.spacingL),
                     
                     // App Title

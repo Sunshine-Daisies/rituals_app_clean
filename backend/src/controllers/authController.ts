@@ -74,7 +74,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     return res.status(400).send('Invalid request');
   }
 
-  const logoUrl = 'https://img.icons8.com/ios-filled/100/6C63FF/self-improvement.png';
+  const logoUrl = `${process.env.BACKEND_URL}/public/logo.png`;
 
   try {
     const result = await pool.query(
@@ -215,7 +215,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const resetPasswordPage = async (req: Request, res: Response) => {
   const { token } = req.query;
 
-  const logoUrl = 'https://img.icons8.com/ios-filled/100/6C63FF/self-improvement.png';
+  const logoUrl = `${process.env.BACKEND_URL}/public/logo.png`;
 
   res.send(`
     <html>

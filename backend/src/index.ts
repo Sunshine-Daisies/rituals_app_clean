@@ -33,6 +33,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use('/public', express.static('public'));
 
 // Root endpoint
 app.get('/', (req, res) => {
