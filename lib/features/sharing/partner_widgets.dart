@@ -448,7 +448,7 @@ class _PartnerRitualsListState extends State<PartnerRitualsList> {
             Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'Henüz partner rituali yok',
+              'No partner rituals yet',
               style: TextStyle(
                 color: Colors.grey[600],
                 fontSize: 16,
@@ -456,7 +456,7 @@ class _PartnerRitualsListState extends State<PartnerRitualsList> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Arkadaşlarının rituallerine katılarak\npartner olabilirsin',
+              'You can become a partner by joining\nyour friends\' rituals',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey[500], fontSize: 14),
             ),

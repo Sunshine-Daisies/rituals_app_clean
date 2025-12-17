@@ -101,7 +101,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
 
   void _addStep() {
     setState(() {
-      _steps.add('Yeni adım');
+      _steps.add('New step');
     });
   }
 
@@ -121,13 +121,13 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
   Widget build(BuildContext context) {
     const List<String> allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const dayLabels = {
-      'Mon': 'Pzt',
-      'Tue': 'Sal',
-      'Wed': 'Çar',
-      'Thu': 'Per',
-      'Fri': 'Cum',
-      'Sat': 'Cmt',
-      'Sun': 'Paz',
+      'Mon': 'Mon',
+      'Tue': 'Tue',
+      'Wed': 'Wed',
+      'Thu': 'Thu',
+      'Fri': 'Fri',
+      'Sat': 'Sat',
+      'Sun': 'Sun',
     };
 
     return Dialog(
@@ -150,7 +150,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Ritüel Onayı',
+                      'Ritual Approval',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
@@ -164,14 +164,14 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
 
               // Ritual Adı
               Text(
-                'Ritüel Adı',
+                'Ritual Name',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: 'Ritüel adını gir',
+                  hintText: 'Enter ritual name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -180,48 +180,37 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
               const SizedBox(height: 20),
 
               // Hatırlatma Saati
+              // Hatırlatma Saati
               Text(
-                'Hatırlatma Saati',
+                'Reminder Time',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
               InkWell(
-                onTap: _selectTime,
+                onTap: () async {
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: _selectedTime,
+                  );
+                  if (picked != null && picked != _selectedTime) {
+                    setState(() {
+                      _selectedTime = picked;
+                    });
+                  }
+                },
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.schedule, color: AppTheme.primaryColor),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          'Time',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                      ),
+                      const Icon(Icons.access_time),
+                      const SizedBox(width: 12),
                       Text(
-                        _formatTime(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
+                        '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
                   ),
@@ -231,7 +220,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
 
               // Günler
               Text(
-                'Tekrarlama Günleri',
+                'Repeat Days',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
@@ -255,7 +244,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
 
               // Adımlar
               Text(
-                'Adımlar',
+                'Steps',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
@@ -263,7 +252,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
-                    'Henüz adım yok',
+                    'No steps yet',
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontStyle: FontStyle.italic,
@@ -306,7 +295,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 icon: const Icon(Icons.add),
-                label: const Text('Adım Ekle'),
+                label: const Text('Add Step'),
                 onPressed: _addStep,
               ),
               const SizedBox(height: 24),
@@ -317,14 +306,14 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: widget.onReject,
-                      child: const Text('Reddet'),
+                      child: const Text('Reject'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _approve,
-                      child: const Text('Onayla'),
+                      child: const Text('Approve'),
                     ),
                   ),
                 ],

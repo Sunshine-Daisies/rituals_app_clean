@@ -44,7 +44,7 @@ class _ChatPageState extends State<ChatPage> {
       return;
     }
 
-    // Kullanıcı mesajını ekle
+    // Add user message
     setState(() {
       _messages.add(ChatMessage(
         text: message,
@@ -78,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
               // DB'ye ekle
               try {
                 await RitualsService.createRitual(
-                  name: updatedIntent.ritualName ?? 'Yeni Ritüel',
+                  name: updatedIntent.ritualName ?? 'New Ritual',
                   steps: (updatedIntent.steps ?? [])
                       .map((step) => {'title': step, 'completed': false})
                       .toList(),
@@ -89,7 +89,7 @@ class _ChatPageState extends State<ChatPage> {
                 if (mounted) {
                   setState(() {
                     _messages.add(ChatMessage(
-                      text: '✅ Ritüel başarıyla kaydedildi!',
+                      text: '✅ Ritual saved successfully!',
                       isUser: false,
                       timestamp: DateTime.now(),
                     ));
@@ -100,7 +100,7 @@ class _ChatPageState extends State<ChatPage> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Ritüel oluşturuldu!'),
+                        content: Text('Ritual created!'),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -110,7 +110,7 @@ class _ChatPageState extends State<ChatPage> {
                 if (mounted) {
                   setState(() {
                     _messages.add(ChatMessage(
-                      text: '❌ Hata: $e',
+                      text: '❌ Error: $e',
                       isUser: false,
                       timestamp: DateTime.now(),
                     ));
@@ -126,7 +126,7 @@ class _ChatPageState extends State<ChatPage> {
               if (mounted) {
                 setState(() {
                   _messages.add(ChatMessage(
-                    text: '❌ Ritüel reddedildi.',
+                    text: '❌ Ritual rejected.',
                     isUser: false,
                     timestamp: DateTime.now(),
                   ));
@@ -154,16 +154,14 @@ class _ChatPageState extends State<ChatPage> {
         _scrollToBottom();
       }
     } catch (e) {
-      setState(() {
-        _messages.add(ChatMessage(
-          text: 'Üzgünüm, bir hata oluştu: $e',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-        _isLoading = false;
-      });
-      
-      _scrollToBottom();
+        setState(() {
+          _messages.add(ChatMessage(
+            text: 'Sorry, an error occurred: $e',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+          _isLoading = false;
+        });      _scrollToBottom();
     }
   }
 
@@ -235,7 +233,7 @@ class _ChatPageState extends State<ChatPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'AI Asistan',
+                'AI Assistant',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -243,7 +241,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               Text(
-                'Ritüel planlayıcın',
+                'Your ritual planner',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white.withOpacity(0.7),
@@ -285,7 +283,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Nasıl yardımcı olabilirim?',
+              'How can I help you?',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -294,7 +292,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Yeni bir ritüel oluşturmak için\nbana hedeflerinden bahset.',
+              'To create a new ritual,\ntell me about your goals.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -383,7 +381,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Yazıyor...',
+              'Typing...',
               style: TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 12,
@@ -420,7 +418,7 @@ class _ChatPageState extends State<ChatPage> {
               child: TextField(
                 controller: _messageController,
                 decoration: InputDecoration(
-                  hintText: 'Mesajını yaz...',
+                  hintText: 'Type your message...',
                   hintStyle: TextStyle(color: AppTheme.textSecondary),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

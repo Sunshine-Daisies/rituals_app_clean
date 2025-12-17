@@ -56,7 +56,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
         });
       } else {
         setState(() {
-          _errorMessage = result.error ?? 'Katılım başarısız';
+          _errorMessage = result.error ?? 'Join failed';
           _isLoading = false;
         });
       }
@@ -92,13 +92,13 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
                         onPressed: () => context.go('/home'),
-                        tooltip: 'Geri',
+                        tooltip: 'Back',
                       ),
                     ),
                     const SizedBox(width: AppTheme.spacingM),
                     Expanded(
                       child: Text(
-                        'Rituale Katıl',
+                        'Join Ritual',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
@@ -133,14 +133,14 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
 
             // Title
             Text(
-              'Partner Ol',
+              'Become Partner',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Arkadaşının ritualine katılmak için\ndavet kodunu gir',
+              'Enter the invitation code to join\nyour friend\'s ritual',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[600],
@@ -221,10 +221,10 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Davet kodu gerekli';
+                          return 'Invitation code is required';
                         }
                         if (value.length < 6) {
-                          return 'Kod 6 karakter olmalı';
+                          return 'Code must be 6 characters';
                         }
                         return null;
                       },
@@ -252,7 +252,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                                 ),
                               )
                             : const Text(
-                                'Katıl',
+                                'Join',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -296,7 +296,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'İstek Gönderildi! 🎉',
+            'Request Sent! 🎉',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Colors.green[700],
                   fontWeight: FontWeight.bold,
@@ -304,7 +304,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            _joinResult!.ritualName ?? 'Ritüel',
+            _joinResult!.ritualName ?? 'Ritual',
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -326,7 +326,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                 Icon(Icons.hourglass_top, color: Colors.orange[700], size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'Onay Bekleniyor',
+                  'Waiting for Approval',
                   style: TextStyle(
                     color: Colors.orange[700],
                     fontWeight: FontWeight.w600,
@@ -340,7 +340,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => context.go('/home'),
-              child: const Text('Tamam'),
+              child: const Text('OK'),
             ),
           ),
         ],
@@ -359,20 +359,20 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
         children: [
           _buildInfoItem(
             Icons.link,
-            'Davet Kodu',
-            'Arkadaşın ritual paylaştığında aldığı 6 haneli kod',
+            'Invitation Code',
+            'The 6-digit code your friend received when sharing the ritual',
           ),
           const Divider(height: 24),
           _buildInfoItem(
             Icons.hourglass_empty,
-            'Onay Gerekli',
-            'Katılım isteğin ritual sahibi tarafından onaylanmalı',
+            'Approval Required',
+            'Your join request must be approved by the ritual owner',
           ),
           const Divider(height: 24),
           _buildInfoItem(
             Icons.local_fire_department,
             'Partner Streak',
-            'İkiniz de tamamladığınızda partner streak artar',
+            'Partner streak increases when both of you complete',
           ),
         ],
       ),

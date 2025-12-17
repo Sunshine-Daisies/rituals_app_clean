@@ -25,7 +25,7 @@ class AppException implements Exception {
 class NetworkException extends AppException {
   NetworkException([String? message])
       : super(
-          message ?? 'İnternet bağlantısı yok. Lütfen bağlantınızı kontrol edin.',
+          message ?? 'No internet connection. Please check your connection.',
           errorCode: 'NETWORK_ERROR',
         );
 }

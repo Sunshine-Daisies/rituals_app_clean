@@ -52,72 +52,79 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _loadRituals() async {
+  void _loadRituals() {
+    final ritualsFuture = _fetchRitualsWithStatus();
+    final partnershipsFuture = _fetchPartnershipsWithStatus();
+    
     setState(() {
-      _myRitualsFuture = RitualsService.getRituals('temp_user_id');
-      _partnershipsFuture = PartnershipService.getMyPartnerships();
+      _myRitualsFuture = ritualsFuture;
+      _partnershipsFuture = partnershipsFuture;
       _pendingRequestsFuture = PartnershipService.getPendingRequests();
     });
     
     _loadUnreadNotifications();
     
-    // Tamamlanma durumunu yükle
-    await _loadCompletionStatus();
+    // Timer'ları kurmak için verilerin gelmesini bekle
+    Future.wait([ritualsFuture, partnershipsFuture]).then((results) {
+      if (mounted) {
+        final rituals = results[0] as List<Ritual>;
+        final partnerships = results[1] as List<Partnership>;
+        _scheduleRitualRefreshTimers(rituals, partnerships);
+      }
+    });
+  }
+
+  Future<List<Ritual>> _fetchRitualsWithStatus() async {
+    final rituals = await RitualsService.getRituals('temp_user_id');
+    
+    // Status fetch logic
+    final statusUpdates = <String, bool>{};
+    await Future.wait(rituals.map((r) async {
+      try {
+        final response = await RitualLogsService.getCompletionStatus(r.id);
+        statusUpdates[r.id] = response['completedToday'] ?? false;
+      } catch (e) {
+        statusUpdates[r.id] = false;
+      }
+    }));
+    
+    // Update map directly (FutureBuilder will see this when it rebuilds)
+    _ritualCompletionStatus.addAll(statusUpdates);
+    return rituals;
+  }
+
+  Future<List<Partnership>> _fetchPartnershipsWithStatus() async {
+    final partnerships = await PartnershipService.getMyPartnerships();
+    
+    final statusUpdates = <int, bool>{};
+    for (var p in partnerships) {
+       statusUpdates[p.id] = p.myCompletedToday;
+    }
+    
+    _partnershipCompletionStatus.addAll(statusUpdates);
+    return partnerships;
   }
 
   Future<void> _loadUnreadNotifications() async {
     try {
       final result = await _gamificationService.getNotifications();
       if (mounted && result != null) {
-        setState(() {
-          _unreadNotificationCount = result.unreadCount;
-        });
+        // Sadece sayı değiştiyse ekranı yenile
+        if (_unreadNotificationCount != result.unreadCount) {
+          setState(() {
+            _unreadNotificationCount = result.unreadCount;
+          });
+        }
       }
     } catch (e) {
       print('Error loading notifications: $e');
     }
   }
 
-  Future<void> _loadCompletionStatus() async {
-    try {
-      print('🔍 Loading completion status...');
-      final rituals = await _myRitualsFuture;
-      final partnerships = await _partnershipsFuture;
-      
-      final ritualStatus = <String, bool>{};
-      final partnershipStatus = <int, bool>{};
-      
-      // Paralel kontroller
-      await Future.wait([
-        ...rituals.map((ritual) async {
-          final isCompleted = await _checkRitualCompletedToday(ritual.id);
-          ritualStatus[ritual.id] = isCompleted;
-          print('  Ritual ${ritual.name}: ${isCompleted ? "✅" : "❌"}');
-        }),
-        ...partnerships.map((partnership) async {
-          // Kendi tamamlama durumumu kullan (myCompletedToday)
-          final isCompleted = partnership.myCompletedToday;
-          partnershipStatus[partnership.id] = isCompleted;
-          print('  Partnership ${partnership.myRitualName}: ${isCompleted ? "✅" : "❌"} (partner: ${partnership.partnerCompletedToday ? "✅" : "❌"})');
-        }),
-      ]);
-      
-      if (mounted) {
-        setState(() {
-          _ritualCompletionStatus = ritualStatus;
-          _partnershipCompletionStatus = partnershipStatus;
-        });
-        print('✅ Completion status loaded');
-        
-        // Ritüellerin belirlenen saatlerinde refresh için zamanlayicilar kur
-        _scheduleRitualRefreshTimers(rituals, partnerships);
-      }
-    } catch (e) {
-      print('❌ Error loading completion status: $e');
-    }
-  }
-
-
+  // _loadCompletionStatus artık kullanılmıyor, çünkü status fetch işlemi
+  // _fetchRitualsWithStatus ve _fetchPartnershipsWithStatus içine taşındı.
+  // Ancak eski koddan kalan referansları temizlemek için boş bırakabiliriz veya silebiliriz.
+  // Aşağıdaki metod artık çağrılmıyor.
 
   Future<bool> _checkRitualCompletedToday(String ritualId) async {
     try {
@@ -254,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Hata: ${result.error}'),
+              content: Text('Error: ${result.error}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -404,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Partner İstekleri (${requests.length})',
+                                  'Partner Requests (${requests.length})',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -446,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: 12),
                         const Text(
-                          'Bugünkü Ritüellerim',
+                          'My Today\'s Rituals',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -504,7 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (pendingRituals.isEmpty && pendingPartnerships.isEmpty && completedRituals.isEmpty && completedPartnerships.isEmpty) {
                       return SliverToBoxAdapter(
                         child: _EmptyTodayCard(
-                          message: 'Bugün için ritüel yok',
+                          message: 'No rituals for today',
                           icon: Icons.check_circle_outline,
                         ),
                       );
@@ -599,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    'Tamamlanan Ritüellerim (${completedRituals.length + completedPartnerships.length})',
+                                    'My Completed Rituals (${completedRituals.length + completedPartnerships.length})',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -678,9 +685,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _BottomNavItem(icon: Icons.home, label: 'Ana Sayfa', isActive: true, onTap: () {}),
-              _BottomNavItem(icon: Icons.list_alt, label: 'Ritüeller', isActive: false, onTap: () => context.go('/rituals')),
-              _BottomNavItem(icon: Icons.person, label: 'Profil', isActive: false, onTap: () => context.go('/profile')),
+              _BottomNavItem(icon: Icons.home, label: 'Home', isActive: true, onTap: () {}),
+              _BottomNavItem(icon: Icons.list_alt, label: 'Rituals', isActive: false, onTap: () => context.go('/rituals')),
+              _BottomNavItem(icon: Icons.person, label: 'Profile', isActive: false, onTap: () => context.go('/profile')),
             ],
           ),
         ),
@@ -690,20 +697,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getGreetingMessage() {
     final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return 'Günaydın ☀️';
-    if (hour >= 12 && hour < 17) return 'İyi Öğlenler 🌤️';
-    if (hour >= 17 && hour < 21) return 'İyi Akşamlar 🌅';
-    return 'İyi Geceler 🌙';
+    if (hour >= 5 && hour < 12) return 'Good Morning ☀️';
+    if (hour >= 12 && hour < 17) return 'Good Afternoon 🌤️';
+    if (hour >= 17 && hour < 21) return 'Good Evening 🌅';
+    return 'Good Night 🌙';
   }
 
   String _getMotivationalMessage() {
     final messages = [
-      '✨ Her küçük adım büyük alışkanlıklar inşa eder',
-      '🌟 Bugün büyümek için harika bir gün',
-      '🚀 Gelecekteki sen bugün için teşekkür edecek',
-      '💪 Tutarlılık senin süper gücün',
-      '🎯 Küçük alışkanlıklar, büyük dönüşümler',
-      '🌱 Mükemmellik değil, ilerleme',
+      '✨ Every small step builds great habits',
+      '🌟 Today is a great day to grow',
+      '🚀 Your future self will thank you today',
+      '💪 Consistency is your superpower',
+      '🎯 Small habits, big transformations',
+      '🌱 Progress, not perfection',
     ];
     return messages[DateTime.now().day % messages.length];
   }
@@ -787,7 +794,7 @@ class _TodayRitualCardState extends State<_TodayRitualCard> {
             content: Row(children: [
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 12),
-              Text('${widget.ritual.name} tamamlandı! 🎉'),
+              Text('${widget.ritual.name} completed! 🎉'),
             ]),
             backgroundColor: AppTheme.successColor,
             behavior: SnackBarBehavior.floating,
@@ -895,7 +902,7 @@ class _TodayRitualCardState extends State<_TodayRitualCard> {
             Icon(Icons.check_circle, color: Colors.white, size: 32),
             SizedBox(width: 8),
               Text(
-                'Tamamla',
+                'Complete',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -1030,7 +1037,7 @@ class _TodayPartnershipCardState extends State<_TodayPartnershipCard> {
             content: Row(children: [
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 12),
-              Text('${widget.partnership.myRitualName} tamamlandı! ${widget.partnership.partnerUsername} bilgilendirildi 🎉'),
+              Text('${widget.partnership.myRitualName} completed! ${widget.partnership.partnerUsername} notified 🎉'),
             ]),
             backgroundColor: AppTheme.successColor,
             behavior: SnackBarBehavior.floating,
@@ -1148,7 +1155,7 @@ class _TodayPartnershipCardState extends State<_TodayPartnershipCard> {
             Icon(Icons.check_circle, color: Colors.white, size: 32),
             SizedBox(width: 8),
             Text(
-              'Tamamla',
+              'Complete',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -1293,7 +1300,7 @@ class _PendingRequestCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '"${request.ritualName}" ritüeline katılmak istiyor',
+                      'wants to join your "${request.ritualName}" ritual',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withOpacity(0.7),
@@ -1315,7 +1322,7 @@ class _PendingRequestCard extends StatelessWidget {
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('Reddet'),
+                  child: const Text('Reject'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1332,7 +1339,7 @@ class _PendingRequestCard extends StatelessWidget {
                       shadowColor: Colors.transparent,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
-                    child: const Text('Kabul Et'),
+                    child: const Text('Accept'),
                   ),
                 ),
               ),

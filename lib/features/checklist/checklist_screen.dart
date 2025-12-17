@@ -111,7 +111,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '$_completedCount / ${_checklistItems.length} tamamlandı',
+                                '$_completedCount / ${_checklistItems.length} completed',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 14,
@@ -276,7 +276,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               children: [
                                 Icon(Icons.celebration, color: Colors.white),
                                 SizedBox(width: 12),
-                                Expanded(child: Text('Tebrikler! Ritüel tamamlandı! 🎉')),
+                                Expanded(child: Text('Congratulations! Ritual completed! 🎉')),
                               ],
                             ),
                             backgroundColor: AppTheme.successColor,
