@@ -242,7 +242,7 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.go('/home'),
+              onPressed: () => context.go('/profile'),
               color: Colors.white,
             ),
           ),

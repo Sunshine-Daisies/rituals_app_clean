@@ -189,6 +189,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 8,
+                        color: Colors.black,
                       ),
                       maxLength: 6,
                       inputFormatters: [
