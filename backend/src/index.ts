@@ -5,6 +5,7 @@ import ritualsRoutes from './routes/ritualsRoutes';
 import authRoutes from './routes/authRoutes';
 import ritualLogsRoutes from './routes/ritualLogsRoutes';
 import llmUsageRoutes from './routes/llmUsageRoutes';
+import llmRoutes from './routes/llmRoutes'; // New LLM Service Routes
 import devicesRoutes from './routes/devicesRoutes';
 import gamificationRoutes from './routes/gamificationRoutes';
 import sharingRoutes from './routes/sharingRoutes';
@@ -96,7 +97,8 @@ app.use('/api/test', testRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/rituals', ritualsRoutes);
 app.use('/api/ritual-logs', ritualLogsRoutes);
-app.use('/api/llm-usage', llmUsageRoutes);
+app.use('/api/llm-usage', llmUsageRoutes); // Telemetry only
+app.use('/api/llm', llmRoutes); // Actual LLM Logic (Chat/Intent)
 app.use('/api/devices', devicesRoutes);
 app.use('/api', gamificationRoutes); // Gamification routes (/api/profile, /api/friends, etc.)
 app.use('/api/sharing', sharingRoutes); // Ritual sharing routes (legacy)

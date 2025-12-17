@@ -1,110 +1,41 @@
 import 'dart:convert';
-import 'package:dart_openai/dart_openai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'llm_security_service.dart';
+import 'api_service.dart';
 
 class LlmService {
-  // Modeller
-  static const String _chatModel = 'gpt-4o';
-  static const String _intentModel = 'gpt-4o-mini';
-
-  static void initialize() {
-    final apiKey = dotenv.env['OPENAI_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('OPENAI_API_KEY not found in .env');
-    }
-    OpenAI.apiKey = apiKey;
-  }
-
-  /// Serbest sohbet (sadece ritüel yönetimi için)
+  /// Chat response from Backend directly
   static Future<String> getChatResponse(String userPrompt) async {
-    initialize();
-    
-    // Tüm güvenlik kontrolleri (rate limit, validation, audit log)
-    LlmSecurityService.performSecurityChecks(userPrompt, 'chat');
-    
     try {
-      final r = await OpenAI.instance.chat.create(
-        model: _chatModel,
-        messages: [
-          OpenAIChatCompletionChoiceMessageModel(
-            role: OpenAIChatMessageRole.system,
-            content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              LlmSecurityService.getChatSystemPrompt(),
-            )],
-          ),
-          OpenAIChatCompletionChoiceMessageModel(
-            role: OpenAIChatMessageRole.user,
-            content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(userPrompt)],
-          ),
-        ],
-        maxTokens: 800,
-        temperature: 0.7,
-      );
-      final content = r.choices.first.message.content;
-      return (content == null || content.isEmpty) ? 'Empty response' : (content.first.text ?? 'Empty response');
+      final response = await ApiService.post('/llm/chat', {
+        'prompt': userPrompt,
+      });
+
+      // Response format: { "response": "AI answer..." }
+      if (response != null && response['response'] != null) {
+        return response['response'].toString();
+      }
+      return 'Empty response';
     } catch (e) {
-      rethrow;
+      throw Exception('Chat failed: $e');
     }
   }
 
-  /// Niyet çıkarımı → JSON → normalize → RitualIntent
+  /// Infer Intent from Backend directly
   static Future<RitualIntent> inferRitualIntent(String userPrompt) async {
-    initialize();
+    try {
+      final response = await ApiService.post('/llm/intent', {
+        'prompt': userPrompt,
+      });
 
-    // Tüm güvenlik kontrolleri (rate limit, validation, audit log)
-    LlmSecurityService.performSecurityChecks(userPrompt, 'ritual_intent');
+      if (response == null) {
+        throw Exception('Model returned empty response');
+      }
 
-    print('🔵 [LLM] User prompt: $userPrompt');
-
-    final r = await OpenAI.instance.chat.create(
-      model: _intentModel,
-      responseFormat: {"type": "json_object"},
-      temperature: 0, // deterministik
-      messages: [
-        OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.system,
-          content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            LlmSecurityService.getRitualIntentSystemPrompt(),
-          )],
-        ),
-        OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.user,
-          content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(userPrompt)],
-        ),
-      ],
-      maxTokens: 400,
-    );
-
-    final content = r.choices.first.message.content?.first.text;
-    if (content == null || content.isEmpty) {
-      throw Exception('Model returned empty response');
+      // Backend returns the JSON object directly
+      return RitualIntent.fromModelJson(response);
+    } catch (e) {
+      print('Intent error: $e');
+      throw Exception('Intent inference failed: $e');
     }
-
-    // 📋 Raw JSON response
-    print('📋 [LLM RAW JSON]:\n$content\n');
-
-    // JSON parse
-    final Map<String, dynamic> j = jsonDecode(content);
-
-    // 🟢 Parsed JSON (pretty print)
-    print('🟢 [LLM PARSED JSON]:\n${jsonEncode(j)}\n');
-
-    // Normalize → RitualIntent
-    final intent = RitualIntent.fromModelJson(j);
-    
-    // 🔸 Final RitualIntent object
-    print('🔸 [RITUAL INTENT OBJECT]:');
-    print('  Intent: ${intent.intent}');
-    print('  Name: ${intent.ritualName}');
-    print('  Desc: ${intent.description}');
-    print('  Icon: ${intent.icon}');
-    print('  Steps: ${intent.steps}');
-    print('  Reminder Time: ${intent.reminderTime}');
-    print('  Reminder Days: ${intent.reminderDays}');
-    print('---\n');
-
-    return intent;
   }
 }
 
