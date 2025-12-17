@@ -127,15 +127,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
           
-          // 2. Transparent Background Logo (Centered & Large)
-          Center(
+          // 2. Transparent Background Logo
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
             child: Opacity(
-              opacity: 0.05, // Very subtle watermark
+              opacity: 0.1, // Increased visibility slightly
               child: Image.asset(
                 'assets/icon/app_icon.png',
-                width: 400,
-                height: 400,
-                fit: BoxFit.contain,
+                fit: BoxFit.fitHeight,
               ),
             ),
           ),
