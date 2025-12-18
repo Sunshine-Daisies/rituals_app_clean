@@ -5,7 +5,7 @@
   "source": "@site/docs/mobile/user-flows.mdx",
   "sourceDirName": "mobile",
   "slug": "/mobile/user-flows",
-  "permalink": "/rituals_app_clean/docs/mobile/user-flows",
+  "permalink": "/docs/mobile/user-flows",
   "draft": false,
   "unlisted": false,
   "tags": [],
@@ -17,10 +17,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Architecture",
-    "permalink": "/rituals_app_clean/docs/mobile/architecture"
+    "permalink": "/docs/mobile/architecture"
   },
   "next": {
     "title": "Authentication",
-    "permalink": "/rituals_app_clean/docs/features/authentication"
+    "permalink": "/docs/features/authentication"
   }
 }

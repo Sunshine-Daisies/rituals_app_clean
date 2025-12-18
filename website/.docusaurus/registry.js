@@ -1,4 +1,5 @@
 export default {
+  "0058b4c6": [() => import(/* webpackChunkName: "0058b4c6" */ "@generated/docusaurus-plugin-content-docs/default/p/docs-175.json"), "@generated/docusaurus-plugin-content-docs/default/p/docs-175.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/p/docs-175.json")],
   "0374ffc1": [() => import(/* webpackChunkName: "0374ffc1" */ "@site/docs/mobile/architecture.md"), "@site/docs/mobile/architecture.md", require.resolveWeak("@site/docs/mobile/architecture.md")],
   "0dffb83e": [() => import(/* webpackChunkName: "0dffb83e" */ "@site/docs/roadmap.md"), "@site/docs/roadmap.md", require.resolveWeak("@site/docs/roadmap.md")],
   "0e384e19": [() => import(/* webpackChunkName: "0e384e19" */ "@site/docs/intro.md"), "@site/docs/intro.md", require.resolveWeak("@site/docs/intro.md")],
@@ -6,7 +7,6 @@ export default {
   "25a5422e": [() => import(/* webpackChunkName: "25a5422e" */ "@site/docs/features/gamification.md"), "@site/docs/features/gamification.md", require.resolveWeak("@site/docs/features/gamification.md")],
   "28253c8e": [() => import(/* webpackChunkName: "28253c8e" */ "@site/docs/features/social.md"), "@site/docs/features/social.md", require.resolveWeak("@site/docs/features/social.md")],
   "2a4f9135": [() => import(/* webpackChunkName: "2a4f9135" */ "@site/docs/mobile/user-flows.mdx"), "@site/docs/mobile/user-flows.mdx", require.resolveWeak("@site/docs/mobile/user-flows.mdx")],
-  "3d4a9a34": [() => import(/* webpackChunkName: "3d4a9a34" */ "@generated/docusaurus-plugin-content-docs/default/p/rituals-app-clean-docs-206.json"), "@generated/docusaurus-plugin-content-docs/default/p/rituals-app-clean-docs-206.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/p/rituals-app-clean-docs-206.json")],
   "43b5c669": [() => import(/* webpackChunkName: "43b5c669" */ "@site/docs/backend/architecture.md"), "@site/docs/backend/architecture.md", require.resolveWeak("@site/docs/backend/architecture.md")],
   "48dcf387": [() => import(/* webpackChunkName: "48dcf387" */ "@site/src/pages/api.js"), "@site/src/pages/api.js", require.resolveWeak("@site/src/pages/api.js")],
   "49f19af5": [() => import(/* webpackChunkName: "49f19af5" */ "@site/docs/features/profile.md"), "@site/docs/features/profile.md", require.resolveWeak("@site/docs/features/profile.md")],

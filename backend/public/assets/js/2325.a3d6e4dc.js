@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkrituals_app_docs=globalThis.webpackChunkrituals_app_docs||[]).push([[2325],{2325:(a,s,c)=>{c.d(s,{createPacketServices:()=>e.$});var e=c(1477);c(7960)}}]);

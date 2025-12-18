@@ -8,7 +8,7 @@ export default {
   "tagline": "Build better habits, together.",
   "favicon": "img/logo.png",
   "url": "https://Sunshine-Daisies.github.io",
-  "baseUrl": "/rituals_app_clean/",
+  "baseUrl": "/",
   "organizationName": "Sunshine-Daisies",
   "projectName": "rituals_app_clean",
   "deploymentBranch": "gh-pages",

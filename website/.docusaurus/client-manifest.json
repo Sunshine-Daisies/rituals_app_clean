@@ -197,6 +197,9 @@
       8792,
       5354
     ],
+    "0058b4c6": [
+      849
+    ],
     "0374ffc1": [
       2076,
       205
@@ -220,9 +223,6 @@
     "2a4f9135": [
       2076,
       9748
-    ],
-    "3d4a9a34": [
-      6276
     ],
     "43b5c669": [
       2076,
@@ -353,16 +353,16 @@
         {
           "file": "assets/js/165.ccefb31d.js",
           "hash": "f5e92d93830c319a",
-          "publicPath": "/rituals_app_clean/assets/js/165.ccefb31d.js"
+          "publicPath": "/assets/js/165.ccefb31d.js"
         }
       ]
     },
     "205": {
       "js": [
         {
-          "file": "assets/js/0374ffc1.31a0e306.js",
-          "hash": "4a41cc6f2a41b1cc",
-          "publicPath": "/rituals_app_clean/assets/js/0374ffc1.31a0e306.js"
+          "file": "assets/js/0374ffc1.bb3fc097.js",
+          "hash": "25829f7c92fe038e",
+          "publicPath": "/assets/js/0374ffc1.bb3fc097.js"
         }
       ]
     },
@@ -371,7 +371,7 @@
         {
           "file": "assets/js/291.d0169a26.js",
           "hash": "9512bd5963124eb2",
-          "publicPath": "/rituals_app_clean/assets/js/291.d0169a26.js"
+          "publicPath": "/assets/js/291.d0169a26.js"
         }
       ]
     },
@@ -380,16 +380,25 @@
         {
           "file": "assets/js/617.48c646fc.js",
           "hash": "bc4435c02bb58a47",
-          "publicPath": "/rituals_app_clean/assets/js/617.48c646fc.js"
+          "publicPath": "/assets/js/617.48c646fc.js"
         }
       ]
     },
     "821": {
       "js": [
         {
-          "file": "assets/js/0dffb83e.aa2f1273.js",
-          "hash": "2ff57e74bcdaedd8",
-          "publicPath": "/rituals_app_clean/assets/js/0dffb83e.aa2f1273.js"
+          "file": "assets/js/0dffb83e.66dc888e.js",
+          "hash": "45151627c7cb65cd",
+          "publicPath": "/assets/js/0dffb83e.66dc888e.js"
+        }
+      ]
+    },
+    "849": {
+      "js": [
+        {
+          "file": "assets/js/0058b4c6.e222f560.js",
+          "hash": "e8c9d55b9de1e028",
+          "publicPath": "/assets/js/0058b4c6.e222f560.js"
         }
       ]
     },
@@ -398,16 +407,16 @@
         {
           "file": "assets/js/1000.e091d90a.js",
           "hash": "ee699e99d474b652",
-          "publicPath": "/rituals_app_clean/assets/js/1000.e091d90a.js"
+          "publicPath": "/assets/js/1000.e091d90a.js"
         }
       ]
     },
     "1113": {
       "js": [
         {
-          "file": "assets/js/5d6cc085.4a9dbafd.js",
-          "hash": "59a628e2631bf310",
-          "publicPath": "/rituals_app_clean/assets/js/5d6cc085.4a9dbafd.js"
+          "file": "assets/js/5d6cc085.4f11f5eb.js",
+          "hash": "1c19baf76be1d342",
+          "publicPath": "/assets/js/5d6cc085.4f11f5eb.js"
         }
       ]
     },
@@ -416,7 +425,7 @@
         {
           "file": "assets/js/1203.a89ea577.js",
           "hash": "4c0ac9cd14a79f2c",
-          "publicPath": "/rituals_app_clean/assets/js/1203.a89ea577.js"
+          "publicPath": "/assets/js/1203.a89ea577.js"
         }
       ]
     },
@@ -425,7 +434,7 @@
         {
           "file": "assets/js/a7456010.4c92089d.js",
           "hash": "63ea02c0176bb1ab",
-          "publicPath": "/rituals_app_clean/assets/js/a7456010.4c92089d.js"
+          "publicPath": "/assets/js/a7456010.4c92089d.js"
         }
       ]
     },
@@ -434,7 +443,7 @@
         {
           "file": "assets/js/1741.31490d38.js",
           "hash": "1ab121a786529e79",
-          "publicPath": "/rituals_app_clean/assets/js/1741.31490d38.js"
+          "publicPath": "/assets/js/1741.31490d38.js"
         }
       ]
     },
@@ -443,7 +452,7 @@
         {
           "file": "assets/js/1746.470c8e71.js",
           "hash": "709c29d1b69c4559",
-          "publicPath": "/rituals_app_clean/assets/js/1746.470c8e71.js"
+          "publicPath": "/assets/js/1746.470c8e71.js"
         }
       ]
     },
@@ -452,7 +461,7 @@
         {
           "file": "assets/css/styles.bbbb8ec8.css",
           "hash": "51aff0b8ca0ef796",
-          "publicPath": "/rituals_app_clean/assets/css/styles.bbbb8ec8.css"
+          "publicPath": "/assets/css/styles.bbbb8ec8.css"
         }
       ]
     },
@@ -461,7 +470,7 @@
         {
           "file": "assets/js/common.c49aa0a7.js",
           "hash": "1d9297d654b7cbf1",
-          "publicPath": "/rituals_app_clean/assets/js/common.c49aa0a7.js"
+          "publicPath": "/assets/js/common.c49aa0a7.js"
         }
       ]
     },
@@ -470,7 +479,7 @@
         {
           "file": "assets/js/2130.9d9789ff.js",
           "hash": "993ba592e9577568",
-          "publicPath": "/rituals_app_clean/assets/js/2130.9d9789ff.js"
+          "publicPath": "/assets/js/2130.9d9789ff.js"
         }
       ]
     },
@@ -479,7 +488,7 @@
         {
           "file": "assets/js/2237.73a16687.js",
           "hash": "0138599923c803e7",
-          "publicPath": "/rituals_app_clean/assets/js/2237.73a16687.js"
+          "publicPath": "/assets/js/2237.73a16687.js"
         }
       ]
     },
@@ -488,7 +497,7 @@
         {
           "file": "assets/js/2291.5d765784.js",
           "hash": "a02de9dfe8b6559b",
-          "publicPath": "/rituals_app_clean/assets/js/2291.5d765784.js"
+          "publicPath": "/assets/js/2291.5d765784.js"
         }
       ]
     },
@@ -497,7 +506,7 @@
         {
           "file": "assets/js/2325.a3d6e4dc.js",
           "hash": "790524c1d0bf592d",
-          "publicPath": "/rituals_app_clean/assets/js/2325.a3d6e4dc.js"
+          "publicPath": "/assets/js/2325.a3d6e4dc.js"
         }
       ]
     },
@@ -506,7 +515,7 @@
         {
           "file": "assets/js/2334.16e72a88.js",
           "hash": "0fd67fb8a418b40a",
-          "publicPath": "/rituals_app_clean/assets/js/2334.16e72a88.js"
+          "publicPath": "/assets/js/2334.16e72a88.js"
         }
       ]
     },
@@ -515,7 +524,7 @@
         {
           "file": "assets/js/2492.1ed1e348.js",
           "hash": "2418f8851b35840a",
-          "publicPath": "/rituals_app_clean/assets/js/2492.1ed1e348.js"
+          "publicPath": "/assets/js/2492.1ed1e348.js"
         }
       ]
     },
@@ -524,7 +533,7 @@
         {
           "file": "assets/js/c4f5d8e4.513b18dd.js",
           "hash": "e6907dd3223a7cc9",
-          "publicPath": "/rituals_app_clean/assets/js/c4f5d8e4.513b18dd.js"
+          "publicPath": "/assets/js/c4f5d8e4.513b18dd.js"
         }
       ]
     },
@@ -533,34 +542,34 @@
         {
           "file": "assets/js/2821.abcfc3fe.js",
           "hash": "0024f45109c7953f",
-          "publicPath": "/rituals_app_clean/assets/js/2821.abcfc3fe.js"
+          "publicPath": "/assets/js/2821.abcfc3fe.js"
         }
       ]
     },
     "2930": {
       "js": [
         {
-          "file": "assets/js/94d3070b.2dd21c9a.js",
-          "hash": "3582cd89fce1016d",
-          "publicPath": "/rituals_app_clean/assets/js/94d3070b.2dd21c9a.js"
+          "file": "assets/js/94d3070b.c46f2d9e.js",
+          "hash": "0e84ba99fea8f144",
+          "publicPath": "/assets/js/94d3070b.c46f2d9e.js"
         }
       ]
     },
     "3152": {
       "js": [
         {
-          "file": "assets/js/73c433b4.89e87b82.js",
-          "hash": "5060a522cfd75c2e",
-          "publicPath": "/rituals_app_clean/assets/js/73c433b4.89e87b82.js"
+          "file": "assets/js/73c433b4.6d184d25.js",
+          "hash": "e4eb2f7e8775ad89",
+          "publicPath": "/assets/js/73c433b4.6d184d25.js"
         }
       ]
     },
     "3419": {
       "js": [
         {
-          "file": "assets/js/25a5422e.39609ffb.js",
-          "hash": "cafa5b895b53fc7b",
-          "publicPath": "/rituals_app_clean/assets/js/25a5422e.39609ffb.js"
+          "file": "assets/js/25a5422e.ce20b9a9.js",
+          "hash": "7124958cec57d27b",
+          "publicPath": "/assets/js/25a5422e.ce20b9a9.js"
         }
       ]
     },
@@ -569,16 +578,16 @@
         {
           "file": "assets/js/3490.140264fc.js",
           "hash": "84f6c7e944a20bb9",
-          "publicPath": "/rituals_app_clean/assets/js/3490.140264fc.js"
+          "publicPath": "/assets/js/3490.140264fc.js"
         }
       ]
     },
     "3688": {
       "js": [
         {
-          "file": "assets/js/7fd27537.16fb8b00.js",
-          "hash": "22e381a0cf1ce2b6",
-          "publicPath": "/rituals_app_clean/assets/js/7fd27537.16fb8b00.js"
+          "file": "assets/js/7fd27537.274a8750.js",
+          "hash": "6ea2d0cd607d60d9",
+          "publicPath": "/assets/js/7fd27537.274a8750.js"
         }
       ]
     },
@@ -587,16 +596,16 @@
         {
           "file": "assets/js/3815.17733165.js",
           "hash": "8ae53f73059a3287",
-          "publicPath": "/rituals_app_clean/assets/js/3815.17733165.js"
+          "publicPath": "/assets/js/3815.17733165.js"
         }
       ]
     },
     "3976": {
       "js": [
         {
-          "file": "assets/js/0e384e19.98107310.js",
-          "hash": "353d34f0c948b672",
-          "publicPath": "/rituals_app_clean/assets/js/0e384e19.98107310.js"
+          "file": "assets/js/0e384e19.78bf5d93.js",
+          "hash": "ea10d93307f4c0df",
+          "publicPath": "/assets/js/0e384e19.78bf5d93.js"
         }
       ]
     },
@@ -605,7 +614,7 @@
         {
           "file": "assets/js/4250.d307459c.js",
           "hash": "9e205bf84c958c23",
-          "publicPath": "/rituals_app_clean/assets/js/4250.d307459c.js"
+          "publicPath": "/assets/js/4250.d307459c.js"
         }
       ]
     },
@@ -614,16 +623,16 @@
         {
           "file": "assets/js/4616.643774af.js",
           "hash": "b97574a1cd5fa421",
-          "publicPath": "/rituals_app_clean/assets/js/4616.643774af.js"
+          "publicPath": "/assets/js/4616.643774af.js"
         }
       ]
     },
     "4689": {
       "js": [
         {
-          "file": "assets/js/c5c5003c.693dfa7b.js",
-          "hash": "0c24ce17c7e132ae",
-          "publicPath": "/rituals_app_clean/assets/js/c5c5003c.693dfa7b.js"
+          "file": "assets/js/c5c5003c.657008ff.js",
+          "hash": "0401d964006b5099",
+          "publicPath": "/assets/js/c5c5003c.657008ff.js"
         }
       ]
     },
@@ -632,7 +641,7 @@
         {
           "file": "assets/js/4802.31a693a3.js",
           "hash": "c49ab96d3dd73dca",
-          "publicPath": "/rituals_app_clean/assets/js/4802.31a693a3.js"
+          "publicPath": "/assets/js/4802.31a693a3.js"
         }
       ]
     },
@@ -641,16 +650,16 @@
         {
           "file": "assets/js/4981.e96bab19.js",
           "hash": "4668347e98ef433e",
-          "publicPath": "/rituals_app_clean/assets/js/4981.e96bab19.js"
+          "publicPath": "/assets/js/4981.e96bab19.js"
         }
       ]
     },
     "5354": {
       "js": [
         {
-          "file": "assets/js/runtime~main.c2b7a2e9.js",
-          "hash": "f5910beac26d67f1",
-          "publicPath": "/rituals_app_clean/assets/js/runtime~main.c2b7a2e9.js"
+          "file": "assets/js/runtime~main.a9403cae.js",
+          "hash": "4d432b487f286814",
+          "publicPath": "/assets/js/runtime~main.a9403cae.js"
         }
       ]
     },
@@ -659,7 +668,7 @@
         {
           "file": "assets/js/5480.f9fc7f02.js",
           "hash": "d887f5a223958765",
-          "publicPath": "/rituals_app_clean/assets/js/5480.f9fc7f02.js"
+          "publicPath": "/assets/js/5480.f9fc7f02.js"
         }
       ]
     },
@@ -668,7 +677,7 @@
         {
           "file": "assets/js/aba21aa0.69a1cf34.js",
           "hash": "cdf17e9f9759bf7a",
-          "publicPath": "/rituals_app_clean/assets/js/aba21aa0.69a1cf34.js"
+          "publicPath": "/assets/js/aba21aa0.69a1cf34.js"
         }
       ]
     },
@@ -677,7 +686,7 @@
         {
           "file": "assets/js/5901.a0440902.js",
           "hash": "4be0fe52d08f063b",
-          "publicPath": "/rituals_app_clean/assets/js/5901.a0440902.js"
+          "publicPath": "/assets/js/5901.a0440902.js"
         }
       ]
     },
@@ -686,7 +695,7 @@
         {
           "file": "assets/js/5955.7466f585.js",
           "hash": "648b52931feccf23",
-          "publicPath": "/rituals_app_clean/assets/js/5955.7466f585.js"
+          "publicPath": "/assets/js/5955.7466f585.js"
         }
       ]
     },
@@ -695,7 +704,7 @@
         {
           "file": "assets/js/5996.77ce541a.js",
           "hash": "133e7fa2bdbdd5ec",
-          "publicPath": "/rituals_app_clean/assets/js/5996.77ce541a.js"
+          "publicPath": "/assets/js/5996.77ce541a.js"
         }
       ]
     },
@@ -704,16 +713,7 @@
         {
           "file": "assets/js/6241.ee9d6b33.js",
           "hash": "d250018c97ac59b3",
-          "publicPath": "/rituals_app_clean/assets/js/6241.ee9d6b33.js"
-        }
-      ]
-    },
-    "6276": {
-      "js": [
-        {
-          "file": "assets/js/3d4a9a34.37be6a2e.js",
-          "hash": "9e97be6acbaebf1d",
-          "publicPath": "/rituals_app_clean/assets/js/3d4a9a34.37be6a2e.js"
+          "publicPath": "/assets/js/6241.ee9d6b33.js"
         }
       ]
     },
@@ -722,7 +722,7 @@
         {
           "file": "assets/js/6319.23a67fe8.js",
           "hash": "f67fc73ed631a71d",
-          "publicPath": "/rituals_app_clean/assets/js/6319.23a67fe8.js"
+          "publicPath": "/assets/js/6319.23a67fe8.js"
         }
       ]
     },
@@ -731,7 +731,7 @@
         {
           "file": "assets/js/6366.90961674.js",
           "hash": "7e1a6caf33772eb6",
-          "publicPath": "/rituals_app_clean/assets/js/6366.90961674.js"
+          "publicPath": "/assets/js/6366.90961674.js"
         }
       ]
     },
@@ -740,7 +740,7 @@
         {
           "file": "assets/js/48dcf387.8d0a6cf4.js",
           "hash": "588ce58a7ee11fca",
-          "publicPath": "/rituals_app_clean/assets/js/48dcf387.8d0a6cf4.js"
+          "publicPath": "/assets/js/48dcf387.8d0a6cf4.js"
         }
       ]
     },
@@ -749,25 +749,25 @@
         {
           "file": "assets/js/6567.046bca60.js",
           "hash": "5757c45980931682",
-          "publicPath": "/rituals_app_clean/assets/js/6567.046bca60.js"
+          "publicPath": "/assets/js/6567.046bca60.js"
         }
       ]
     },
     "6699": {
       "js": [
         {
-          "file": "assets/js/43b5c669.d89fa7a1.js",
-          "hash": "d4f733e5c3980d36",
-          "publicPath": "/rituals_app_clean/assets/js/43b5c669.d89fa7a1.js"
+          "file": "assets/js/43b5c669.bac8d5cf.js",
+          "hash": "63da60d2e56c15c1",
+          "publicPath": "/assets/js/43b5c669.bac8d5cf.js"
         }
       ]
     },
     "6840": {
       "js": [
         {
-          "file": "assets/js/e449ba9e.e7ecd561.js",
-          "hash": "c60996bb9fa22363",
-          "publicPath": "/rituals_app_clean/assets/js/e449ba9e.e7ecd561.js"
+          "file": "assets/js/e449ba9e.b99e9be0.js",
+          "hash": "2350b984a5df6f44",
+          "publicPath": "/assets/js/e449ba9e.b99e9be0.js"
         }
       ]
     },
@@ -776,7 +776,7 @@
         {
           "file": "assets/js/6992.f834163a.js",
           "hash": "a2720fc0f5849098",
-          "publicPath": "/rituals_app_clean/assets/js/6992.f834163a.js"
+          "publicPath": "/assets/js/6992.f834163a.js"
         }
       ]
     },
@@ -785,7 +785,7 @@
         {
           "file": "assets/js/a7bd4aaa.1120d9da.js",
           "hash": "14117271b1a2ec89",
-          "publicPath": "/rituals_app_clean/assets/js/a7bd4aaa.1120d9da.js"
+          "publicPath": "/assets/js/a7bd4aaa.1120d9da.js"
         }
       ]
     },
@@ -794,7 +794,7 @@
         {
           "file": "assets/js/7465.16fa6550.js",
           "hash": "5bb23ad13090bcfa",
-          "publicPath": "/rituals_app_clean/assets/js/7465.16fa6550.js"
+          "publicPath": "/assets/js/7465.16fa6550.js"
         }
       ]
     },
@@ -803,16 +803,16 @@
         {
           "file": "assets/js/7592.1dacf542.js",
           "hash": "b92786cb1dfe6dc2",
-          "publicPath": "/rituals_app_clean/assets/js/7592.1dacf542.js"
+          "publicPath": "/assets/js/7592.1dacf542.js"
         }
       ]
     },
     "7793": {
       "js": [
         {
-          "file": "assets/js/28253c8e.3d022fa8.js",
-          "hash": "da2abe2a3a56b36e",
-          "publicPath": "/rituals_app_clean/assets/js/28253c8e.3d022fa8.js"
+          "file": "assets/js/28253c8e.b37cfb13.js",
+          "hash": "a1c3e446642c0f48",
+          "publicPath": "/assets/js/28253c8e.b37cfb13.js"
         }
       ]
     },
@@ -821,7 +821,7 @@
         {
           "file": "assets/js/7873.a95743d6.js",
           "hash": "72058a8d72cbd94c",
-          "publicPath": "/rituals_app_clean/assets/js/7873.a95743d6.js"
+          "publicPath": "/assets/js/7873.a95743d6.js"
         }
       ]
     },
@@ -830,7 +830,7 @@
         {
           "file": "assets/js/7928.e9691085.js",
           "hash": "2d5082a45d46a2db",
-          "publicPath": "/rituals_app_clean/assets/js/7928.e9691085.js"
+          "publicPath": "/assets/js/7928.e9691085.js"
         }
       ]
     },
@@ -839,16 +839,16 @@
         {
           "file": "assets/js/8142.20384965.js",
           "hash": "1637b5a31bb9bcb2",
-          "publicPath": "/rituals_app_clean/assets/js/8142.20384965.js"
+          "publicPath": "/assets/js/8142.20384965.js"
         }
       ]
     },
     "8146": {
       "js": [
         {
-          "file": "assets/js/c4256b58.aa3c8a1d.js",
-          "hash": "2a8789ad4424bb3e",
-          "publicPath": "/rituals_app_clean/assets/js/c4256b58.aa3c8a1d.js"
+          "file": "assets/js/c4256b58.d4e1d567.js",
+          "hash": "04567108dd06a7ed",
+          "publicPath": "/assets/js/c4256b58.d4e1d567.js"
         }
       ]
     },
@@ -857,16 +857,16 @@
         {
           "file": "assets/js/8249.e2b283b9.js",
           "hash": "49fcf71d521c9841",
-          "publicPath": "/rituals_app_clean/assets/js/8249.e2b283b9.js"
+          "publicPath": "/assets/js/8249.e2b283b9.js"
         }
       ]
     },
     "8268": {
       "js": [
         {
-          "file": "assets/js/49f19af5.a770fb0e.js",
-          "hash": "06b47f5009f1dc38",
-          "publicPath": "/rituals_app_clean/assets/js/49f19af5.a770fb0e.js"
+          "file": "assets/js/49f19af5.4c70f6bc.js",
+          "hash": "c49d759b6a1ca24f",
+          "publicPath": "/assets/js/49f19af5.4c70f6bc.js"
         }
       ]
     },
@@ -875,7 +875,7 @@
         {
           "file": "assets/js/17896441.03018fd6.js",
           "hash": "bb95d826470156b9",
-          "publicPath": "/rituals_app_clean/assets/js/17896441.03018fd6.js"
+          "publicPath": "/assets/js/17896441.03018fd6.js"
         }
       ]
     },
@@ -884,7 +884,7 @@
         {
           "file": "assets/js/8731.12b74077.js",
           "hash": "6b865d5f92ab2fa6",
-          "publicPath": "/rituals_app_clean/assets/js/8731.12b74077.js"
+          "publicPath": "/assets/js/8731.12b74077.js"
         }
       ]
     },
@@ -893,25 +893,25 @@
         {
           "file": "assets/js/8756.962b895c.js",
           "hash": "07f3637bbea8a444",
-          "publicPath": "/rituals_app_clean/assets/js/8756.962b895c.js"
+          "publicPath": "/assets/js/8756.962b895c.js"
         }
       ]
     },
     "8792": {
       "js": [
         {
-          "file": "assets/js/main.1e803981.js",
-          "hash": "9a727da98f7720be",
-          "publicPath": "/rituals_app_clean/assets/js/main.1e803981.js"
+          "file": "assets/js/main.efa28c1c.js",
+          "hash": "62fbf8d7cce4a241",
+          "publicPath": "/assets/js/main.efa28c1c.js"
         }
       ]
     },
     "8909": {
       "js": [
         {
-          "file": "assets/js/cc0a2bf3.2db1c787.js",
-          "hash": "74388b61f1011b9b",
-          "publicPath": "/rituals_app_clean/assets/js/cc0a2bf3.2db1c787.js"
+          "file": "assets/js/cc0a2bf3.01031dcf.js",
+          "hash": "b0fb80d6c30a4ef5",
+          "publicPath": "/assets/js/cc0a2bf3.01031dcf.js"
         }
       ]
     },
@@ -920,7 +920,7 @@
         {
           "file": "assets/js/9032.fdbd978e.js",
           "hash": "8e73d61fb9b19538",
-          "publicPath": "/rituals_app_clean/assets/js/9032.fdbd978e.js"
+          "publicPath": "/assets/js/9032.fdbd978e.js"
         }
       ]
     },
@@ -929,7 +929,7 @@
         {
           "file": "assets/js/a94703ab.1c896cb4.js",
           "hash": "cecf0bbd1ea91f5f",
-          "publicPath": "/rituals_app_clean/assets/js/a94703ab.1c896cb4.js"
+          "publicPath": "/assets/js/a94703ab.1c896cb4.js"
         }
       ]
     },
@@ -938,7 +938,7 @@
         {
           "file": "assets/js/9412.f3edc86f.js",
           "hash": "20388effd548f998",
-          "publicPath": "/rituals_app_clean/assets/js/9412.f3edc86f.js"
+          "publicPath": "/assets/js/9412.f3edc86f.js"
         }
       ]
     },
@@ -947,16 +947,16 @@
         {
           "file": "assets/js/9510.c242cf9d.js",
           "hash": "9e414cc0f4decb5b",
-          "publicPath": "/rituals_app_clean/assets/js/9510.c242cf9d.js"
+          "publicPath": "/assets/js/9510.c242cf9d.js"
         }
       ]
     },
     "9588": {
       "js": [
         {
-          "file": "assets/js/a3713279.c111f8e1.js",
-          "hash": "e4959b10cfcd1a32",
-          "publicPath": "/rituals_app_clean/assets/js/a3713279.c111f8e1.js"
+          "file": "assets/js/a3713279.3e109dfa.js",
+          "hash": "a5cb58f6d9c380db",
+          "publicPath": "/assets/js/a3713279.3e109dfa.js"
         }
       ]
     },
@@ -965,7 +965,7 @@
         {
           "file": "assets/js/5e95c892.c4b096d7.js",
           "hash": "9fe427ad60c1478e",
-          "publicPath": "/rituals_app_clean/assets/js/5e95c892.c4b096d7.js"
+          "publicPath": "/assets/js/5e95c892.c4b096d7.js"
         }
       ]
     },
@@ -974,16 +974,16 @@
         {
           "file": "assets/js/9717.a8568efd.js",
           "hash": "b27e3c1a3b04aaad",
-          "publicPath": "/rituals_app_clean/assets/js/9717.a8568efd.js"
+          "publicPath": "/assets/js/9717.a8568efd.js"
         }
       ]
     },
     "9748": {
       "js": [
         {
-          "file": "assets/js/2a4f9135.58562a46.js",
-          "hash": "3ff56d093a2a8325",
-          "publicPath": "/rituals_app_clean/assets/js/2a4f9135.58562a46.js"
+          "file": "assets/js/2a4f9135.6bf053b6.js",
+          "hash": "d8495f080adc5689",
+          "publicPath": "/assets/js/2a4f9135.6bf053b6.js"
         }
       ]
     }

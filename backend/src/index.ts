@@ -35,9 +35,11 @@ app.use(cors({
 app.use(express.json());
 app.use('/public', express.static('public'));
 
-// Root endpoint
+app.use(express.static('public'));
+
+// Root endpoint - Serve React App
 app.get('/', (req, res) => {
-  res.send('Rituals API is running. Go to /docs for documentation.');
+  res.sendFile('index.html', { root: 'public' });
 });
 
 // DB Setup Endpoint (Temporary)

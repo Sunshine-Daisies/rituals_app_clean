@@ -1,96 +1,96 @@
 {
   "docusaurus-plugin-content-docs": {
     "default": {
-      "path": "/rituals_app_clean/docs",
+      "path": "/docs",
       "versions": [
         {
           "name": "current",
           "label": "Next",
           "isLast": true,
-          "path": "/rituals_app_clean/docs",
+          "path": "/docs",
           "mainDocId": "intro",
           "docs": [
             {
               "id": "backend/architecture",
-              "path": "/rituals_app_clean/docs/backend/architecture",
+              "path": "/docs/backend/architecture",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "backend/database",
-              "path": "/rituals_app_clean/docs/backend/database",
+              "path": "/docs/backend/database",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "backend/setup",
-              "path": "/rituals_app_clean/docs/backend/setup",
+              "path": "/docs/backend/setup",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "deployment",
-              "path": "/rituals_app_clean/docs/deployment",
+              "path": "/docs/deployment",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/ai-assistant",
-              "path": "/rituals_app_clean/docs/features/ai-assistant",
+              "path": "/docs/features/ai-assistant",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/analytics",
-              "path": "/rituals_app_clean/docs/features/analytics",
+              "path": "/docs/features/analytics",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/authentication",
-              "path": "/rituals_app_clean/docs/features/authentication",
+              "path": "/docs/features/authentication",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/gamification",
-              "path": "/rituals_app_clean/docs/features/gamification",
+              "path": "/docs/features/gamification",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/notifications",
-              "path": "/rituals_app_clean/docs/features/notifications"
+              "path": "/docs/features/notifications"
             },
             {
               "id": "features/profile",
-              "path": "/rituals_app_clean/docs/features/profile"
+              "path": "/docs/features/profile"
             },
             {
               "id": "features/rituals",
-              "path": "/rituals_app_clean/docs/features/rituals",
+              "path": "/docs/features/rituals",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/social",
-              "path": "/rituals_app_clean/docs/features/social",
+              "path": "/docs/features/social",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "intro",
-              "path": "/rituals_app_clean/docs/intro",
+              "path": "/docs/intro",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "mobile/architecture",
-              "path": "/rituals_app_clean/docs/mobile/architecture",
+              "path": "/docs/mobile/architecture",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "mobile/setup",
-              "path": "/rituals_app_clean/docs/mobile/setup",
+              "path": "/docs/mobile/setup",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "mobile/user-flows",
-              "path": "/rituals_app_clean/docs/mobile/user-flows",
+              "path": "/docs/mobile/user-flows",
               "sidebar": "tutorialSidebar"
             },
             {
               "id": "roadmap",
-              "path": "/rituals_app_clean/docs/roadmap",
+              "path": "/docs/roadmap",
               "sidebar": "tutorialSidebar"
             }
           ],
@@ -98,7 +98,7 @@
           "sidebars": {
             "tutorialSidebar": {
               "link": {
-                "path": "/rituals_app_clean/docs/intro",
+                "path": "/docs/intro",
                 "label": "intro"
               }
             }

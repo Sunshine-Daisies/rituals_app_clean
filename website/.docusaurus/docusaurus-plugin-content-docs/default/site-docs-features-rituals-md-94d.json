@@ -5,7 +5,7 @@
   "source": "@site/docs/features/rituals.md",
   "sourceDirName": "features",
   "slug": "/features/rituals",
-  "permalink": "/rituals_app_clean/docs/features/rituals",
+  "permalink": "/docs/features/rituals",
   "draft": false,
   "unlisted": false,
   "tags": [],
@@ -17,10 +17,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Gamification System",
-    "permalink": "/rituals_app_clean/docs/features/gamification"
+    "permalink": "/docs/features/gamification"
   },
   "next": {
     "title": "Social & Community",
-    "permalink": "/rituals_app_clean/docs/features/social"
+    "permalink": "/docs/features/social"
   }
 }
