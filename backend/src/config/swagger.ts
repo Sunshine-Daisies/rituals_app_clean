@@ -19,8 +19,8 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'https://ritualsappclean-production.up.railway.app/api',
-        description: 'Production Server',
+        url: '/api',
+        description: 'Default Server',
       },
     ],
     tags: [

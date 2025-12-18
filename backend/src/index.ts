@@ -83,6 +83,8 @@ const swaggerOptions = {
   customCss: `
     .swagger-ui .topbar { display: none; }
     .swagger-ui .info { margin: 20px 0; }
+    .swagger-ui .servers-title { display: none; }
+    .swagger-ui .servers { display: none; }
   `,
   swaggerOptions: {
     persistAuthorization: true,
