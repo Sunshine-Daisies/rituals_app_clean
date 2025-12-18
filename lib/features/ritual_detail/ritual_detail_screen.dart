@@ -412,7 +412,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
             ),
           ),
         );
-        context.go('/rituals');
+        context.pop();
       }
     } catch (e) {
       if (mounted) {
@@ -474,7 +474,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back),
-                        onPressed: () => context.go('/rituals'),
+                        onPressed: () => context.pop(),
                         color: AppTheme.textPrimary,
                       ),
                     ),
@@ -557,7 +557,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                               ),
                               const SizedBox(height: AppTheme.spacingL),
                               ElevatedButton(
-                                onPressed: () => context.go('/rituals'),
+                                onPressed: () => context.pop(),
                                 child: const Text('Go Back'),
                               ),
                             ],

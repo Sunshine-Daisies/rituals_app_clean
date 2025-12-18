@@ -158,7 +158,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
             InkWell(
               onTap: () {
                 Navigator.pop(context);
-                context.go('/llm-chat');
+                context.push('/llm-chat');
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -214,7 +214,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
             InkWell(
               onTap: () {
                 Navigator.pop(context);
-                context.go('/ritual/create');
+                context.push('/ritual/create');
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -444,7 +444,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
                 child: _RitualCard(
                   ritual: ritual,
-                  onEdit: () => context.go('/ritual/${ritual.id}'),
+                  onEdit: () => context.push('/ritual/${ritual.id}'),
                   onDelete: () => _deleteRitual(ritual.id),
                   onRefresh: _loadRituals,
                   onShare: () => _showShareBottomSheet(context, ritual),
@@ -497,7 +497,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                     OutlinedButton.icon(
                       icon: const Icon(Icons.group_add),
                       label: const Text('Join Ritual'),
-                      onPressed: () => context.go('/join-ritual'),
+                      onPressed: () => context.push('/join-ritual'),
                       style: OutlinedButton.styleFrom(foregroundColor: Colors.orange),
                     ),
                   ],
@@ -516,7 +516,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 child: _PartnerRitualCard(
                   ritual: partnerRitual,
                   onTap: () {
-                    context.go('/ritual/${partnerRitual.ritualId}');
+                    context.push('/ritual/${partnerRitual.ritualId}');
                   },
                   onRefresh: _loadRituals,
                 ),

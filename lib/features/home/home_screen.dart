@@ -7,6 +7,11 @@ import '../../services/ritual_logs_service.dart';
 import '../../services/partnership_service.dart';
 import '../../services/gamification_service.dart';
 import '../../theme/app_theme.dart';
+import 'widgets/bottom_nav_item.dart';
+import 'widgets/empty_today_card.dart';
+import 'widgets/pending_request_card.dart';
+import 'widgets/today_partnership_card.dart';
+import 'widgets/today_ritual_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -421,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            ...requests.map((request) => _PendingRequestCard(
+                            ...requests.map((request) => PendingRequestCard(
                               request: request,
                               onAccept: () => _acceptRequest(request.id),
                               onReject: () => _rejectRequest(request.id),
@@ -510,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     if (pendingRituals.isEmpty && pendingPartnerships.isEmpty && completedRituals.isEmpty && completedPartnerships.isEmpty) {
                       return SliverToBoxAdapter(
-                        child: _EmptyTodayCard(
+                        child: EmptyTodayCard(
                           message: 'No rituals for today',
                           icon: Icons.check_circle_outline,
                         ),
@@ -525,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             // Show personal ritual (without partnership)
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: _TodayRitualCard(
+                              child: TodayRitualCard(
                                 ritual: pendingRituals[index],
                                 onComplete: () async {
                                   // Backend'e kaydedildi, completion status'u güncelle
@@ -542,7 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             final partnershipIndex = index - pendingRituals.length;
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: _TodayPartnershipCard(
+                              child: TodayPartnershipCard(
                                 partnership: pendingPartnerships[partnershipIndex],
                                 onComplete: () async {
                                   // Backend'e kaydedildi, completion status'u güncelle
@@ -624,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                               child: Opacity(
                                 opacity: 0.6,
-                                child: _TodayRitualCard(
+                                child: TodayRitualCard(
                                   ritual: completedRituals[dataIndex],
                                   onComplete: () {}, // Already completed
                                   isCompleted: true,
@@ -637,7 +642,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                               child: Opacity(
                                 opacity: 0.6,
-                                child: _TodayPartnershipCard(
+                                child: TodayPartnershipCard(
                                   partnership: completedPartnerships[partnershipIndex],
                                   onComplete: () {}, // Already completed
                                   isCompleted: true,
@@ -685,9 +690,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _BottomNavItem(icon: Icons.home, label: 'Home', isActive: true, onTap: () {}),
-              _BottomNavItem(icon: Icons.list_alt, label: 'Rituals', isActive: false, onTap: () => context.go('/rituals')),
-              _BottomNavItem(icon: Icons.person, label: 'Profile', isActive: false, onTap: () => context.go('/profile')),
+              BottomNavItem(icon: Icons.home, label: 'Home', isActive: true, onTap: () {}),
+              BottomNavItem(icon: Icons.list_alt, label: 'Rituals', isActive: false, onTap: () => context.go('/rituals')),
+              BottomNavItem(icon: Icons.person, label: 'Profile', isActive: false, onTap: () => context.go('/profile')),
             ],
           ),
         ),
@@ -711,671 +716,8 @@ class _HomeScreenState extends State<HomeScreen> {
       '💪 Consistency is your superpower',
       '🎯 Small habits, big transformations',
       '🌱 Progress, not perfection',
+      '🌱 Progress, not perfection',
     ];
     return messages[DateTime.now().day % messages.length];
-  }
-}
-
-// Empty Card
-class _EmptyTodayCard extends StatelessWidget {
-  final String message;
-  final IconData icon;
-
-  const _EmptyTodayCard({required this.message, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 40, color: Colors.white38),
-            const SizedBox(height: 12),
-            Text(message, style: const TextStyle(color: Colors.white54, fontSize: 16)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Today Ritual Card
-class _TodayRitualCard extends StatefulWidget {
-  final Ritual ritual;
-  final VoidCallback onComplete;
-  final bool isCompleted;
-
-  const _TodayRitualCard({
-    required this.ritual, 
-    required this.onComplete,
-    this.isCompleted = false,
-  });
-
-  @override
-  State<_TodayRitualCard> createState() => _TodayRitualCardState();
-}
-
-class _TodayRitualCardState extends State<_TodayRitualCard> {
-  bool _isCompleting = false;
-  bool _completedToday = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Bugün tamamlanıp tamamlanmadığını kontrol et
-    _checkIfCompletedToday();
-  }
-
-  Future<void> _checkIfCompletedToday() async {
-    // TODO: Backend'den bugün tamamlanmış mı kontrolü yap
-    // Şimdilik false olarak kalacak
-  }
-
-  Future<void> _completeRitual() async {
-    if (_completedToday || _isCompleting) return;
-    
-    setState(() => _isCompleting = true);
-    try {
-      await RitualLogsService.logCompletion(ritualId: widget.ritual.id, stepIndex: -1, source: 'manual');
-      if (mounted) {
-        setState(() {
-          _completedToday = true;
-          _isCompleting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text('${widget.ritual.name} completed! 🎉'),
-            ]),
-            backgroundColor: AppTheme.successColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        widget.onComplete();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isCompleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e'), backgroundColor: AppTheme.errorColor),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Eğer tamamlandıysa, swipe olmadan sadece kartı göster
-    if (widget.isCompleted) {
-      return Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.ritual.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: const Color(0xFF00C853).withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Color(0xFF00C853)),
-                              const SizedBox(width: 4),
-                              Text('${widget.ritual.currentStreak}', style: const TextStyle(fontSize: 11, color: Color(0xFF00C853), fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                        const SizedBox(width: 4),
-                        Text(widget.ritual.reminderTime, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    return Dismissible(
-      key: Key(widget.ritual.id),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        if (!_isCompleting) {
-          await _completeRitual();
-        }
-        return false;
-      },
-      background: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00C853), Color(0xFF69F0AE)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 32),
-            SizedBox(width: 8),
-              Text(
-                'Complete',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: _completedToday 
-                ? null 
-                : LinearGradient(
-                    colors: [
-                      const Color(0xFF00C853).withOpacity(0.15),
-                      const Color(0xFF69F0AE).withOpacity(0.1),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            color: _completedToday ? AppTheme.surfaceColor : null,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _completedToday 
-                  ? Colors.white.withOpacity(0.1) 
-                  : const Color(0xFF00C853).withOpacity(0.5),
-              width: 2,
-            ),
-          ),
-          child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.ritual.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: const Color(0xFF00C853).withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Color(0xFF00C853)),
-                              const SizedBox(width: 4),
-                              Text('${widget.ritual.currentStreak}', style: const TextStyle(fontSize: 11, color: Color(0xFF00C853), fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                        const SizedBox(width: 4),
-                        Text(widget.ritual.reminderTime, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Today Partnership Card (Eşit Partner Sistemi)
-class _TodayPartnershipCard extends StatefulWidget {
-  final Partnership partnership;
-  final VoidCallback onComplete;
-  final bool isCompleted;
-
-  const _TodayPartnershipCard({
-    required this.partnership, 
-    required this.onComplete,
-    this.isCompleted = false,
-  });
-
-  @override
-  State<_TodayPartnershipCard> createState() => _TodayPartnershipCardState();
-}
-
-class _TodayPartnershipCardState extends State<_TodayPartnershipCard> {
-  bool _isCompleting = false;
-  bool _completedToday = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkIfCompletedToday();
-  }
-
-  Future<void> _checkIfCompletedToday() async {
-    // TODO: Backend'den bugün tamamlanmış mı kontrolü yap
-  }
-
-  Future<void> _completeRitual() async {
-    if (_completedToday || _isCompleting) return;
-    
-    setState(() => _isCompleting = true);
-    try {
-      // Kendi ritüelimi tamamla
-      await RitualLogsService.logCompletion(
-        ritualId: widget.partnership.myRitualId, 
-        stepIndex: -1, 
-        source: 'manual'
-      );
-      if (mounted) {
-        setState(() {
-          _completedToday = true;
-          _isCompleting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text('${widget.partnership.myRitualName} completed! ${widget.partnership.partnerUsername} notified 🎉'),
-            ]),
-            backgroundColor: AppTheme.successColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        widget.onComplete();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isCompleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e'), backgroundColor: AppTheme.errorColor),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Eğer tamamlandıysa, swipe olmadan sadece kartı göster
-    if (widget.isCompleted) {
-      return Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.partnership.myRitualName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Colors.orange),
-                              const SizedBox(width: 4),
-                              Text('${widget.partnership.currentStreak}', style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.person, size: 14, color: Colors.orange),
-                        const SizedBox(width: 4),
-                        Text(widget.partnership.partnerUsername, style: const TextStyle(fontSize: 13, color: Colors.orange)),
-                        if (widget.partnership.partnerLevel != null) ...[
-                          const SizedBox(width: 4),
-                          Text('Lv.${widget.partnership.partnerLevel}', style: const TextStyle(fontSize: 11, color: Colors.orange)),
-                        ],
-                        if (widget.partnership.myRitualTime != null) ...[
-                          const SizedBox(width: 12),
-                          const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                          const SizedBox(width: 4),
-                          Text(widget.partnership.myRitualTime!, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    return Dismissible(
-      key: Key(widget.partnership.id.toString()),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        if (!_isCompleting) {
-          await _completeRitual();
-        }
-        return false;
-      },
-      background: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Colors.orange, Colors.deepOrange],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 32),
-            SizedBox(width: 8),
-            Text(
-              'Complete',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-      child: Container(
-          decoration: BoxDecoration(
-            gradient: _completedToday 
-                ? null 
-                : LinearGradient(
-                    colors: [
-                      Colors.orange.withOpacity(0.15),
-                      Colors.deepOrange.withOpacity(0.1),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            color: _completedToday ? AppTheme.surfaceColor : null,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _completedToday 
-                  ? Colors.white.withOpacity(0.1) 
-                  : Colors.orange.withOpacity(0.5), 
-              width: 2,
-            ),
-          ),
-          child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.partnership.myRitualName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.local_fire_department, size: 12, color: Colors.orange),
-                            const SizedBox(width: 4),
-                            Text('${widget.partnership.currentStreak}', style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.person, size: 14, color: Colors.orange),
-                      const SizedBox(width: 4),
-                      Text(widget.partnership.partnerUsername, style: const TextStyle(fontSize: 13, color: Colors.orange)),
-                      if (widget.partnership.partnerLevel != null) ...[
-                        const SizedBox(width: 4),
-                        Text('Lv.${widget.partnership.partnerLevel}', style: const TextStyle(fontSize: 11, color: Colors.orange)),
-                      ],
-                      if (widget.partnership.myRitualTime != null) ...[
-                        const SizedBox(width: 12),
-                        const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                        const SizedBox(width: 4),
-                        Text(widget.partnership.myRitualTime!, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        ),
-      ),
-    );
-  }
-}
-
-// Pending Partnership Request Card
-class _PendingRequestCard extends StatelessWidget {
-  final PartnerRequest request;
-  final VoidCallback onAccept;
-  final VoidCallback onReject;
-
-  const _PendingRequestCard({
-    required this.request,
-    required this.onAccept,
-    required this.onReject,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Colors.orange, Colors.deepOrange]),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person_add, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      request.requesterUsername,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'wants to join your "${request.ritualName}" ritual',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onReject,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: const Text('Reject'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: onAccept,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    child: const Text('Accept'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Bottom Nav Item
-class _BottomNavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _BottomNavItem({required this.icon, required this.label, required this.isActive, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: isActive ? AppTheme.primaryColor : Colors.white54, size: 24),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 11, color: isActive ? AppTheme.primaryColor : Colors.white54, fontWeight: isActive ? FontWeight.w600 : FontWeight.normal)),
-          ],
-        ),
-      ),
-    );
   }
 }

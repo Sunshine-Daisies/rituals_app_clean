@@ -224,7 +224,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.go('/home'),
+              onPressed: () => context.pop(),
               color: Colors.white,
             ),
           ),

@@ -172,7 +172,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
             ),
           ),
         );
-        context.go('/rituals');
+        context.pop();
       }
     } catch (e) {
       if (mounted) {
@@ -289,7 +289,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.go('/home'),
+              onPressed: () => context.pop(),
               color: Colors.white,
             ),
           ),
@@ -556,7 +556,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () => context.go('/home'),
+              onPressed: () => context.pop(),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppTheme.errorColor),
                 foregroundColor: AppTheme.errorColor,

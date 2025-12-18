@@ -51,6 +51,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChatScreen(),
       ),
       GoRoute(
+        path: '/llm-chat',
+        builder: (context, state) => const ChatScreen(),
+      ),
+      GoRoute(
         path: '/rituals',
         builder: (context, state) => const RitualsListScreen(),
       ),
