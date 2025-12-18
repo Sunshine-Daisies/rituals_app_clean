@@ -15,7 +15,7 @@ import '../features/leaderboard/leaderboard_screen.dart';
 import '../features/badges/badges_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/sharing/join_ritual_screen.dart';
-import '../pages/chat_page.dart';
+
 import '../services/api_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -58,10 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/ritual/create',
         builder: (context, state) => const RitualCreateScreen(),
       ),
-      GoRoute(
-        path: '/llm-chat',
-        builder: (context, state) => const ChatPage(),
-      ),
+
       GoRoute(
         path: '/ritual/:id',
         builder: (context, state) => RitualDetailScreen(
