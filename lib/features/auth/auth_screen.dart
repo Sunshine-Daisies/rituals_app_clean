@@ -26,6 +26,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   late Animation<double> _fadeAnimation;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = GoRouterState.of(context);
+    final mode = state.uri.queryParameters['mode'];
+    if (mode != null) {
+      _isLogin = mode == 'login' || mode != 'signup';
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
@@ -117,277 +127,282 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    const Color indigoPrimary = Color(0xFF5C5E9A);
+
     return Scaffold(
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
-      body: Stack(
-        children: [
-          // 1. Background Gradient (Full Screen)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: AppTheme.backgroundGradient,
-            ),
-          ),
-          
-          // 2. Transparent Background Logo
-          Positioned(
-            top: 0,
-            bottom: 0,
-            left: 0,
-            child: Opacity(
-              opacity: 0.1, // Increased visibility slightly
-              child: Image.asset(
-                'assets/icon/app_icon.png',
-                fit: BoxFit.fitHeight,
-              ),
-            ),
-          ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.1),
+                  end: Offset.zero,
+                ).animate(_fadeAnimation),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                    const SizedBox(height: 20),
+                    
+                    // App Logo replacement (formerly Illustration Placeholder)
+                    Center(
+                      child: Hero(
+                        tag: 'app_logo',
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          height: 160,
+                          width: 160,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // App Title & Tagline with AnimatedSwitcher
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      transitionBuilder: (child, animation) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.1),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: FadeTransition(opacity: animation, child: child),
+                        );
+                      },
+                      child: Column(
+                        key: ValueKey<bool>(_isLogin),
+                        children: [
+                          Text(
+                            _isLogin ? 'Welcome Back' : 'Join Us',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF333333),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _isLogin 
+                              ? 'Sign in to continue your rituals' 
+                              : 'Create a new account to start your journey',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
 
-          // 3. Foreground Content (Scrollable)
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppTheme.spacingL),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
+                    // Name field (only for signup)
+                    if (!_isLogin) ...[
+                      _buildTextField(
+                        controller: _nameController,
+                        hintText: 'Full Name',
+                        icon: Icons.person_outline,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Email field
+                    _buildTextField(
+                      controller: _emailController,
+                      hintText: 'Email',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Email is required';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password field
+                    _buildTextField(
+                      controller: _passwordController,
+                      hintText: 'Password',
+                      icon: Icons.lock_outline,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword 
+                              ? Icons.visibility_outlined 
+                              : Icons.visibility_off_outlined,
+                          color: Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password is required';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    if (_isLogin)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _showForgotPasswordDialog,
+                          child: Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                              color: indigoPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    
+                    const SizedBox(height: 32),
+
+                    // Error message
+                    if (_errorMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          _errorMessage,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
+
+                    // Submit button
+                    SizedBox(
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleAuth,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: indigoPrimary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                _isLogin ? 'Sign In' : 'Sign Up',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Toggle Auth Mode
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: AppTheme.spacingXL),
-                        
-                        // App Title
                         Text(
-                          'Rituals',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
+                          _isLogin ? "Don't have an account? " : 'Already have an account? ',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isLogin = !_isLogin;
+                              _errorMessage = '';
+                            });
+                          },
+                          child: Text(
+                            _isLogin ? 'Sign Up' : 'Sign In',
+                            style: const TextStyle(
+                              color: indigoPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: AppTheme.spacingS),
-                        Text(
-                          'Manage your daily rituals',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: AppTheme.spacingXXL),
-
-                        // Auth Card
-                        Container(
-                          padding: const EdgeInsets.all(AppTheme.spacingL),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceColor.withOpacity(0.95), // Slight transparency for glass effect
-                            borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-                            boxShadow: AppTheme.cardShadow,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Toggle Buttons
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppTheme.backgroundColor,
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                ),
-                                padding: const EdgeInsets.all(4),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: _ToggleButton(
-                                        text: 'Sign In',
-                                        isSelected: _isLogin,
-                                        onTap: () {
-                                          setState(() {
-                                            _isLogin = true;
-                                            _errorMessage = '';
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: _ToggleButton(
-                                        text: 'Sign Up',
-                                        isSelected: !_isLogin,
-                                        onTap: () {
-                                          setState(() {
-                                            _isLogin = false;
-                                            _errorMessage = '';
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: AppTheme.spacingL),
-
-                              // Name field (only for signup)
-                              if (!_isLogin) ...[
-                              CustomTextField(
-                                controller: _nameController,
-                                label: 'Full Name (Optional)',
-                                icon: Icons.person_outline,
-                              ),
-                                const SizedBox(height: AppTheme.spacingM),
-                              ],
-
-                              // Email field
-                              CustomTextField(
-                                controller: _emailController,
-                                label: 'Email',
-                                icon: Icons.email_outlined,
-                                keyboardType: TextInputType.emailAddress,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Email is required';
-                                  }
-                                  if (!value.contains('@')) {
-                                    return 'Enter a valid email';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: AppTheme.spacingM),
-
-                              // Password field
-                              CustomTextField(
-                                controller: _passwordController,
-                                label: 'Password',
-                                icon: Icons.lock_outline,
-                                obscureText: _obscurePassword,
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword 
-                                        ? Icons.visibility_outlined 
-                                        : Icons.visibility_off_outlined,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Password is required';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: AppTheme.spacingS),
-
-                              if (_isLogin)
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(
-                                    onPressed: _showForgotPasswordDialog,
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: const Text(
-                                      'Forgot Password?',
-                                      style: TextStyle(
-                                        color: AppTheme.primaryColor,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: AppTheme.spacingL),
-
-                              // Error message
-                              if (_errorMessage.isNotEmpty)
-                                Container(
-                                  padding: const EdgeInsets.all(AppTheme.spacingM),
-                                  margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.errorColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                    border: Border.all(
-                                      color: AppTheme.errorColor.withOpacity(0.3),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.error_outline,
-                                        color: AppTheme.errorColor,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: AppTheme.spacingS),
-                                      Expanded(
-                                        child: Text(
-                                          _errorMessage,
-                                          style: const TextStyle(
-                                            color: AppTheme.errorColor,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                              // Submit button
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: AppTheme.primaryGradient,
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                  boxShadow: AppTheme.softShadow,
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _handleAuth,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                  ),
-                                  child: _isLoading
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                          ),
-                                        )
-                                      : Text(
-                                          _isLogin ? 'Sign In' : 'Sign Up',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        const SizedBox(height: AppTheme.spacingXL),
                       ],
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
+      ),
+    ),
+  );
+}
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: const TextStyle(fontSize: 15, color: Colors.black87),
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: Icon(icon, color: Colors.grey[600], size: 20),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: const Color(0xFFF5F5F5),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: Color(0xFF5C5E9A), width: 1),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
       ),
     );
   }
+
 
   Future<void> _showForgotPasswordDialog() async {
     final emailController = TextEditingController();
@@ -409,8 +424,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
+              style: const TextStyle(color: Colors.black87),
               decoration: const InputDecoration(
                 labelText: 'Email',
+                labelStyle: TextStyle(color: Colors.grey),
+                hintStyle: TextStyle(color: Colors.grey),
                 prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryColor),
               ),
             ),
@@ -462,41 +480,5 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 }
 
-class _ToggleButton extends StatelessWidget {
-  final String text;
-  final bool isSelected;
-  final VoidCallback onTap;
 
-  const _ToggleButton({
-    required this.text,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          gradient: isSelected ? AppTheme.primaryGradient : null,
-          color: isSelected ? null : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppTheme.radiusS),
-          boxShadow: isSelected ? AppTheme.softShadow : null,
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
 

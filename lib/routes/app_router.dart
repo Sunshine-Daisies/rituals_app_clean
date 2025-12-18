@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/auth/auth_screen.dart';
+import '../features/auth/welcome_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/chat/chat_screen.dart';
 import '../features/profile/profile_screen.dart';
@@ -20,23 +22,43 @@ import '../services/api_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/auth', // Start with auth page
+    initialLocation: '/welcome', // Start with welcome page
     redirect: (context, state) {
       final isAuthenticated = ApiService.hasToken;
       final isAuthRoute = state.matchedLocation == '/auth';
+      final isWelcomeRoute = state.matchedLocation == '/welcome';
 
-      if (!isAuthenticated && !isAuthRoute) {
-        return '/auth';
+      if (isAuthenticated) {
+        if (isAuthRoute || isWelcomeRoute) {
+          return '/home';
+        }
+        return null;
       }
-      if (isAuthenticated && isAuthRoute) {
-        return '/home';
+
+      // If not authenticated and not on an auth/welcome route, go to welcome
+      if (!isAuthRoute && !isWelcomeRoute) {
+        return '/welcome';
       }
+      
       return null;
     },
     routes: [
       GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
         path: '/auth',
-        builder: (context, state) => const AuthScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AuthScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+              child: child,
+            );
+          },
+        ),
       ),
       GoRoute(
         path: '/home',
