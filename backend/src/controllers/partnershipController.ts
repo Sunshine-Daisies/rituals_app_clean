@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import pool from '../config/db';
 import { addXp } from '../services/xpService';
 import { schedulePartnershipStreakCheck, cancelPartnershipStreakCheck, scheduleRitualStreakCheck, cancelRitualStreakCheck } from '../services/streakScheduler';
-import crypto from 'crypto';
+import { PartnershipService } from '../services/partnershipService';
 
 // XP Rewards
 const XP_REWARDS = {
@@ -11,9 +11,7 @@ const XP_REWARDS = {
 };
 
 // Davet kodu oluştur (6 karakterlik)
-function generateInviteCode(): string {
-  return crypto.randomBytes(3).toString('hex').toUpperCase();
-}
+
 
 // ============================================
 // INVITE MANAGEMENT
@@ -28,64 +26,26 @@ export const createInvite = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const { ritualId } = req.params;
 
-    // Ritüel sahibi mi kontrol et
-    const ritualCheck = await pool.query(
-      'SELECT * FROM rituals WHERE id = $1 AND user_id = $2',
-      [ritualId, userId]
-    );
+    const result = await PartnershipService.createInvite(userId, ritualId);
 
-    if (ritualCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Ritüel bulunamadı veya size ait değil' });
-    }
-
-    // Aktif partnership var mı?
-    const existingPartnership = await pool.query(
-      `SELECT * FROM ritual_partnerships 
-       WHERE (ritual_id_1 = $1 OR ritual_id_2 = $1) AND status = 'active'`,
-      [ritualId]
-    );
-
-    if (existingPartnership.rows.length > 0) {
-      return res.status(400).json({ error: 'Bu ritüelin zaten bir partneri var' });
-    }
-
-    // Mevcut aktif davet var mı?
-    const existingInvite = await pool.query(
-      `SELECT * FROM ritual_invites 
-       WHERE ritual_id = $1 AND user_id = $2 AND is_used = false 
-       AND (expires_at IS NULL OR expires_at > NOW())`,
-      [ritualId, userId]
-    );
-
-    if (existingInvite.rows.length > 0) {
+    if (!result.isNew) {
       return res.json({
         message: 'Mevcut davet kodu',
-        inviteCode: existingInvite.rows[0].invite_code,
-        inviteId: existingInvite.rows[0].id,
+        inviteCode: result.invite.invite_code,
+        inviteId: result.invite.id,
       });
     }
 
-    // Yeni davet kodu oluştur (7 gün geçerli)
-    const inviteCode = generateInviteCode();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    const result = await pool.query(
-      `INSERT INTO ritual_invites (ritual_id, user_id, invite_code, expires_at)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [ritualId, userId, inviteCode, expiresAt]
-    );
-
-    await addXp(userId, XP_REWARDS.create_invite, 'create_invite', ritualId);
-
     res.status(201).json({
       message: 'Davet kodu oluşturuldu',
-      inviteCode: inviteCode,
-      inviteId: result.rows[0].id,
-      expiresAt: expiresAt,
+      inviteCode: result.invite.invite_code,
+      inviteId: result.invite.id,
+      expiresAt: result.invite.expires_at,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message });
+    }
     console.error('Create invite error:', error);
     res.status(500).json({ error: 'Davet kodu oluşturulurken hata oluştu' });
   }
@@ -130,69 +90,17 @@ export const joinWithCode = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { code } = req.params;
-    const { ritualId } = req.body; // Hangi ritüelini paylaşmak istiyor
+    const { ritualId } = req.body;
 
-    // Davet kodunu bul
-    const invite = await pool.query(
-      `SELECT ri.*, r.name as ritual_name, r.user_id as owner_id,
-              up.username as owner_username
-       FROM ritual_invites ri
-       JOIN rituals r ON ri.ritual_id = r.id
-       LEFT JOIN user_profiles up ON ri.user_id = up.user_id
-       WHERE ri.invite_code = $1 
-       AND ri.is_used = false
-       AND (ri.expires_at IS NULL OR ri.expires_at > NOW())`,
-      [code.toUpperCase()]
-    );
+    const result = await PartnershipService.joinWithCode(userId, code, ritualId);
 
-    if (invite.rows.length === 0) {
-      return res.status(404).json({ error: 'Geçersiz veya süresi dolmuş davet kodu' });
-    }
+    // Notification Logic needs to stay or move? 
+    // Ideally service handles it, but for partial refactor, let's keep it here or move it later.
+    // For now, let's replicate the notification logic here using result data, or accept it's "mostly" moved.
+    // To be perfectly clean, let's keep the notification logic here for now but use result.
 
-    const inv = invite.rows[0];
-
-    // Kendi davetine katılamaz
-    if (inv.user_id === userId) {
-      return res.status(400).json({ error: 'Kendi davetinize katılamazsınız' });
-    }
-
-    // Ritüel belirtilmediyse, kullanıcı mevcut bir ritüel seçecek veya partnership kabul edildiğinde oluşturulacak
-    let partnerRitualId = ritualId;
-
-    if (!partnerRitualId) {
-      // Kullanıcının bu isme sahip ritüeli var mı? (Case insensitive)
-      const existingRitual = await pool.query(
-        `SELECT id FROM rituals WHERE user_id = $1 AND LOWER(name) = LOWER($2)`,
-        [userId, inv.ritual_name]
-      );
-
-      if (existingRitual.rows.length > 0) {
-        partnerRitualId = existingRitual.rows[0].id;
-      }
-      // Ritüel yoksa, şimdilik null bırak - partnership kabul edildiğinde oluşturulacak
-    }
-
-    // Zaten bekleyen istek var mı?
-    const existingRequest = await pool.query(
-      `SELECT * FROM partnership_requests 
-       WHERE inviter_ritual_id = $1 AND invitee_user_id = $2 AND status = 'pending'`,
-      [inv.ritual_id, userId]
-    );
-
-    if (existingRequest.rows.length > 0) {
-      return res.status(400).json({ error: 'Zaten bekleyen bir isteğiniz var' });
-    }
-
-    // İstek oluştur
-    const request = await pool.query(
-      `INSERT INTO partnership_requests (inviter_ritual_id, inviter_user_id, invitee_user_id, invitee_ritual_id, invite_id)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [inv.ritual_id, inv.user_id, userId, partnerRitualId, inv.id]
-    );
-
-    // Kullanıcının ritüel ID'sini request'e ekle (custom column gerekebilir)
-    // Şimdilik notification'da gönderelim
+    // ... Actually, the original code had notification logic inside. 
+    // Let's simplified this: 
 
     // Davet sahibine bildirim gönder
     const joinerProfile = await pool.query(
@@ -205,25 +113,28 @@ export const joinWithCode = async (req: Request, res: Response) => {
       `INSERT INTO notifications (user_id, type, title, body, data)
        VALUES ($1, 'partnership_request', 'Partner İsteği 🤝', $2, $3)`,
       [
-        inv.user_id,
-        `${joinerUsername} "${inv.ritual_name}" için partner olmak istiyor`,
-        JSON.stringify({ 
-          request_id: request.rows[0].id,
+        result.invite.user_id,
+        `${joinerUsername} "${result.invite.ritual_name}" için partner olmak istiyor`,
+        JSON.stringify({
+          request_id: result.request.id,
           requester_id: userId,
-          requester_ritual_id: partnerRitualId,
-          ritual_name: inv.ritual_name
+          requester_ritual_id: result.finalPartnerRitualId,
+          ritual_name: result.invite.ritual_name
         }),
       ]
     );
 
     res.status(201).json({
       message: 'Partner isteği gönderildi',
-      requestId: request.rows[0].id,
-      ritualName: inv.ritual_name,
-      ownerUsername: inv.owner_username,
-      yourRitualId: partnerRitualId,
+      requestId: result.request.id,
+      ritualName: result.invite.ritual_name,
+      ownerUsername: result.invite.owner_username,
+      yourRitualId: result.finalPartnerRitualId,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message });
+    }
     console.error('Join with code error:', error);
     res.status(500).json({ error: 'İstek gönderilirken hata oluştu' });
   }
@@ -341,7 +252,7 @@ export const acceptRequest = async (req: Request, res: Response) => {
        FROM rituals r WHERE r.id = $1`,
       [req_data.inviter_ritual_id]
     );
-    
+
     if (ritualData.rows.length > 0) {
       const ritual = ritualData.rows[0];
       schedulePartnershipStreakCheck({
@@ -358,7 +269,7 @@ export const acceptRequest = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({ 
+    res.json({
       message: 'Partner isteği kabul edildi!',
       partnershipId: partnership.rows[0].id,
     });
@@ -625,7 +536,7 @@ export const leavePartnership = async (req: Request, res: Response) => {
       ]
     );
 
-    res.json({ 
+    res.json({
       message: 'Partnerlıktan ayrıldınız. Ritüeliniz kişisel olarak devam ediyor.',
     });
   } catch (error) {
@@ -679,8 +590,8 @@ export const updatePartnershipStreak = async (userId: string, ritualId: string):
       [otherRitualId, otherUserId, today]
     );
 
-    const bothCompletedToday = 
-      parseInt(myCompletion.rows[0].count) > 0 && 
+    const bothCompletedToday =
+      parseInt(myCompletion.rows[0].count) > 0 &&
       parseInt(partnerCompletion.rows[0].count) > 0;
 
     if (!bothCompletedToday) {
@@ -714,10 +625,10 @@ export const updatePartnershipStreak = async (userId: string, ritualId: string):
       [newStreak, longestStreak, p.id]
     );
 
-    return { 
-      updated: true, 
-      currentStreak: newStreak, 
-      partnerUserId: otherUserId 
+    return {
+      updated: true,
+      currentStreak: newStreak,
+      partnerUserId: otherUserId
     };
   } catch (error) {
     console.error('Update partnership streak error:', error);
@@ -835,7 +746,7 @@ export const usePartnershipFreeze = async (req: Request, res: Response) => {
       ]
     );
 
-    res.json({ 
+    res.json({
       message: 'Freeze kullanıldı!',
       streakPreserved: p.current_streak,
       freezesRemaining: p.freeze_count - 1
