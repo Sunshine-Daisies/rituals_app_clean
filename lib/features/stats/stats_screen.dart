@@ -69,7 +69,7 @@ class _StatsScreenState extends State<StatsScreen> {
                               ),
                               child: IconButton(
                                 icon: const Icon(Icons.arrow_back),
-                                onPressed: () => context.go('/home'),
+                                onPressed: () => context.pop(),
                                 color: AppTheme.textPrimary,
                               ),
                             ),

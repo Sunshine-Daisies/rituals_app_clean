@@ -92,7 +92,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.go('/home'),
+                        onPressed: () => context.pop(),
                         tooltip: 'Back',
                       ),
                     ),

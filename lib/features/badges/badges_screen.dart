@@ -91,7 +91,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.go('/home'),
+                        onPressed: () => context.pop(),
                         tooltip: 'Back',
                       ),
                     ),

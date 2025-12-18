@@ -211,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.analytics,
           title: 'Statistics',
           subtitle: 'View progress and achievements',
-          onTap: () => context.go('/stats'),
+          onTap: () => context.push('/stats'),
         ),
       ],
     );
