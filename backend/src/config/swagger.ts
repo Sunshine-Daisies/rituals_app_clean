@@ -19,10 +19,6 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${port}/api`,
-        description: 'Local Development Server',
-      },
-      {
         url: 'https://ritualsappclean-production.up.railway.app/api',
         description: 'Production Server',
       },
@@ -54,7 +50,7 @@ const options: swaggerJsdoc.Options = {
         Error: {
           type: 'object',
           properties: {
-            message: { 
+            message: {
               type: 'string',
               example: 'Something went wrong'
             },
