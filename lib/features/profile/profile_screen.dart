@@ -441,7 +441,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
-                      fontWeight: FontWeight.black,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 1,
                     ),
                   ),
@@ -899,12 +899,14 @@ class _ProfileOption extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color? iconColor;
   final VoidCallback onTap;
 
   const _ProfileOption({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.iconColor,
     required this.onTap,
   });
 
@@ -925,7 +927,7 @@ class _ProfileOption extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: AppTheme.primaryColor,
+            color: iconColor ?? AppTheme.primaryColor,
             size: 24,
           ),
         ),
