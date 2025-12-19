@@ -12,6 +12,7 @@ import 'widgets/empty_today_card.dart';
 import 'widgets/pending_request_card.dart';
 import 'widgets/today_partnership_card.dart';
 import 'widgets/today_ritual_card.dart';
+import '../../data/models/user_profile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Ritual>> _myRitualsFuture;
   late Future<List<Partnership>> _partnershipsFuture;
   late Future<List<PartnerRequest>> _pendingRequestsFuture;
+  late Future<UserProfile?> _profileFuture;
   int _unreadNotificationCount = 0;
   
   // Bugün tamamlanan ritüeller (backend'den gelecek)
@@ -60,11 +62,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadRituals() {
     final ritualsFuture = _fetchRitualsWithStatus();
     final partnershipsFuture = _fetchPartnershipsWithStatus();
+    final profileFuture = _gamificationService.getMyProfile();
     
     setState(() {
       _myRitualsFuture = ritualsFuture;
       _partnershipsFuture = partnershipsFuture;
       _pendingRequestsFuture = PartnershipService.getPendingRequests();
+      _profileFuture = profileFuture;
     });
     
     _loadUnreadNotifications();
@@ -317,301 +321,222 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async => _loadRituals(),
-            child: CustomScrollView(
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 30, 20, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _getGreetingMessage(),
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _getMotivationalMessage(),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.notifications_outlined, size: 24),
-                                onPressed: () => context.push('/notifications').then((_) => _loadUnreadNotifications()),
-                                color: Colors.white,
-                              ),
-                            ),
-                            if (_unreadNotificationCount > 0)
-                              Positioned(
-                                right: 10,
-                                top: 10,
-                                child: Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.errorColor,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 1.5),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            child: FutureBuilder<List<dynamic>>(
+              future: Future.wait([_myRitualsFuture, _partnershipsFuture, _profileFuture]),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData && snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                // Pending Partnership Requests
-                SliverToBoxAdapter(
-                  child: FutureBuilder<List<PartnerRequest>>(
-                    future: _pendingRequestsFuture,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      
-                      final requests = snapshot.data!;
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                final myRituals = snapshot.data?[0] as List<Ritual>? ?? [];
+                final partnerships = snapshot.data?[1] as List<Partnership>? ?? [];
+                final profile = snapshot.data?[2] as UserProfile?;
+
+                final todayRituals = _filterTodayRituals(myRituals);
+                final todayPartnerships = _filterTodayPartnerships(partnerships);
+                
+                // Partnership'i olmayan kişisel ritüelleri filtrele
+                final todayRitualsWithoutPartnerships = todayRituals
+                    .where((r) => r.partnershipId == null)
+                    .toList();
+
+                final totalToday = todayRitualsWithoutPartnerships.length + todayPartnerships.length;
+                final completedToday = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).length + 
+                                     todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).length;
+                
+                final progressPercent = totalToday > 0 ? (completedToday / totalToday) : 0.0;
+
+                return CustomScrollView(
+                  slivers: [
+                    // New Modern Header
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person_add,
-                                    color: Colors.orange,
-                                    size: 20,
+                                // Profile Avatar with Level Badge
+                                Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.5), width: 2),
+                                      ),
+                                      child: CircleAvatar(
+                                         radius: 28,
+                                         backgroundImage: profile?.avatarUrl != null 
+                                           ? NetworkImage(profile!.avatarUrl!)
+                                           : NetworkImage('https://i.pravatar.cc/150?u=${profile?.username ?? "user"}'),
+                                       ),
+                                     ),
+                                     Positioned(
+                                       bottom: -5,
+                                       left: 0,
+                                       right: 0,
+                                       child: Center(
+                                         child: Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                           decoration: BoxDecoration(
+                                             color: AppTheme.darkSurface,
+                                             borderRadius: BorderRadius.circular(10),
+                                             border: Border.all(color: Colors.white24, width: 1),
+                                           ),
+                                           child: Text(
+                                             'Lvl ${profile?.level ?? 1}',
+                                             style: const TextStyle(
+                                               fontSize: 10,
+                                               fontWeight: FontWeight.bold,
+                                               color: Colors.white,
+                                             ),
+                                           ),
+                                         ),
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                                 const SizedBox(width: 16),
+                                 // Name and XP Bar
+                                 Expanded(
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text(
+                                         '${_getGreetingMessage()}, ${profile?.name ?? profile?.username ?? "Explorer"}',
+                                         maxLines: 1,
+                                         overflow: TextOverflow.ellipsis,
+                                         style: const TextStyle(
+                                           fontSize: 18,
+                                           fontWeight: FontWeight.bold,
+                                           color: Colors.white,
+                                         ),
+                                       ),
+                                      const SizedBox(height: 6),
+                                      // XP Bar
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                height: 8,
+                                                width: double.infinity,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white10,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                              ),
+                                              FractionallySizedBox(
+                                                widthFactor: ((profile?.xpProgressPercent ?? 0) / 100).clamp(0.0, 1.0),
+                                                child: Container(
+                                                  height: 8,
+                                                  decoration: BoxDecoration(
+                                                    gradient: AppTheme.primaryGradient,
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${profile?.xp ?? 0} / ${profile?.xpForNextLevel ?? 100} XP',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppTheme.textSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Partner Requests (${requests.length})',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                                const SizedBox(width: 16),
+                                // Coins and Streak
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => context.push('/badges'),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.05),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.stars, color: Color(0xFFFFD700), size: 18),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '${profile?.coins ?? 0}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.local_fire_department, color: Color(0xFFFF6B00), size: 18),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${profile?.longestStreak ?? 0} DAY STREAK',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            ...requests.map((request) => PendingRequestCard(
-                              request: request,
-                              onAccept: () => _acceptRequest(request.id),
-                              onReject: () => _rejectRequest(request.id),
-                            )),
                           ],
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Today's Rituals Header (Combined)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.today,
-                            color: AppTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'My Today\'s Rituals',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Combined Rituals (My Rituals + Partnerships)
-                FutureBuilder<List<dynamic>>(
-                  future: Future.wait([_myRitualsFuture, _partnershipsFuture]),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SliverToBoxAdapter(
-                        child: Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                      );
-                    }
-
-                    if (snapshot.hasError) {
-                      return SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Text('Hata: ${snapshot.error}', style: const TextStyle(color: Colors.red)),
-                        ),
-                      );
-                    }
-
-                    final myRituals = snapshot.data?[0] as List<Ritual>? ?? [];
-                    final partnerships = snapshot.data?[1] as List<Partnership>? ?? [];
-                    
-                    final todayPartnerships = _filterTodayPartnerships(partnerships);
-                    
-                    // Partnership'i olmayan kişisel ritüelleri filtrele
-                    final todayRituals = _filterTodayRituals(myRituals);
-                    // Sadece partnershipId'si olmayan ve bana ait olan ritüelleri göster
-                    // (Partner ritüelleri zaten partnershipId'ye sahip olacak)
-                    final todayRitualsWithoutPartnerships = todayRituals
-                        .where((r) => r.partnershipId == null)
-                        .toList();
-
-                    // Tamamlanmış ve tamamlanmamış olarak ayır
-                    final pendingRituals = todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).toList();
-                    final completedRituals = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).toList();
-                    final pendingPartnerships = todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).toList();
-                    final completedPartnerships = todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).toList();
-
-                    if (pendingRituals.isEmpty && pendingPartnerships.isEmpty && completedRituals.isEmpty && completedPartnerships.isEmpty) {
-                      return SliverToBoxAdapter(
-                        child: EmptyTodayCard(
-                          message: 'No rituals for today',
-                          icon: Icons.check_circle_outline,
-                        ),
-                      );
-                    }
-
-                    // Sadece bekleyen ritüelleri göster
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index < pendingRituals.length) {
-                            // Show personal ritual (without partnership)
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: TodayRitualCard(
-                                ritual: pendingRituals[index],
-                                onComplete: () async {
-                                  // Backend'e kaydedildi, completion status'u güncelle
-                                  setState(() {
-                                    _ritualCompletionStatus[pendingRituals[index].id] = true;
-                                  });
-                                  // Verileri yenile (streak güncellemeleri için)
-                                  _loadRituals();
-                                },
-                              ),
-                            );
-                          } else {
-                            // Show partnership ritual
-                            final partnershipIndex = index - pendingRituals.length;
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: TodayPartnershipCard(
-                                partnership: pendingPartnerships[partnershipIndex],
-                                onComplete: () async {
-                                  // Backend'e kaydedildi, completion status'u güncelle
-                                  setState(() {
-                                    _partnershipCompletionStatus[pendingPartnerships[partnershipIndex].id] = true;
-                                  });
-                                  // Verileri yenile (streak güncellemeleri için)
-                                  _loadRituals();
-                                },
-                              ),
-                            );
-                          }
-                        },
-                        childCount: pendingRituals.length + pendingPartnerships.length,
                       ),
-                    );
-                  },
-                ),
+                    ),
 
-                // Completed Rituals Section
-                FutureBuilder<List<dynamic>>(
-                  future: Future.wait([_myRitualsFuture, _partnershipsFuture]),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-                    final myRituals = snapshot.data?[0] as List<Ritual>? ?? [];
-                    final partnerships = snapshot.data?[1] as List<Partnership>? ?? [];
-                    
-                    final todayPartnerships = _filterTodayPartnerships(partnerships);
-                    final todayRitualsWithoutPartnerships = _filterTodayRituals(myRituals)
-                        .where((r) => r.partnershipId == null)
-                        .toList();
-
-                    final completedRituals = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).toList();
-                    final completedPartnerships = todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).toList();
-
-                    if (completedRituals.isEmpty && completedPartnerships.isEmpty) {
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
-                    }
-
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          // Header
-                          if (index == 0) {
-                            return Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-                              child: Row(
+                    // Daily Progress Card
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.04),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                          ),
+                          child: Row(
+                            children: [
+                              // Radial Progress
+                              Stack(
+                                alignment: Alignment.center,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.successColor.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.check_circle,
-                                      color: AppTheme.successColor,
-                                      size: 20,
+                                  SizedBox(
+                                    height: 80,
+                                    width: 80,
+                                    child: CircularProgressIndicator(
+                                      value: progressPercent,
+                                      strokeWidth: 8,
+                                      backgroundColor: Colors.white10,
+                                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
                                   Text(
-                                    'My Completed Rituals (${completedRituals.length + completedPartnerships.length})',
+                                    '${(progressPercent * 100).toInt()}%',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -620,45 +545,326 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(width: 20),
+                              // Stats
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    _buildStatTile('Rituals Completed', '$completedToday / $totalToday'),
+                                    const SizedBox(height: 10),
+                                    _buildStatTile('Total Focus Time', '${(completedToday * 15 / 60).toStringAsFixed(1)}h'),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              // Sync Icon
+                              IconButton(
+                                icon: const Icon(Icons.sync, color: AppTheme.textSecondary),
+                                onPressed: () => _loadRituals(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Partnership Status Section
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Partnership Status',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => context.push('/friends'),
+                                  child: Row(
+                                    children: [
+                                      Text('Nudge', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 16),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            // Partnership Detail Card
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=sarah'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Sarah',
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                        ),
+                                        Text(
+                                          'Level 4 Explorer',
+                                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Text(
+                                      '70%',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.primaryColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Pending Requests (If any)
+                    FutureBuilder<List<PartnerRequest>>(
+                      future: _pendingRequestsFuture,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Partner Requests',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                const SizedBox(height: 12),
+                                ...snapshot.data!.map((req) => PendingRequestCard(
+                                  request: req,
+                                  onAccept: () => _acceptRequest(req.id),
+                                  onReject: () => _rejectRequest(req.id),
+                                )),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // Today's Rituals Header
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Today's Rituals",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: const Text(
+                                'Filter',
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Active Rituals & Partnerships
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final pendingRituals = todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).toList();
+                          final pendingPartnerships = todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).toList();
+
+                          if (pendingRituals.isEmpty && pendingPartnerships.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              child: EmptyTodayCard(
+                                message: 'No rituals left for today!',
+                                icon: Icons.check_circle_outline,
+                              ),
                             );
                           }
 
-                          final dataIndex = index - 1;
-                          if (dataIndex < completedRituals.length) {
+                          if (index < pendingRituals.length) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: Opacity(
-                                opacity: 0.6,
-                                child: TodayRitualCard(
-                                  ritual: completedRituals[dataIndex],
-                                  onComplete: () {}, // Already completed
-                                  isCompleted: true,
-                                ),
+                              child: TodayRitualCard(
+                                ritual: pendingRituals[index],
+                                onComplete: () {
+                                  setState(() {
+                                    _ritualCompletionStatus[pendingRituals[index].id] = true;
+                                  });
+                                  _loadRituals();
+                                },
                               ),
                             );
                           } else {
-                            final partnershipIndex = dataIndex - completedRituals.length;
+                            final partnershipIndex = index - pendingRituals.length;
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: Opacity(
-                                opacity: 0.6,
-                                child: TodayPartnershipCard(
-                                  partnership: completedPartnerships[partnershipIndex],
-                                  onComplete: () {}, // Already completed
-                                  isCompleted: true,
-                                ),
+                              child: TodayPartnershipCard(
+                                partnership: pendingPartnerships[partnershipIndex],
+                                onComplete: () {
+                                  setState(() {
+                                    _partnershipCompletionStatus[pendingPartnerships[partnershipIndex].id] = true;
+                                  });
+                                  _loadRituals();
+                                },
                               ),
                             );
                           }
                         },
-                        childCount: 1 + completedRituals.length + completedPartnerships.length,
+                        childCount: (todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).length + 
+                                     todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).length).clamp(1, 999),
                       ),
-                    );
-                  },
-                ),
+                    ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
+                    // Add New Ritual Button (Modern Dashed Design)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        child: GestureDetector(
+                          onTap: () => context.push('/ritual/create'),
+                          child: Container(
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.02),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                              border: Border.all(
+                                color: AppTheme.textSecondary.withOpacity(0.2),
+                                width: 1.5,
+                                style: BorderStyle.solid,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add, color: AppTheme.textSecondary, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Add New Ritual',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Completed Rituals Section
+                    if (completedToday > 0)
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final completedRitualsList = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).toList();
+                            final completedPartnershipsList = todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).toList();
+
+                            if (index == 0) {
+                              return Padding(
+                                padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.successColor.withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.check_circle_outline, color: AppTheme.successColor, size: 20),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      'Completed',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            final dataIndex = index - 1;
+                            if (dataIndex < completedRitualsList.length) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                child: TodayRitualCard(
+                                  ritual: completedRitualsList[dataIndex],
+                                  onComplete: () {}, // Already completed
+                                  isCompleted: true,
+                                ),
+                              );
+                            } else {
+                              final pIndex = dataIndex - completedRitualsList.length;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                child: Opacity(
+                                  opacity: 0.6,
+                                  child: TodayPartnershipCard(
+                                    partnership: completedPartnershipsList[pIndex],
+                                    onComplete: () {}, // Already completed
+                                    isCompleted: true,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          childCount: 1 + completedToday,
+                        ),
+                      ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -666,6 +872,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _buildBottomNav(context),
     );
   }
+
 
   // Helper methods to check if ritual/partnership is completed today
   bool _isCompletedToday(Ritual ritual) {
@@ -678,24 +885,111 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBottomNav(BuildContext context) {
     return Container(
+      height: 90,
       decoration: BoxDecoration(
         color: AppTheme.darkBackground1,
-        boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 10, offset: const Offset(0, -2)),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+      ),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        clipBehavior: Clip.none,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.grid_view_rounded, 'Home', true, () {}),
+                _buildNavItem(Icons.people_alt_rounded, 'Social', false, () => context.push('/friends')),
+                const SizedBox(width: 60), // Space for FAB
+                _buildNavItem(Icons.bar_chart_rounded, 'Stats', false, () => context.push('/stats')),
+                _buildNavItem(Icons.person_rounded, 'Profile', false, () => context.push('/profile')),
+              ],
+            ),
+          ),
+          // Floating Center Button with Glow
+          Positioned(
+            top: -25,
+            child: GestureDetector(
+              onTap: () => context.push('/ritual/create'),
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00D2FF), Color(0xFF007ADF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00D2FF).withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 32),
+              ),
+            ),
+          ),
         ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              BottomNavItem(icon: Icons.home, label: 'Home', isActive: true, onTap: () {}),
-              BottomNavItem(icon: Icons.list_alt, label: 'Rituals', isActive: false, onTap: () => context.go('/rituals')),
-              BottomNavItem(icon: Icons.person, label: 'Profile', isActive: false, onTap: () => context.go('/profile')),
-            ],
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
+            size: 26,
           ),
-        ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatTile(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }

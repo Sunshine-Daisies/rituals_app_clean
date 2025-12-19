@@ -108,6 +108,27 @@ class GamificationService {
     }
   }
 
+  /// Profil fotoğrafını güncelle (base64)
+  Future<String?> uploadProfilePicture(String base64Image) async {
+    final url = '$_baseUrl/profile/avatar';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: await _getHeaders(),
+        body: json.encode({'image': base64Image}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['avatar_url'] ?? data['avatarUrl'];
+      }
+      return null;
+    } catch (e) {
+      print('Error uploading profile picture: $e');
+      return null;
+    }
+  }
+
   // ============================================
   // LEADERBOARD
   // ============================================

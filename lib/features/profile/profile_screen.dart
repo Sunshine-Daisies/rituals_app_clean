@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/gamification_service.dart';
@@ -252,6 +255,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 75,
+    );
+
+    if (image == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final bytes = await File(image.path).readAsBytes();
+      final base64Image = base64Encode(bytes);
+      
+      final newAvatarUrl = await _gamificationService.uploadProfilePicture(base64Image);
+      
+      if (mounted) {
+        if (newAvatarUrl != null) {
+          await _loadData();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile picture updated! ✨'), backgroundColor: Colors.green),
+          );
+        } else {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to upload image.'), backgroundColor: AppTheme.errorColor),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
+        );
+      }
+    }
+  }
+
   Widget _buildLogoutButton() {
     return Container(
       decoration: BoxDecoration(
@@ -370,37 +414,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
-                    color: AppTheme.primaryColor,
-                    size: 48,
+                  backgroundImage: _profile?.avatarUrl != null 
+                    ? NetworkImage(_profile!.avatarUrl!) 
+                    : null,
+                  child: _profile?.avatarUrl == null 
+                    ? const Icon(
+                        Icons.person,
+                        color: AppTheme.primaryColor,
+                        size: 48,
+                      )
+                    : null,
+                ),
+              ),
+              // Edit Badge
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _pickAndUploadImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.edit, color: AppTheme.primaryColor, size: 16),
                   ),
                 ),
               ),
               // Level Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.amber,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+              Transform.translate(
+                offset: const Offset(30, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'Lv.$level',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
-                  ],
-                ),
-                child: Text(
-                  'Lv.$level',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
                   ),
                 ),
               ),

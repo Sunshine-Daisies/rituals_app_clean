@@ -365,8 +365,8 @@ class _LeaderboardCard extends StatelessWidget {
             children: [
               // Rank
               Container(
-                width: 40,
-                height: 40,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: isTopThree
                       ? _getRankColor(entry.rank).withOpacity(0.2)
@@ -378,17 +378,33 @@ class _LeaderboardCard extends StatelessWidget {
                       ? Icon(
                           _getRankIcon(entry.rank),
                           color: _getRankColor(entry.rank),
-                          size: 24,
+                          size: 18,
                         )
                       : Text(
                           '${entry.rank}',
                           style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.bold,
-                            fontSize: entry.rank >= 100 ? 12 : 16,
+                            fontSize: entry.rank >= 100 ? 10 : 14,
                           ),
                         ),
                 ),
+              ),
+              const SizedBox(width: 12),
+              // Avatar
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                backgroundImage: entry.avatarUrl != null ? NetworkImage(entry.avatarUrl!) : null,
+                child: entry.avatarUrl == null
+                  ? Text(
+                      entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
               ),
             ],
           ),

@@ -59,173 +59,108 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     }
   }
 
+  IconData _getIconForRitual(Ritual ritual) {
+    if (ritual.name.toLowerCase().contains('water')) return Icons.water_drop;
+    if (ritual.name.toLowerCase().contains('meditation')) return Icons.self_improvement;
+    if (ritual.name.toLowerCase().contains('read')) return Icons.menu_book;
+    if (ritual.name.toLowerCase().contains('workout')) return Icons.fitness_center;
+    return Icons.star;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (widget.isCompleted) {
-      return Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.ritual.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: const Color(0xFF00C853).withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Color(0xFF00C853)),
-                              const SizedBox(width: 4),
-                              Text('${widget.ritual.currentStreak}',
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF00C853), fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                        const SizedBox(width: 4),
-                        Text(widget.ritual.reminderTime, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    final bool isDone = widget.isCompleted || _completedToday;
 
-    return Dismissible(
-      key: Key(widget.ritual.id),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        if (!_isCompleting) {
-          await _completeRitual();
-        }
-        return false;
-      },
-      background: Container(
+    return Opacity(
+      opacity: isDone ? 0.6 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00C853), Color(0xFF69F0AE)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
+          color: AppTheme.darkSurface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          border: Border.all(
+            color: isDone ? AppTheme.primaryColor.withOpacity(0.3) : Colors.white.withOpacity(0.05),
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            if (!isDone)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
         ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        child: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 32),
-            SizedBox(width: 8),
-            Text(
-              'Complete',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            // Checkbox
+            GestureDetector(
+              onTap: _completeRitual,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDone ? AppTheme.primaryColor : AppTheme.textSecondary.withOpacity(0.5),
+                    width: 2,
+                  ),
+                  color: isDone ? AppTheme.primaryColor : Colors.transparent,
+                ),
+                child: isDone ? const Icon(Icons.check, size: 18, color: Colors.white) : null,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Ritual Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.ritual.name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      decoration: isDone ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '15 min', // Mock duration if not available
+                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        '+20 XP',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Category Icon
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _getIconForRitual(widget.ritual),
+                size: 20,
+                color: Colors.white70,
               ),
             ),
           ],
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: _completedToday
-              ? null
-              : LinearGradient(
-                  colors: [
-                    const Color(0xFF00C853).withOpacity(0.15),
-                    const Color(0xFF69F0AE).withOpacity(0.1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-          color: _completedToday ? AppTheme.surfaceColor : null,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: _completedToday ? Colors.white.withOpacity(0.1) : const Color(0xFF00C853).withOpacity(0.5),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.ritual.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: const Color(0xFF00C853).withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Color(0xFF00C853)),
-                              const SizedBox(width: 4),
-                              Text('${widget.ritual.currentStreak}',
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF00C853), fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                        const SizedBox(width: 4),
-                        Text(widget.ritual.reminderTime, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

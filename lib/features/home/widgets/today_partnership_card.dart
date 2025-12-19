@@ -67,192 +67,90 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Eğer tamamlandıysa, swipe olmadan sadece kartı göster
-    if (widget.isCompleted) {
-      return Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.partnership.myRitualName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Colors.orange),
-                              const SizedBox(width: 4),
-                              Text('${widget.partnership.currentStreak}',
-                                  style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.person, size: 14, color: Colors.orange),
-                        const SizedBox(width: 4),
-                        Text(widget.partnership.partnerUsername, style: const TextStyle(fontSize: 13, color: Colors.orange)),
-                        if (widget.partnership.partnerLevel != null) ...[
-                          const SizedBox(width: 4),
-                          Text('Lv.${widget.partnership.partnerLevel}', style: const TextStyle(fontSize: 11, color: Colors.orange)),
-                        ],
-                        if (widget.partnership.myRitualTime != null) ...[
-                          const SizedBox(width: 12),
-                          const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                          const SizedBox(width: 4),
-                          Text(widget.partnership.myRitualTime!, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    final bool isDone = widget.isCompleted || _completedToday;
 
-    return Dismissible(
-      key: Key(widget.partnership.id.toString()),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        if (!_isCompleting) {
-          await _completeRitual();
-        }
-        return false;
-      },
-      background: Container(
+    return Opacity(
+      opacity: isDone ? 0.6 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Colors.orange, Colors.deepOrange],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
+          color: AppTheme.darkSurface,
+          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          border: Border.all(
+            color: isDone ? Colors.orange.withOpacity(0.3) : Colors.orange.withOpacity(0.15),
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(16),
         ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        child: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 32),
-            SizedBox(width: 8),
-            Text(
-              'Complete',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            // Checkbox
+            GestureDetector(
+              onTap: _completeRitual,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDone ? Colors.orange : Colors.orange.withOpacity(0.5),
+                    width: 2,
+                  ),
+                  color: isDone ? Colors.orange : Colors.transparent,
+                ),
+                child: isDone ? const Icon(Icons.check, size: 18, color: Colors.white) : null,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Ritual Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.partnership.myRitualName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      decoration: isDone ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        'with ${widget.partnership.partnerUsername}',
+                        style: const TextStyle(fontSize: 12, color: Colors.orange),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        '+50 XP',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Partnership Icon
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.people,
+                size: 20,
+                color: Colors.orange,
               ),
             ),
           ],
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: _completedToday
-              ? null
-              : LinearGradient(
-                  colors: [
-                    Colors.orange.withOpacity(0.15),
-                    Colors.deepOrange.withOpacity(0.1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-          color: _completedToday ? AppTheme.surfaceColor : null,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: _completedToday ? Colors.white.withOpacity(0.1) : Colors.orange.withOpacity(0.5),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.partnership.myRitualName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_fire_department, size: 12, color: Colors.orange),
-                              const SizedBox(width: 4),
-                              Text('${widget.partnership.currentStreak}',
-                                  style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.person, size: 14, color: Colors.orange),
-                        const SizedBox(width: 4),
-                        Text(widget.partnership.partnerUsername, style: const TextStyle(fontSize: 13, color: Colors.orange)),
-                        if (widget.partnership.partnerLevel != null) ...[
-                          const SizedBox(width: 4),
-                          Text('Lv.${widget.partnership.partnerLevel}', style: const TextStyle(fontSize: 11, color: Colors.orange)),
-                        ],
-                        if (widget.partnership.myRitualTime != null) ...[
-                          const SizedBox(width: 12),
-                          const Icon(Icons.access_time, size: 14, color: Colors.white54),
-                          const SizedBox(width: 4),
-                          Text(widget.partnership.myRitualTime!, style: const TextStyle(fontSize: 13, color: Colors.white54)),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

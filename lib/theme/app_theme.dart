@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Modern Dark Color Palette (Ana Ekran Temalı)
-  static const Color primaryColor = Color(0xFF6C63FF);
-  static const Color primaryDark = Color(0xFF4B45CC);
-  static const Color primaryLight = Color(0xFF9C97FF);
+  // Modern Dark Color Palette (Yeni Tasarım)
+  static const Color primaryColor = Color(0xFF0095FF); // Bright Blue
+  static const Color primaryDark = Color(0xFF007ADF);
+  static const Color primaryLight = Color(0xFF00E5FF); // Cyan
   
   static const Color accentColor = Color(0xFFFF6584);
   static const Color accentLight = Color(0xFFFF9FB3);
   
-  // Dark Theme Colors (Ana Ekranla Uyumlu)
-  static const Color darkBackground1 = Color(0xFF1A1A2E);
-  static const Color darkBackground2 = Color(0xFF16213E);
-  static const Color darkSurface = Color(0xFF3E4A69);
-  static const Color cardBackground = Color(0xFF2E3A59);
+  // Dark Theme Colors (Deep Blue/Black)
+  static const Color darkBackground1 = Color(0xFF0A0E12);
+  static const Color darkBackground2 = Color(0xFF0A0F14);
+  static const Color darkSurface = Color(0xFF141C24);
+  static const Color cardBackground = Color(0xFF141C24);
   
   static const Color backgroundColor = darkBackground1;
   static const Color surfaceColor = darkSurface;
   static const Color cardColor = cardBackground;
   
   static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xFFBBBBBB);
-  static const Color textLight = Color(0xFF888888);
+  static const Color textSecondary = Color(0xFF94A3B8); // Slate 400
+  static const Color textLight = Color(0xFF64748B); // Slate 500
   
-  static const Color successColor = Color(0xFF4CAF50);
-  static const Color errorColor = Color(0xFFEF5350);
-  static const Color warningColor = Color(0xFFFFA726);
+  static const Color successColor = Color(0xFF10B981); // Emerald 500
+  static const Color errorColor = Color(0xFFEF4444); // Red 500
+  static const Color warningColor = Color(0xFFF59E0B); // Amber 500
   
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
@@ -54,11 +54,11 @@ class AppTheme {
   static const double spacingXL = 32.0;
   static const double spacingXXL = 48.0;
 
-  // Border Radius
-  static const double radiusS = 8.0;
-  static const double radiusM = 12.0;
-  static const double radiusL = 16.0;
-  static const double radiusXL = 24.0;
+  // Border Radius (Yeni tasarımda daha yumuşak köşeler)
+  static const double radiusS = 12.0;
+  static const double radiusM = 16.0;
+  static const double radiusL = 24.0;
+  static const double radiusXL = 32.0;
   static const double radiusFull = 999.0;
 
   // Shadows

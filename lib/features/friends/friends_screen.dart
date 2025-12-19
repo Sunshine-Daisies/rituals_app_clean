@@ -574,13 +574,16 @@ class _FriendCard extends StatelessWidget {
           children: [
             CircleAvatar(
               backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-              child: Text(
-                friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              backgroundImage: friend.avatarUrl != null ? NetworkImage(friend.avatarUrl!) : null,
+              child: friend.avatarUrl == null 
+                ? Text(
+                    friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
             ),
             Positioned(
               right: 0,
@@ -698,13 +701,16 @@ class _SearchResultCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-          child: Text(
-            user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
-            style: const TextStyle(
-              color: AppTheme.primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+          child: user.avatarUrl == null
+            ? Text(
+                user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : null,
         ),
         title: Text(
           user.username,
@@ -802,13 +808,16 @@ class _RequestCard extends StatelessWidget {
           backgroundColor: isIncoming 
               ? AppTheme.primaryColor.withOpacity(0.1)
               : Colors.grey.withOpacity(0.1),
-          child: Text(
-            request.username.isNotEmpty ? request.username[0].toUpperCase() : '?',
-            style: TextStyle(
-              color: isIncoming ? AppTheme.primaryColor : Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
+          child: request.avatarUrl == null
+            ? Text(
+                request.username.isNotEmpty ? request.username[0].toUpperCase() : '?',
+                style: TextStyle(
+                  color: isIncoming ? AppTheme.primaryColor : Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : null,
         ),
         title: Text(
           request.username,
