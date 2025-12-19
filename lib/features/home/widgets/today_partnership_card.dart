@@ -137,17 +137,22 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
                 ],
               ),
             ),
-            // Partnership Icon
+            // Partnership Icon or Avatar
             Container(
-              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
               ),
-              child: const Icon(
-                Icons.people,
-                size: 20,
-                color: Colors.orange,
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.orange.withOpacity(0.1),
+                backgroundImage: widget.partnership.partnerAvatarUrl != null ? NetworkImage(widget.partnership.partnerAvatarUrl!) : null,
+                child: widget.partnership.partnerAvatarUrl == null
+                  ? Text(
+                      widget.partnership.partnerUsername.isNotEmpty ? widget.partnership.partnerUsername[0].toUpperCase() : '?',
+                      style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                    )
+                  : null,
               ),
             ),
           ],

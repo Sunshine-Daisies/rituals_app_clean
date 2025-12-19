@@ -368,9 +368,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       child: CircleAvatar(
                                          radius: 28,
+                                         backgroundColor: AppTheme.darkSurface,
                                          backgroundImage: profile?.avatarUrl != null 
                                            ? NetworkImage(profile!.avatarUrl!)
-                                           : NetworkImage('https://i.pravatar.cc/150?u=${profile?.username ?? "user"}'),
+                                           : null,
+                                         child: profile?.avatarUrl == null
+                                            ? const Icon(Icons.person, color: Colors.white, size: 32)
+                                            : null,
                                        ),
                                      ),
                                      Positioned(
@@ -405,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                      crossAxisAlignment: CrossAxisAlignment.start,
                                      children: [
                                        Text(
-                                         '${_getGreetingMessage()}, ${profile?.name ?? profile?.username ?? "Explorer"}',
+                                         _getGreetingMessage(),
                                          maxLines: 1,
                                          overflow: TextOverflow.ellipsis,
                                          style: const TextStyle(
@@ -443,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${profile?.xp ?? 0} / ${profile?.xpForNextLevel ?? 100} XP',
+                                            _getXpProgressText(profile),
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: AppTheme.textSecondary,
@@ -457,49 +461,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 16),
                                 // Coins and Streak
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => context.push('/badges'),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.05),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.stars, color: Color(0xFFFFD700), size: 18),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              '${profile?.coins ?? 0}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                // Notification Icon
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                                        onPressed: () => context.push('/notifications'),
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.local_fire_department, color: Color(0xFFFF6B00), size: 18),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${profile?.longestStreak ?? 0} DAY STREAK',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.white70,
+                                      if (_unreadNotificationCount > 0)
+                                        Positioned(
+                                          right: 8,
+                                          top: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            constraints: const BoxConstraints(
+                                              minWidth: 8,
+                                              minHeight: 8,
+                                            ),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -551,16 +542,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Column(
                                   children: [
                                     _buildStatTile('Rituals Completed', '$completedToday / $totalToday'),
-                                    const SizedBox(height: 10),
-                                    _buildStatTile('Total Focus Time', '${(completedToday * 15 / 60).toStringAsFixed(1)}h'),
                                   ],
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              // Sync Icon
-                              IconButton(
-                                icon: const Icon(Icons.sync, color: AppTheme.textSecondary),
-                                onPressed: () => _loadRituals(),
                               ),
                             ],
                           ),
@@ -568,88 +551,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // Partnership Status Section
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Partnership Status',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () => context.push('/friends'),
-                                  child: Row(
-                                    children: [
-                                      Text('Nudge', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
-                                      const SizedBox(width: 4),
-                                      const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 16),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // Partnership Detail Card
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
-                              ),
-                              child: Row(
-                                children: [
-                                  const CircleAvatar(
-                                    radius: 20,
-                                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=sarah'),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Sarah',
-                                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                                        ),
-                                        Text(
-                                          'Level 4 Explorer',
-                                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: const Text(
-                                      '70%',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
 
                     // Pending Requests (If any)
                     FutureBuilder<List<PartnerRequest>>(
@@ -694,16 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.white,
                               ),
                             ),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'Filter',
-                                style: TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
+                            
                           ],
                         ),
                       ),
@@ -810,15 +702,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.successColor.withOpacity(0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.check_circle_outline, color: AppTheme.successColor, size: 20),
-                                    ),
-                                    const SizedBox(width: 12),
+      
+       
                                     const Text(
                                       'Completed',
                                       style: TextStyle(
@@ -974,13 +859,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppTheme.textSecondary,
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: const TextStyle(
@@ -996,10 +885,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getGreetingMessage() {
     final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return 'Good Morning ☀️';
-    if (hour >= 12 && hour < 17) return 'Good Afternoon 🌤️';
-    if (hour >= 17 && hour < 21) return 'Good Evening 🌅';
-    return 'Good Night 🌙';
+    if (hour >= 5 && hour < 12) return 'Good Morning';
+    if (hour >= 12 && hour < 17) return 'Good Afternoon';
+    if (hour >= 17 && hour < 21) return 'Good Evening';
+    return 'Good Night';
   }
 
   String _getMotivationalMessage() {
@@ -1013,5 +902,32 @@ class _HomeScreenState extends State<HomeScreen> {
       '🌱 Progress, not perfection',
     ];
     return messages[DateTime.now().day % messages.length];
+  }
+
+  String _getXpProgressText(UserProfile? profile) {
+    if (profile == null) return '0 / 100 XP';
+    
+    final currentXp = profile.xp;
+    // Backend verisinde 'xpForNextLevel' bazen şimdiki seviyenin BAŞLANGIÇ değerini dönüyor olabilir.
+    // Örnek: XP=260, Next=240, Progress=20%.
+    // Bu durumda Next(240) aslında Base.
+    // Hesap: (260 - 240) = 20. TotalDelta = 20 / 0.20 = 100. RealTarget = 240 + 100 = 340.
+    
+    int targetXp = profile.xpForNextLevel;
+
+    if (currentXp >= targetXp) {
+       final percent = profile.xpProgressPercent / 100.0;
+       if (percent > 0.01 && percent < 0.99) {
+          final levelStart = targetXp; // Misnamed field assumption
+          final currentDelta = currentXp - levelStart;
+          final totalDelta = (currentDelta / percent).round();
+          targetXp = levelStart + totalDelta;
+       } else {
+          // Hesaplayamıyorsak sadece XP göster, kafa karıştırma
+          return '$currentXp XP';
+       }
+    }
+    
+    return '$currentXp / $targetXp XP';
   }
 }

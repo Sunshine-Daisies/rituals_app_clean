@@ -255,6 +255,7 @@ class Partnership {
   final String partnerRitualName;
   final String partnerUserId;
   final String partnerUsername;
+  final String? partnerAvatarUrl;
   final int? partnerLevel;
   final int currentStreak;
   final int longestStreak;
@@ -273,6 +274,7 @@ class Partnership {
     required this.partnerRitualName,
     required this.partnerUserId,
     required this.partnerUsername,
+    this.partnerAvatarUrl,
     this.partnerLevel,
     required this.currentStreak,
     required this.longestStreak,
@@ -295,6 +297,7 @@ class Partnership {
       partnerRitualName: json['partnerRitualName'] ?? '',
       partnerUserId: json['partnerUserId'] ?? '',
       partnerUsername: json['partnerUsername'] ?? '',
+      partnerAvatarUrl: json['partnerAvatarUrl'] ?? json['partner_avatar_url'],
       partnerLevel: json['partnerLevel'],
       currentStreak: json['currentStreak'] ?? 0,
       longestStreak: json['longestStreak'] ?? 0,
