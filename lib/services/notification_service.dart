@@ -30,7 +30,7 @@ class NotificationService {
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'rituals_notifications',
     'Rituals Notifications',
-    description: 'Rituals App bildirimleri',
+    description: 'Rituals App notifications',
     importance: Importance.high,
     playSound: true,
     enableVibration: true,

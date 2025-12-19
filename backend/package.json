@@ -12,6 +12,7 @@
     "dev": "nodemon src/index.ts",
     "init-db": "ts-node src/scripts/initDb.ts",
     "init-gamification": "ts-node src/scripts/initGamification.ts",
+    "seed-zen-badges": "ts-node src/scripts/seedZenBadges.ts",
     "migrate-partnerships": "ts-node src/scripts/migrateToEqualPartners.ts"
   },
   "dependencies": {

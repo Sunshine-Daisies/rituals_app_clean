@@ -1,94 +1,72 @@
 import pool from '../config/db';
 import { addXp } from './xpService';
 
-// Badge tanımları ve şartları
+// Zen Temalı Badge tanımları ve şartları
 export const BADGE_CONDITIONS = {
   // Streak badges
-  'streak_starter': { type: 'streak', value: 3 },
-  'streak_week': { type: 'streak', value: 7 },
-  'streak_fortnight': { type: 'streak', value: 14 },
-  'streak_month': { type: 'streak', value: 30 },
-  'streak_legend': { type: 'streak', value: 100 },
-  
+  'zen_seed': { type: 'streak', value: 3 },
+  'zen_sprout': { type: 'streak', value: 7 },
+  'zen_flower': { type: 'streak', value: 14 },
+  'zen_mountain': { type: 'streak', value: 30 },
+  'zen_eternal': { type: 'streak', value: 100 },
+
   // Social badges
-  'first_friend': { type: 'friends', value: 1 },
-  'social_butterfly': { type: 'friends', value: 5 },
-  'community_builder': { type: 'friends', value: 10 },
-  'networking_master': { type: 'friends', value: 25 },
-  
+  'zen_companion': { type: 'friends', value: 1 },
+  'zen_sangha': { type: 'friends', value: 10 },
+
+  // Milestone/Activity badges
+  'zen_initiation': { type: 'completions', value: 1 },
+  'zen_lotus': { type: 'completions', value: 50 },
+  'zen_harmonization': { type: 'rituals_created', value: 5 },
+
   // Partner badges
-  'partner_first': { type: 'partner_rituals', value: 1 },
-  'duo_champion': { type: 'partner_streak', value: 7 },
-  
-  // Milestone badges
-  'ritual_creator': { type: 'rituals_created', value: 1 },
-  'habit_builder': { type: 'rituals_created', value: 5 },
-  'ritual_master': { type: 'rituals_created', value: 10 },
-  
-  // Completion badges
-  'first_step': { type: 'completions', value: 1 },
-  'getting_started': { type: 'completions', value: 10 },
-  'committed': { type: 'completions', value: 50 },
-  'dedicated': { type: 'completions', value: 100 },
-  'unstoppable': { type: 'completions', value: 500 },
+  'zen_duo': { type: 'partner_rituals', value: 1 },
+  'zen_unity': { type: 'partner_streak', value: 7 },
 };
 
-// Badge'e göre XP ve coin ödülleri
+// Zen Temalı Badge ödülleri
 export const BADGE_REWARDS: { [key: string]: { xp: number; coins: number } } = {
-  // Streak badges - artan ödüller
-  'streak_starter': { xp: 25, coins: 5 },
-  'streak_week': { xp: 50, coins: 10 },
-  'streak_fortnight': { xp: 100, coins: 25 },
-  'streak_month': { xp: 250, coins: 50 },
-  'streak_legend': { xp: 1000, coins: 200 },
-  
-  // Social badges
-  'first_friend': { xp: 25, coins: 5 },
-  'social_butterfly': { xp: 50, coins: 15 },
-  'community_builder': { xp: 100, coins: 30 },
-  'networking_master': { xp: 250, coins: 75 },
-  
-  // Partner badges
-  'partner_first': { xp: 30, coins: 10 },
-  'duo_champion': { xp: 100, coins: 25 },
-  
-  // Milestone badges
-  'ritual_creator': { xp: 15, coins: 5 },
-  'habit_builder': { xp: 50, coins: 15 },
-  'ritual_master': { xp: 150, coins: 40 },
-  
-  // Completion badges
-  'first_step': { xp: 10, coins: 0 },
-  'getting_started': { xp: 30, coins: 10 },
-  'committed': { xp: 75, coins: 20 },
-  'dedicated': { xp: 150, coins: 40 },
-  'unstoppable': { xp: 500, coins: 100 },
+  'zen_seed': { xp: 20, coins: 5 },
+  'zen_sprout': { xp: 40, coins: 10 },
+  'zen_flower': { xp: 80, coins: 25 },
+  'zen_mountain': { xp: 200, coins: 50 },
+  'zen_eternal': { xp: 1000, coins: 250 },
+
+  'zen_companion': { xp: 25, coins: 5 },
+  'zen_sangha': { xp: 150, coins: 50 },
+
+  'zen_initiation': { xp: 15, coins: 5 },
+  'zen_lotus': { xp: 100, coins: 40 },
+  'zen_harmonization': { xp: 50, coins: 20 },
+
+  'zen_duo': { xp: 30, coins: 10 },
+  'zen_unity': { xp: 100, coins: 30 },
 };
 
 // Kullanıcının istatistiklerini al
 async function getUserStats(userId: string) {
   const client = await pool.connect();
-  
+
   try {
     // Streak
     const streakResult = await client.query(
       'SELECT current_streak, longest_streak FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    
+
     // Friends count
     const friendsResult = await client.query(
       `SELECT COUNT(*) as count FROM friendships 
        WHERE (requester_id = $1 OR addressee_id = $1) AND status = 'accepted'`,
       [userId]
     );
-    
+
     // Rituals created
     const ritualsResult = await client.query(
       'SELECT COUNT(*) as count FROM rituals WHERE user_id = $1',
       [userId]
     );
-    
+
     // Total completions (ritual_logs joins rituals)
     const completionsResult = await client.query(
       `SELECT COUNT(*) as count FROM ritual_logs rl
@@ -96,21 +74,21 @@ async function getUserStats(userId: string) {
        WHERE r.user_id = $1`,
       [userId]
     );
-    
+
     // Partner rituals (where user is partner)
     const partnerRitualsResult = await client.query(
       `SELECT COUNT(*) as count FROM ritual_partners 
        WHERE user_id = $1 AND status = 'accepted'`,
       [userId]
     );
-    
+
     // Best partner streak
     const partnerStreakResult = await client.query(
       `SELECT COALESCE(MAX(current_streak), 0) as max_streak FROM ritual_partners 
        WHERE user_id = $1 AND status = 'accepted'`,
       [userId]
     );
-    
+
     return {
       currentStreak: streakResult.rows[0]?.current_streak || 0,
       longestStreak: streakResult.rows[0]?.longest_streak || 0,
@@ -120,7 +98,7 @@ async function getUserStats(userId: string) {
       partnerRituals: parseInt(partnerRitualsResult.rows[0]?.count || '0'),
       partnerStreak: parseInt(partnerStreakResult.rows[0]?.max_streak || '0'),
     };
-    
+
   } finally {
     client.release();
   }
@@ -132,34 +110,34 @@ export async function checkAndAwardBadges(userId: string): Promise<{
 }> {
   const client = await pool.connect();
   const newBadges: Array<{ code: string; name: string; xp: number; coins: number }> = [];
-  
+
   try {
     await client.query('BEGIN');
-    
+
     // Kullanıcının mevcut badge'lerini al
     const earnedResult = await client.query(
       'SELECT badge_id FROM user_badges WHERE user_id = $1',
       [userId]
     );
     const earnedBadgeIds = new Set(earnedResult.rows.map(r => r.badge_id));
-    
+
     // Tüm badge'leri al
     const badgesResult = await client.query('SELECT * FROM badges');
     const allBadges = badgesResult.rows;
-    
+
     // Kullanıcı istatistiklerini al
     const stats = await getUserStats(userId);
-    
+
     // Her badge için kontrol et
     for (const badge of allBadges) {
       // Zaten kazanılmış mı?
       if (earnedBadgeIds.has(badge.id)) continue;
-      
+
       const condition = BADGE_CONDITIONS[badge.badge_key as keyof typeof BADGE_CONDITIONS];
       if (!condition) continue;
-      
+
       let earned = false;
-      
+
       // Şartı kontrol et
       switch (condition.type) {
         case 'streak':
@@ -181,17 +159,17 @@ export async function checkAndAwardBadges(userId: string): Promise<{
           earned = stats.partnerStreak >= condition.value;
           break;
       }
-      
+
       if (earned) {
         // Badge'i kullanıcıya ver
         await client.query(
           'INSERT INTO user_badges (user_id, badge_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
           [userId, badge.id]
         );
-        
+
         // Ödülleri hesapla
         const rewards = BADGE_REWARDS[badge.badge_key] || { xp: 10, coins: 0 };
-        
+
         // XP ekle
         if (rewards.xp > 0) {
           await client.query(
@@ -203,7 +181,7 @@ export async function checkAndAwardBadges(userId: string): Promise<{
             [rewards.xp, userId]
           );
         }
-        
+
         // Coin ekle
         if (rewards.coins > 0) {
           await client.query(
@@ -215,7 +193,7 @@ export async function checkAndAwardBadges(userId: string): Promise<{
             [rewards.coins, userId]
           );
         }
-        
+
         // Bildirim oluştur
         await client.query(
           `INSERT INTO notifications (user_id, type, title, body, data) 
@@ -223,12 +201,12 @@ export async function checkAndAwardBadges(userId: string): Promise<{
           [
             userId,
             'badge_earned',
-            'Yeni Rozet Kazandın! 🏆',
-            `${badge.icon} ${badge.name} rozetini kazandın! +${rewards.xp} XP ${rewards.coins > 0 ? `+${rewards.coins} Coin` : ''}`,
+            'New Badge Earned! 🏆',
+            `${badge.icon} You earned the ${badge.name} badge! +${rewards.xp} XP ${rewards.coins > 0 ? `+${rewards.coins} Coins` : ''}`,
             JSON.stringify({ badge_id: badge.id, badge_code: badge.badge_key, xp: rewards.xp, coins: rewards.coins }),
           ]
         );
-        
+
         newBadges.push({
           code: badge.badge_key,
           name: badge.name,
@@ -237,7 +215,7 @@ export async function checkAndAwardBadges(userId: string): Promise<{
         });
       }
     }
-    
+
     // Level güncelle (XP değişmiş olabilir)
     await client.query(`
       UPDATE user_profiles 
@@ -255,11 +233,11 @@ export async function checkAndAwardBadges(userId: string): Promise<{
       END
       WHERE user_id = $1
     `, [userId]);
-    
+
     await client.query('COMMIT');
-    
+
     return { newBadges };
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -275,27 +253,27 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
   freezesRemaining: number;
 }> {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
-    
+
     // Mevcut freeze sayısını al
     const profileResult = await client.query(
       'SELECT freeze_count FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    
+
     if (profileResult.rows.length === 0) {
-      throw new Error('Kullanıcı profili bulunamadı');
+      throw new Error('User profile not found');
     }
-    
+
     const { freeze_count } = profileResult.rows[0];
-    
+
     if (freeze_count <= 0) {
       await client.query('ROLLBACK');
       return {
         success: false,
-        message: 'Freeze hakkın kalmadı!',
+        message: 'No freezes left!',
         freezesRemaining: 0,
       };
     }
@@ -315,7 +293,7 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
         await client.query('ROLLBACK');
         return {
           success: false,
-          message: 'Bu partnership bulunamadı veya size ait değil',
+          message: 'Partnership not found or does not belong to you',
           freezesRemaining: freeze_count
         };
       }
@@ -338,7 +316,7 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
         [userId]
       );
     }
-    
+
     // Freeze sayısını düş
     await client.query(
       `UPDATE user_profiles 
@@ -347,13 +325,13 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
        WHERE user_id = $1`,
       [userId]
     );
-    
+
     // Freeze kullanım kaydı (freeze_logs tablosuna)
     await client.query(
       `INSERT INTO freeze_logs (user_id, partnership_id, streak_saved) VALUES ($1, $2, $3)`,
       [userId, partnershipId || null, streakPreserved]
     );
-    
+
     // Bildirim
     await client.query(
       `INSERT INTO notifications (user_id, type, title, body, data) 
@@ -361,26 +339,26 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
       [
         userId,
         'freeze_used',
-        'Freeze Kullanıldı ❄️',
-        'Streak başarıyla korundu!',
+        'Freeze Used ❄️',
+        'Streak successfully preserved!',
         JSON.stringify({ freezes_remaining: freeze_count - 1 })
       ]
     );
-    
+
     await client.query('COMMIT');
-    
+
     return {
       success: true,
       message: 'Freeze başarıyla kullanıldı! Streak korundu.',
       freezesRemaining: freeze_count - 1,
     };
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error using freeze:', error);
     return {
       success: false,
-      message: 'Bir hata oluştu',
+      message: 'An error occurred',
       freezesRemaining: 0
     };
   } finally {
@@ -398,7 +376,7 @@ export async function grantWeeklyFreeze(): Promise<{ usersUpdated: number }> {
     WHERE freeze_count < 3
     RETURNING user_id
   `);
-  
+
   // Her kullanıcıya bildirim gönder
   for (const row of result.rows) {
     await pool.query(
@@ -407,13 +385,13 @@ export async function grantWeeklyFreeze(): Promise<{ usersUpdated: number }> {
       [
         row.user_id,
         'freeze_granted',
-        'Haftalık Freeze Hakkı! ❄️',
-        'Bu hafta için +1 freeze hakkı kazandın!',
+        'Weekly Freeze Granted! ❄️',
+        'You earned +1 freeze for this week!',
         JSON.stringify({ source: 'weekly' }),
       ]
     );
   }
-  
+
   return { usersUpdated: result.rowCount || 0 };
 }
 
@@ -424,10 +402,10 @@ export async function checkStreakBreak(userId: string): Promise<{
   newStreak: number;
 }> {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
-    
+
     // Son ritual tamamlama ve streak bilgisini al
     const result = await client.query(`
       SELECT 
@@ -438,30 +416,30 @@ export async function checkStreakBreak(userId: string): Promise<{
       FROM user_profiles up
       WHERE up.user_id = $1
     `, [userId]);
-    
+
     if (result.rows.length === 0) {
       return { streakBroken: false, freezeUsed: false, newStreak: 0 };
     }
-    
+
     const { current_streak, freeze_count, last_completion, last_freeze_used } = result.rows[0];
-    
+
     // Bugün tamamlandı mı?
     const today = new Date().toISOString().split('T')[0];
     const lastCompletionDate = last_completion ? new Date(last_completion).toISOString().split('T')[0] : null;
-    
+
     if (lastCompletionDate === today) {
       // Bugün tamamlandı, streak korunuyor
       return { streakBroken: false, freezeUsed: false, newStreak: current_streak };
     }
-    
+
     // Dün tamamlandı mı?
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    
+
     if (lastCompletionDate === yesterday) {
       // Dün tamamlandı, henüz bugün tamamlanmadı ama streak kırılmadı
       return { streakBroken: false, freezeUsed: false, newStreak: current_streak };
     }
-    
+
     // Streak kırılacak - bildirim gönder
     if (current_streak > 0) {
       // Freeze varsa kullanıcıya hatırlat
@@ -472,8 +450,8 @@ export async function checkStreakBreak(userId: string): Promise<{
           [
             userId,
             'streak_warning',
-            'Streak Tehlikede! ⚠️',
-            `${current_streak} günlük streak'in kırılmak üzere. ${freeze_count} freeze hakkın var, kullanmak ister misin?`,
+            'Streak in Danger! ⚠️',
+            `Your ${current_streak}-day streak is about to break. You have ${freeze_count} freeze(s), would you like to use one?`,
             JSON.stringify({ streak: current_streak, freezes_available: freeze_count }),
           ]
         );
@@ -483,24 +461,24 @@ export async function checkStreakBreak(userId: string): Promise<{
           `UPDATE user_profiles SET current_streak = 0 WHERE user_id = $1`,
           [userId]
         );
-        
+
         await client.query(
           `INSERT INTO notifications (user_id, type, title, body, data) 
            VALUES ($1, $2, $3, $4, $5)`,
           [
             userId,
             'streak_broken',
-            'Streak Kırıldı 💔',
-            `${current_streak} günlük streak'in sona erdi. Yeniden başla!`,
+            'Streak Broken 💔',
+            `Your ${current_streak}-day streak has ended. Start fresh!`,
             JSON.stringify({ old_streak: current_streak }),
           ]
         );
       }
     }
-    
+
     await client.query('COMMIT');
     return { streakBroken: freeze_count === 0, freezeUsed: false, newStreak: freeze_count > 0 ? current_streak : 0 };
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -528,7 +506,7 @@ export async function getUserBadgeProgress(userId: string): Promise<{
   }>;
 }> {
   const client = await pool.connect();
-  
+
   try {
     // Tüm badge'leri al
     const badgesResult = await client.query(`

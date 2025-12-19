@@ -40,7 +40,7 @@ class AuthService {
         }
       }
     } catch (e) {
-      throw Exception('Giriş başarısız: $e');
+      throw Exception('Login failed: $e');
     }
   }
 
@@ -54,7 +54,7 @@ class AuthService {
       
       // Token dönmüyor, sadece başarılı olduğunu biliyoruz.
     } catch (e) {
-      throw Exception('Kayıt başarısız: $e');
+      throw Exception('Registration failed: $e');
     }
   }
 
@@ -65,7 +65,7 @@ class AuthService {
         'email': email,
       });
     } catch (e) {
-      throw Exception('İşlem başarısız: $e');
+      throw Exception('Operation failed: $e');
     }
   }
 

@@ -456,12 +456,12 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
         return 'Reach ${badge.requirementValue} day streak';
       case 'friends':
         return 'Make ${badge.requirementValue} friends';
-      case 'rituals':
+      case 'rituals_created':
         return 'Create ${badge.requirementValue} rituals';
       case 'partner_rituals':
         return 'Complete ${badge.requirementValue} partner rituals';
-      case 'freeze_used':
-        return 'Use ${badge.requirementValue} freeze';
+      case 'partner_streak':
+        return 'Achieve a ${badge.requirementValue}-day streak with partner';
       default:
         return 'Not earned yet';
     }

@@ -34,7 +34,7 @@ class NetworkException extends AppException {
 class ServerException extends AppException {
   ServerException([String? message, int? statusCode])
       : super(
-          message ?? 'Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.',
+          message ?? 'A server error occurred. Please try again later.',
           statusCode: statusCode,
           errorCode: 'SERVER_ERROR',
         );
@@ -44,7 +44,7 @@ class ServerException extends AppException {
 class UnauthorizedException extends AppException {
   UnauthorizedException([String? message])
       : super(
-          message ?? 'Oturum süreniz doldu. Lütfen tekrar giriş yapın.',
+          message ?? 'Your session has expired. Please log in again.',
           statusCode: 401,
           errorCode: 'UNAUTHORIZED',
         );
@@ -54,7 +54,7 @@ class UnauthorizedException extends AppException {
 class ForbiddenException extends AppException {
   ForbiddenException([String? message])
       : super(
-          message ?? 'Bu işlem için yetkiniz yok.',
+          message ?? 'You do not have permission for this operation.',
           statusCode: 403,
           errorCode: 'FORBIDDEN',
         );
@@ -64,7 +64,7 @@ class ForbiddenException extends AppException {
 class NotFoundException extends AppException {
   NotFoundException([String? message])
       : super(
-          message ?? 'İstenen kaynak bulunamadı.',
+          message ?? 'The requested resource was not found.',
           statusCode: 404,
           errorCode: 'NOT_FOUND',
         );
@@ -76,7 +76,7 @@ class ValidationException extends AppException {
 
   ValidationException([String? message, this.fieldErrors])
       : super(
-          message ?? 'Girdiğiniz bilgileri kontrol edin.',
+          message ?? 'Please check the information you entered.',
           statusCode: 400,
           errorCode: 'VALIDATION_ERROR',
         );
@@ -86,7 +86,7 @@ class ValidationException extends AppException {
 class ConflictException extends AppException {
   ConflictException([String? message])
       : super(
-          message ?? 'Bu işlem zaten gerçekleştirilmiş.',
+          message ?? 'This operation has already been performed.',
           statusCode: 409,
           errorCode: 'CONFLICT',
         );
@@ -96,7 +96,7 @@ class ConflictException extends AppException {
 class RateLimitException extends AppException {
   RateLimitException([String? message])
       : super(
-          message ?? 'Çok fazla istek gönderdiniz. Lütfen biraz bekleyin.',
+          message ?? 'You sent too many requests. Please wait a bit.',
           statusCode: 429,
           errorCode: 'RATE_LIMIT',
         );
@@ -106,7 +106,7 @@ class RateLimitException extends AppException {
 class TimeoutException extends AppException {
   TimeoutException([String? message])
       : super(
-          message ?? 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.',
+          message ?? 'The request timed out. Please try again.',
           errorCode: 'TIMEOUT',
         );
 }
@@ -115,7 +115,7 @@ class TimeoutException extends AppException {
 class UnknownException extends AppException {
   UnknownException([String? message, dynamic originalError])
       : super(
-          message ?? 'Beklenmeyen bir hata oluştu.',
+          message ?? 'An unexpected error occurred.',
           errorCode: 'UNKNOWN_ERROR',
           originalError: originalError,
         );
@@ -141,7 +141,7 @@ class ExceptionHandler {
       case >= 500:
         return ServerException(message, statusCode);
       default:
-        return AppException(message ?? 'Bir hata oluştu', statusCode: statusCode);
+        return AppException(message ?? 'An error occurred', statusCode: statusCode);
     }
   }
 
@@ -156,7 +156,7 @@ class ExceptionHandler {
     }
     
     if (error is HttpException) {
-      return NetworkException('HTTP bağlantı hatası');
+      return NetworkException('HTTP connection error');
     }
     
     if (error.toString().contains('TimeoutException') || 
