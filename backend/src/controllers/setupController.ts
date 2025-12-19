@@ -16,6 +16,7 @@ export const runMigrations = async () => {
           id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
           email TEXT UNIQUE NOT NULL,
           password_hash TEXT NOT NULL,
+          is_premium BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -25,6 +26,7 @@ export const runMigrations = async () => {
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE;`);
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token TEXT;`);
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires BIGINT;`);
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;`);
 
     // Ensure rituals table exists
     await client.query(`

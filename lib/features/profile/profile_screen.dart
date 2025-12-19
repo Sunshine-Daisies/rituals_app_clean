@@ -213,8 +213,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle: 'View progress and achievements',
           onTap: () => context.push('/stats'),
         ),
+        const SizedBox(height: 12),
+        _ProfileOption(
+          icon: _profile?.isPremium == true ? Icons.star_outline : Icons.star,
+          iconColor: Colors.amber,
+          title: _profile?.isPremium == true ? 'Demote to Free ' : 'Try Premium! ✨',
+          subtitle: _profile?.isPremium == true ? 'Return to standard features' : 'Unlock AI limits for demo',
+          onTap: _togglePremiumStatus,
+        ),
       ],
     );
+  }
+
+  Future<void> _togglePremiumStatus() async {
+    setState(() => _isLoading = true);
+    try {
+      final isPremiumNow = await AuthService.togglePremium();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        await _loadData(); // Reload to refresh whole profile object
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isPremiumNow ? 'Welcome to Premium! ✨' : 'Switched to Free Tier.'),
+            backgroundColor: isPremiumNow ? Colors.amber[700] : AppTheme.primaryColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
+        );
+      }
+    }
   }
 
   Widget _buildLogoutButton() {
@@ -374,14 +409,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           
           // Username
-          Text(
-            username,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                username,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (_profile!.isPremium) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.amber,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'PREMIUM',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.black,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 4),
           Text(

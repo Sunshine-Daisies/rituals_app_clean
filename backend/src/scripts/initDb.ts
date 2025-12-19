@@ -6,11 +6,11 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const dbConfig = {
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'rituals_db',
-  password: process.env.DB_PASSWORD || '123456',
-  port: parseInt(process.env.DB_PORT || '5432'),
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'rituals_db',
+    password: process.env.DB_PASSWORD || '123456',
+    port: parseInt(process.env.DB_PORT || '5432'),
 };
 
 const createTablesQuery = `
@@ -20,6 +20,7 @@ const createTablesQuery = `
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      is_premium BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -75,24 +76,24 @@ const createTablesQuery = `
 `;
 
 async function setup() {
-  const client = new Client(dbConfig);
-  try {
-    await client.connect();
-    console.log('🔌 Veritabanına bağlanıldı.');
+    const client = new Client(dbConfig);
+    try {
+        await client.connect();
+        console.log('🔌 Veritabanına bağlanıldı.');
 
-    await client.query(createTablesQuery);
-    console.log('✅ Tablolar başarıyla oluşturuldu (veya zaten vardı)!');
-    
-    await client.end();
-  } catch (err) {
-    // Veritabanı yoksa oluşturmayı dene
-    if ((err as any).code === '3D000') { // database does not exist
-        console.log('⚠️ Veritabanı bulunamadı, oluşturuluyor...');
-        await createDatabase();
-    } else {
-        console.error('❌ Hata:', err);
+        await client.query(createTablesQuery);
+        console.log('✅ Tablolar başarıyla oluşturuldu (veya zaten vardı)!');
+
+        await client.end();
+    } catch (err) {
+        // Veritabanı yoksa oluşturmayı dene
+        if ((err as any).code === '3D000') { // database does not exist
+            console.log('⚠️ Veritabanı bulunamadı, oluşturuluyor...');
+            await createDatabase();
+        } else {
+            console.error('❌ Hata:', err);
+        }
     }
-  }
 }
 
 async function createDatabase() {

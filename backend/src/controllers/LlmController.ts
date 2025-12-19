@@ -11,7 +11,7 @@ export const chat = async (req: AuthRequest, res: Response) => {
     }
 
     try {
-        const response = await LlmService.getChatResponse(userId, prompt);
+        const response = await LlmService.getChatResponse(userId, prompt, req.user?.isPrem);
         res.json({ response });
     } catch (error: any) {
         console.error('LlmController Chat Error:', error);
@@ -28,7 +28,7 @@ export const inferIntent = async (req: AuthRequest, res: Response) => {
     }
 
     try {
-        const intentData = await LlmService.inferRitualIntent(userId, prompt);
+        const intentData = await LlmService.inferRitualIntent(userId, prompt, req.user?.isPrem);
         res.json(intentData);
     } catch (error: any) {
         console.error('LlmController Intent Error:', error);

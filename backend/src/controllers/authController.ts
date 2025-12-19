@@ -165,14 +165,14 @@ export const login = async (req: Request, res: Response) => {
 
     // 4. Token oluştur
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, isPrem: user.is_premium },
       process.env.JWT_SECRET as string,
       { expiresIn: '30d' }
     );
 
     res.json({
       message: 'Giriş başarılı',
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, isPremium: user.is_premium },
       token
     });
 
@@ -327,6 +327,35 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     res.json({ message: 'Password updated successfully' });
 
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+};
+
+// Mock Premium Toggle (For Demo)
+export const togglePremium = async (req: any, res: Response) => {
+  const userId = req.user?.id; // Authed user ID from middleware
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Yetkisiz erişim' });
+  }
+
+  try {
+    const result = await pool.query(
+      'UPDATE users SET is_premium = NOT is_premium WHERE id = $1 RETURNING is_premium',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+
+    const isPremium = result.rows[0].is_premium;
+    res.json({
+      message: isPremium ? 'Premium mod aktif!' : 'Premium mod pasif.',
+      isPremium
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Sunucu hatası' });

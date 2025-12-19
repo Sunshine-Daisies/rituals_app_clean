@@ -100,7 +100,7 @@ export class LlmService {
         return hasAllowedKeyword;
     }
 
-    private static checkRateLimit(userId: string) {
+    private static checkRateLimit(userId: string, isPremium: boolean = false) {
         const now = Date.now();
         const userLimit = rateLimits[userId] || { count: 0, lastRequest: 0 };
 
@@ -114,9 +114,12 @@ export class LlmService {
             throw new Error(`Please wait ${Math.ceil((COOLDOWN_MS - (now - userLimit.lastRequest)) / 1000)} seconds.`);
         }
 
-        // Max requests check
-        if (userLimit.count >= MAX_REQUESTS_PER_WINDOW) {
-            throw new Error('Too many requests. Please try again later.');
+        // Max requests check (Higher for premium)
+        const maxRequests = isPremium ? MAX_REQUESTS_PER_WINDOW * 10 : MAX_REQUESTS_PER_WINDOW;
+        if (userLimit.count >= maxRequests) {
+            throw new Error(isPremium
+                ? 'Premium rate limit exceeded. Please wait a moment.'
+                : 'Free tier limit reached. Please wait or upgrade to Premium! ✨');
         }
 
         // Update limit
@@ -177,9 +180,9 @@ Rule:
     // PUBLIC METHODS
     // ==========================================
 
-    static async getChatResponse(userId: string, prompt: string): Promise<string> {
+    static async getChatResponse(userId: string, prompt: string, isPremium: boolean = false): Promise<string> {
         this.initialize();
-        this.checkRateLimit(userId);
+        this.checkRateLimit(userId, isPremium);
 
         if (!this.validateUserInput(prompt)) {
             return "I'm here to help with your rituals and habits. Could we focus on that? 🌿";
@@ -203,9 +206,9 @@ Rule:
         }
     }
 
-    static async inferRitualIntent(userId: string, prompt: string): Promise<any> {
+    static async inferRitualIntent(userId: string, prompt: string, isPremium: boolean = false): Promise<any> {
         this.initialize();
-        this.checkRateLimit(userId);
+        this.checkRateLimit(userId, isPremium);
 
         if (!this.validateUserInput(prompt)) {
             // Return a safe 'small_talk' intent if validation fails

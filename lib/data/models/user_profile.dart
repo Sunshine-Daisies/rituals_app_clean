@@ -85,6 +85,7 @@ class UserProfile extends Equatable {
   final String? name;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isPremium;
   final List<Badge> badges;
 
   const UserProfile({
@@ -107,6 +108,7 @@ class UserProfile extends Equatable {
     this.name,
     required this.createdAt,
     required this.updatedAt,
+    this.isPremium = false,
     this.badges = const [],
   });
 
@@ -135,6 +137,7 @@ class UserProfile extends Equatable {
       updatedAt: json['updated_at'] != null 
           ? DateTime.parse(json['updated_at']) 
           : DateTime.now(),
+      isPremium: json['is_premium'] ?? false,
       badges: (json['badges'] as List<dynamic>?)
           ?.map((b) => Badge.fromJson(b))
           .toList() ?? [],
@@ -162,6 +165,7 @@ class UserProfile extends Equatable {
       'name': name,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'is_premium': isPremium,
       'badges': badges.map((b) => b.toJson()).toList(),
     };
   }

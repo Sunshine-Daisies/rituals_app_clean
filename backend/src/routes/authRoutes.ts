@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { register, login, verifyEmail, forgotPassword, resetPasswordPage, resetPassword } from '../controllers/authController';
+import { register, login, verifyEmail, forgotPassword, resetPasswordPage, resetPassword, togglePremium } from '../controllers/authController';
+import { protect } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -127,5 +128,6 @@ router.get('/verify', verifyEmail);
 router.post('/forgot-password', forgotPassword);
 router.get('/reset-password-page', resetPasswordPage);
 router.post('/reset-password', resetPassword);
+router.patch('/premium-toggle', protect, togglePremium);
 
 export default router;

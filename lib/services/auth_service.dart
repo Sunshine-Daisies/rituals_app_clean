@@ -4,6 +4,7 @@ import 'api_service.dart';
 class AuthService {
   static const String _tokenKey = 'auth_token';
   static const String _emailKey = 'auth_email';
+  static const String _premiumKey = 'auth_is_premium';
 
   // Uygulama açıldığında token var mı diye kontrol et
   static Future<bool> init() async {
@@ -11,9 +12,16 @@ class AuthService {
     final token = prefs.getString(_tokenKey);
     if (token != null) {
       ApiService.setToken(token);
+      // We don't verify token here, just load it. 
+      // Premium status will be loaded from local storage for faster UI initial load.
       return true;
     }
     return false;
+  }
+
+  static Future<bool> isPremium() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_premiumKey) ?? false;
   }
 
   static Future<String?> getUserEmail() async {
@@ -35,8 +43,9 @@ class AuthService {
         ApiService.setToken(token);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_tokenKey, token);
-        if (user != null && user['email'] != null) {
-          await prefs.setString(_emailKey, user['email']);
+        if (user != null) {
+          if (user['email'] != null) await prefs.setString(_emailKey, user['email']);
+          await prefs.setBool(_premiumKey, user['isPremium'] ?? false);
         }
       }
     } catch (e) {
@@ -74,5 +83,20 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_emailKey);
+    await prefs.remove(_premiumKey);
+  }
+
+  static Future<bool> togglePremium() async {
+    try {
+      final response = await ApiService.patch('/auth/premium-toggle', {});
+      final isPremium = response['isPremium'] as bool;
+      
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_premiumKey, isPremium);
+      
+      return isPremium;
+    } catch (e) {
+      throw Exception('Toggle failed: $e');
+    }
   }
 }
