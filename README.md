@@ -418,4 +418,4 @@ Bu proje özel kullanım içindir. Tüm hakları saklıdır.
 
 Sorularınız için:
 - **E-posta**: support@rituals.app
-- **GitHub Issues**: [Yeni Issue Aç](https://github.com/[username]/rituals_app/issues)
+- **GitHub Issues**: [Yeni Issue Aç](https://github.com/Sunshine-Daisies/rituals_app_clean/issues)
