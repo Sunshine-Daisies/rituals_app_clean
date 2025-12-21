@@ -15,6 +15,7 @@ import testRoutes from './routes/testRoutes';
 import { initializeStreakScheduler, shutdownStreakScheduler } from './services/streakScheduler';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger';
+import { connectRedis } from './services/cacheService';
 
 dotenv.config();
 
@@ -125,6 +126,8 @@ app.listen(port, '0.0.0.0', async () => {
 
     await initializeStreakScheduler();
     console.log('✅ Streak scheduler initialized successfully');
+    await connectRedis();
+    console.log('✅ Redis connection initialized');
   } catch (error) {
     console.error('❌ Startup error:', error);
   }

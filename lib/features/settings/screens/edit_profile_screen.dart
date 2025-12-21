@@ -79,10 +79,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       String message = 'Profile updated!';
 
       // 1. Update text fields
-      if (_nameController.text != _profile?.name || _usernameController.text != _profile?.username) {
+      // 1. Update text fields
+      final newName = _nameController.text.trim();
+      final newUsername = _usernameController.text.trim();
+      
+      if (newName != (_profile?.name ?? '') || newUsername != (_profile?.username ?? '')) {
         final textSuccess = await _gamificationService.updateProfile(
-          name: _nameController.text,
-          username: _usernameController.text,
+          name: newName != (_profile?.name ?? '') ? newName : null,
+          username: newUsername != (_profile?.username ?? '') ? newUsername : null,
         );
         if (!textSuccess) {
           success = false;
@@ -179,6 +183,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           backgroundImage: _newAvatarFile != null 
                               ? FileImage(_newAvatarFile!) as ImageProvider
                               : (_profile?.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null),
+                          onBackgroundImageError: (exception, stackTrace) {},
                           child: (_newAvatarFile == null && _profile?.avatarUrl == null)
                               ? const Icon(Icons.person, size: 50, color: Colors.white)
                               : null,

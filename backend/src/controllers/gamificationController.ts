@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import pool from '../config/db';
 import xpService from '../services/xpService';
 import badgeService from '../services/badgeService';
+import { cacheService } from '../services/cacheService';
 
 // ============================================
 // PROFILE ENDPOINTS
@@ -11,11 +12,17 @@ import badgeService from '../services/badgeService';
 export const getMyProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    console.log(`Getting profile for user: ${userId}`);
+    const cacheKey = `profile:${userId}`;
 
+    // Check Cache
+    const cachedProfile = await cacheService.get(cacheKey);
+    if (cachedProfile) {
+      console.log(`Cache hit for profile: ${userId}`);
+      return res.json(JSON.parse(cachedProfile));
+    }
+
+    console.log(`Cache miss. Getting profile from DB for: ${userId}`);
     const profile = await xpService.getUserProfile(userId);
-    console.log('Profile fetched:', profile ? 'Found' : 'Not Found');
-
     if (!profile) {
       return res.status(404).json({ error: 'Profil bulunamadı' });
     }
@@ -32,10 +39,15 @@ export const getMyProfile = async (req: Request, res: Response) => {
     );
     console.log(`Badges fetched: ${badgesResult.rows.length}`);
 
-    res.json({
+    const finalProfile = {
       ...profile,
       badges: badgesResult.rows,
-    });
+    };
+
+    // Save to Cache (1 hour)
+    await cacheService.set(cacheKey, JSON.stringify(finalProfile), 3600);
+
+    res.json(finalProfile);
   } catch (error) {
     console.error('Error getting profile detailed:', error);
     if (error instanceof Error) {
@@ -49,6 +61,14 @@ export const getMyProfile = async (req: Request, res: Response) => {
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const cacheKey = `public_profile:${userId}`;
+
+    // Check Cache
+    const cachedPublic = await cacheService.get(cacheKey);
+    if (cachedPublic) {
+      console.log(`Cache hit for public profile: ${userId}`);
+      return res.json(JSON.parse(cachedPublic));
+    }
 
     const profile = await xpService.getUserProfile(userId);
 
@@ -78,10 +98,15 @@ export const getUserProfile = async (req: Request, res: Response) => {
       [userId]
     );
 
-    res.json({
+    const finalPublic = {
       ...publicProfile,
       badges: badgesResult.rows,
-    });
+    };
+
+    // Save to Cache (1 hour)
+    await cacheService.set(cacheKey, JSON.stringify(finalPublic), 3600);
+
+    res.json(finalPublic);
   } catch (error) {
     console.error('Error getting user profile:', error);
     res.status(500).json({ error: 'Profil alınırken hata oluştu' });
@@ -104,6 +129,11 @@ export const updateUsername = async (req: Request, res: Response) => {
     }
 
     const updated = await xpService.updateUsername(userId, username);
+
+    // Invalidate Cache
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+
     res.json(updated);
   } catch (error: any) {
     console.error('Error updating username:', error);
@@ -155,6 +185,10 @@ export const uploadAvatar = async (req: Request, res: Response) => {
       [avatarUrl, userId]
     );
 
+    // Invalidate Cache
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+
     res.json({ avatar_url: avatarUrl });
 
   } catch (error) {
@@ -169,8 +203,15 @@ export const updateProfile = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const { name } = req.body;
 
+    // Check existing name to avoid redundant update error
+    const profile = await xpService.getUserProfile(userId);
+    if (profile && profile.name === name) {
+      return res.json({ message: 'Profil zaten güncel', name });
+    }
+
     if (!name) {
-      return res.status(400).json({ error: 'Güncellenecek veri yok' });
+      // If name is empty or same, handle it gracefully
+      return res.json({ message: 'Güncellenecek veri yok', name: profile?.name });
     }
 
     // Name sütununu güncelle
@@ -178,6 +219,9 @@ export const updateProfile = async (req: Request, res: Response) => {
       'UPDATE user_profiles SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
       [name, userId]
     );
+
+    // Invalidate Cache
+    await cacheService.del(`profile:${userId}`);
 
     res.json({ message: 'Profil güncellendi', name });
 

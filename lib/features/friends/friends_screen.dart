@@ -597,6 +597,7 @@ class _FriendCard extends StatelessWidget {
             CircleAvatar(
               backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
               backgroundImage: friend.avatarUrl != null ? NetworkImage(friend.avatarUrl!) : null,
+              onBackgroundImageError: (exception, stackTrace) {},
               child: friend.avatarUrl == null 
                 ? Text(
                     friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
@@ -724,6 +725,7 @@ class _SearchResultCard extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
           backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+          onBackgroundImageError: (exception, stackTrace) {},
           child: user.avatarUrl == null
             ? Text(
                 user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
@@ -836,6 +838,7 @@ class _RequestCard extends StatelessWidget {
               ? AppTheme.primaryColor.withOpacity(0.1)
               : Colors.grey.withOpacity(0.1),
           backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
+          onBackgroundImageError: (exception, stackTrace) {},
           child: request.avatarUrl == null
             ? Text(
                 request.username.isNotEmpty ? request.username[0].toUpperCase() : '?',

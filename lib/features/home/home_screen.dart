@@ -395,6 +395,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                              backgroundImage: profile?.avatarUrl != null 
                                                ? NetworkImage(profile!.avatarUrl!)
                                                : null,
+                                             onBackgroundImageError: (exception, stackTrace) {},
                                              child: profile?.avatarUrl == null
                                                 ? const Icon(Icons.person, color: Colors.white, size: 32)
                                                 : null,

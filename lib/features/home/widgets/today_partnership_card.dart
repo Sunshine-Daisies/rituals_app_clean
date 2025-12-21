@@ -135,6 +135,7 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
                 radius: 20,
                 backgroundColor: Colors.orange.withOpacity(0.1),
                 backgroundImage: widget.partnership.partnerAvatarUrl != null ? NetworkImage(widget.partnership.partnerAvatarUrl!) : null,
+                onBackgroundImageError: (exception, stackTrace) {},
                 child: widget.partnership.partnerAvatarUrl == null
                   ? Text(
                       widget.partnership.partnerUsername.isNotEmpty ? widget.partnership.partnerUsername[0].toUpperCase() : '?',

@@ -321,6 +321,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: CircleAvatar(
                 radius: 40,
                 backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                onBackgroundImageError: (exception, stackTrace) {},
                 backgroundColor: Colors.grey[800], 
                 child: photoUrl == null 
                     ? Text(username.isNotEmpty ? username[0].toUpperCase() : '?', style: const TextStyle(fontSize: 30, color: Colors.white)) 

@@ -107,6 +107,7 @@ class PartnerInfoCard extends StatelessWidget {
                 backgroundImage: partner.partnerAvatarUrl != null
                     ? NetworkImage(partner.partnerAvatarUrl!)
                     : null,
+                onBackgroundImageError: (exception, stackTrace) {},
                 child: partner.partnerAvatarUrl == null
                     ? Text(
                         partner.partnerUsername.isNotEmpty

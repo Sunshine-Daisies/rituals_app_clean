@@ -140,11 +140,20 @@ class UserProfile extends Equatable {
           ? DateTime.parse(json['updated_at']) 
           : DateTime.now(),
       isPremium: json['is_premium'] ?? false,
-      avatarUrl: json['avatar_url'] ?? json['avatarUrl'],
+      avatarUrl: _sanitizeUrl(json['avatar_url'] ?? json['avatarUrl']),
       badges: (json['badges'] as List<dynamic>?)
           ?.map((b) => Badge.fromJson(b))
           .toList() ?? [],
     );
+  }
+
+  static String? _sanitizeUrl(String? url) {
+    if (url == null) return null;
+    // Remove /public prefix if present as it's redundant in many production setups
+    if (url.contains('/public/uploads/')) {
+      return url.replaceFirst('/public/uploads/', '/uploads/');
+    }
+    return url;
   }
 
   Map<String, dynamic> toJson() {
@@ -212,7 +221,7 @@ class Friendship extends Equatable {
       level: json['level'] ?? 1,
       xp: json['xp'] ?? 0,
       longestStreak: json['longest_streak'] ?? 0,
-      avatarUrl: json['avatar_url'] ?? json['avatarUrl'],
+      avatarUrl: UserProfile._sanitizeUrl(json['avatar_url'] ?? json['avatarUrl']),
       friendsSince: json['friends_since'] != null 
           ? DateTime.parse(json['friends_since']) 
           : null,
@@ -249,7 +258,7 @@ class FriendRequest extends Equatable {
       userId: json['user_id'] ?? '',
       username: json['username'] ?? '',
       level: json['level'] ?? 1,
-      avatarUrl: json['avatar_url'] ?? json['avatarUrl'] ?? json['owner_avatar_url'] ?? json['ownerAvatarUrl'],
+      avatarUrl: UserProfile._sanitizeUrl(json['avatar_url'] ?? json['avatarUrl'] ?? json['owner_avatar_url'] ?? json['ownerAvatarUrl']),
       requestedAt: json['requested_at'] != null 
           ? DateTime.parse(json['requested_at']) 
           : DateTime.now(),
@@ -329,7 +338,7 @@ class LeaderboardEntry extends Equatable {
       level: int.tryParse(json['level']?.toString() ?? '') ?? 1,
       longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '') ?? 0,
       rank: int.tryParse(json['rank']?.toString() ?? '0') ?? 0,
-      avatarUrl: json['avatar_url'] ?? json['avatarUrl'],
+      avatarUrl: UserProfile._sanitizeUrl(json['avatar_url'] ?? json['avatarUrl']),
       weeklyXp: int.tryParse(json['weekly_xp']?.toString() ?? ''),
     );
   }

@@ -335,6 +335,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             CircleAvatar(
               radius: 20,
               backgroundImage: myEntry.avatarUrl != null ? NetworkImage(myEntry.avatarUrl!) : null,
+              onBackgroundImageError: (exception, stackTrace) {},
               child: myEntry.avatarUrl == null ? const Text('You') : null,
             ),
             const SizedBox(width: 12),
@@ -443,7 +444,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ),
               child: ClipOval(
                 child: entry.avatarUrl != null
-                    ? Image.network(entry.avatarUrl!, fit: BoxFit.cover)
+                    ? Image.network(
+                        entry.avatarUrl!, 
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppTheme.surfaceColor,
+                          child: Center(
+                            child: Text(
+                              entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
+                              style: TextStyle(
+                                color: color,
+                                fontWeight: FontWeight.bold,
+                                fontSize: size * 0.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
                     : Container(
                         color: AppTheme.surfaceColor,
                         child: Center(
@@ -575,6 +592,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           CircleAvatar(
             radius: 20,
             backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
+            onBackgroundImageError: (exception, stackTrace) {},
             child: request.avatarUrl == null ? Text(request.username[0]) : null,
           ),
           const SizedBox(width: 12),
@@ -704,6 +722,7 @@ class _LeaderboardCard extends StatelessWidget {
                 radius: 22,
                 backgroundColor: Colors.white.withOpacity(0.05),
                 backgroundImage: entry.avatarUrl != null ? NetworkImage(entry.avatarUrl!) : null,
+                onBackgroundImageError: (exception, stackTrace) {},
                 child: entry.avatarUrl == null ? Text(entry.username[0].toUpperCase()) : null,
               ),
             ],

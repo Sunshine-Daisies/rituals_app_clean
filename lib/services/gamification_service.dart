@@ -105,8 +105,13 @@ class GamificationService {
           body: json.encode({'username': username}),
         );
         if (response.statusCode != 200) {
-          print('Username update failed: ${response.body}');
-          success = false;
+          final body = json.decode(response.body);
+          if (body['error'] == 'Güncellenecek veri yok' || body['message'] == 'Profil zaten güncel' || body['message'] == 'Güncellenecek veri yok') {
+             // Handle as success
+          } else {
+            print('Username update failed: ${response.body}');
+            success = false;
+          }
         }
       } catch (e) {
         print('Error updating username: $e');
@@ -123,8 +128,13 @@ class GamificationService {
           body: json.encode({'name': name}),
         );
         if (response.statusCode != 200) {
-          print('Name update failed: ${response.body}');
-          success = false;
+          final body = json.decode(response.body);
+          if (body['error'] == 'Güncellenecek veri yok' || body['message'] == 'Profil zaten güncel' || body['message'] == 'Güncellenecek veri yok') {
+             // Handle as success
+          } else {
+            print('Name update failed: ${response.body}');
+            success = false;
+          }
         }
       } catch (e) {
         print('Error updating name: $e');

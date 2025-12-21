@@ -237,8 +237,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundImage: user?.avatarUrl != null 
                 ? NetworkImage(user!.avatarUrl!) 
                 : null,
+            onBackgroundImageError: (exception, stackTrace) {
+              // Silently handle image loading errors
+            },
             backgroundColor: Colors.white.withOpacity(0.1),
-            child: user?.avatarUrl == null 
+            child: (user?.avatarUrl == null)
                 ? const Icon(Icons.person, size: 50, color: Colors.white) 
                 : null,
           ),
