@@ -216,25 +216,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // App Experience Section
               _buildSectionHeader('APP EXPERIENCE'),
               _buildSwitchTile(
-                icon: Icons.notifications,
-                title: 'Daily Reminders',
-                getValue: () => _settingsService.dailyReminders,
-                onChanged: (val) async {
-                  await _settingsService.setDailyReminders(val);
-                  setState(() {});
-                },
-              ),
-              _buildSwitchTile(
-                icon: Icons.favorite,
-                title: 'Social Nudges',
-                getValue: () => _settingsService.socialNudges,
-                onChanged: (val) async {
-                  await _settingsService.setSocialNudges(val);
-                  setState(() {});
-                },
-                activeColor: Colors.pinkAccent,
-              ),
-              _buildSwitchTile(
                 icon: Icons.volume_up,
                 title: 'Sound Effects',
                 getValue: () => _settingsService.soundEffects,
