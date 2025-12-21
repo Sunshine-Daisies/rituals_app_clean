@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
+import 'friends_service.dart';
 
 // Background message handler (top-level function)
 @pragma('vm:entry-point')
@@ -99,13 +100,21 @@ class NotificationService {
   // Initialize local notifications
   Future<void> _initLocalNotifications() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
+    final iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'friend_request_category',
+          actions: [
+            DarwinNotificationAction.plain('accept_request', 'Accept'),
+          ],
+        ),
+      ],
     );
 
-    const initSettings = InitializationSettings(
+    final initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
@@ -170,6 +179,28 @@ class NotificationService {
     final android = message.notification?.android;
 
     if (notification != null) {
+      final type = message.data['type'];
+      final List<AndroidNotificationAction> androidActions = [];
+      final List<DarwinNotificationAction> iosActions = [];
+
+      if (type == 'friend_request') {
+        androidActions.add(
+          const AndroidNotificationAction(
+            'accept_request',
+            'Accept',
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+        );
+        iosActions.add(
+          DarwinNotificationAction.plain(
+            'accept_request',
+            'Accept',
+            options: {DarwinNotificationActionOption.foreground},
+          ),
+        );
+      }
+
       await _localNotifications.show(
         notification.hashCode,
         notification.title,
@@ -182,11 +213,13 @@ class NotificationService {
             importance: Importance.high,
             priority: Priority.high,
             icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+            actions: androidActions,
           ),
-          iOS: const DarwinNotificationDetails(
+          iOS: DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
+            categoryIdentifier: type == 'friend_request' ? 'friend_request_category' : null,
           ),
         ),
         payload: jsonEncode(message.data),
@@ -221,17 +254,47 @@ class NotificationService {
   }
 
   // Handle notification tap
-  void _onNotificationTapped(NotificationResponse response) {
-    print('🔔 Notification tapped: ${response.payload}');
+  void _onNotificationTapped(NotificationResponse response) async {
+    print('🔔 Notification tapped: ${response.payload}, actionId: ${response.actionId}');
     
     if (response.payload != null) {
       try {
         final data = jsonDecode(response.payload!);
         final type = data['type'] as String?;
+        
+        // Handle Action Buttons
+        if (response.actionId == 'accept_request') {
+          final friendshipIdStr = data['friendship_id'];
+          if (friendshipIdStr != null) {
+            final friendshipId = int.tryParse(friendshipIdStr.toString());
+            if (friendshipId != null) {
+              print('🤝 Accepting friend request via notification action: $friendshipId');
+              final result = await FriendsService().acceptFriendRequest(friendshipId);
+              print('🤝 Accept result: ${result.success}');
+              
+              // Başarı bildirimi göster (opsiyonel)
+              if (result.success) {
+                await _localNotifications.show(
+                  999,
+                  'Friend Request',
+                  'You are now friends in Rituals!',
+                  const NotificationDetails(
+                    android: AndroidNotificationDetails(
+                      'rituals_info',
+                      'Info',
+                      importance: Importance.low,
+                    ),
+                  ),
+                );
+              }
+            }
+          }
+        }
+        
         // Navigasyon logic'i buraya - type'a göre yönlendirme yapılacak
         print('Notification type: $type');
       } catch (e) {
-        print('Error parsing notification payload: $e');
+        print('Error parsing notification payload or executing action: $e');
       }
     }
   }

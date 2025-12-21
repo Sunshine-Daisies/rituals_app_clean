@@ -146,19 +146,24 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusL),
         ),
-        title: const Text('Arkadaşı Sil'),
-        content: Text('$username arkadaş listenizden çıkarılsın mı?'),
+        title: const Text('Remove Friend'),
+        content: Text('Remove $username from your friends list?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+              ),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sil'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -248,11 +253,12 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
           ),
           const SizedBox(width: 16),
           const Text(
-            'Arkadaşlar',
+            'Friends',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.white,
+              letterSpacing: -0.5,
             ),
           ),
           const Spacer(),
@@ -286,7 +292,7 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
 
   Widget _buildTabBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(16),
@@ -311,33 +317,42 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
         padding: const EdgeInsets.all(4),
         tabs: [
           Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.people_outline, size: 20),
-                const SizedBox(width: 8),
-                Text('Liste (${_friends.length})'),
-              ],
-            ),
-          ),
-          const Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.search, size: 20),
-                SizedBox(width: 8),
-                Text('Ara'),
-              ],
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.people_outline, size: 20),
+                  const SizedBox(width: 8),
+                  Text('List (${_friends.length})'),
+                ],
+              ),
             ),
           ),
           Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.mail_outline, size: 20),
-                const SizedBox(width: 8),
-                Text('İstekler${_requests?.incomingCount != null && _requests!.incomingCount > 0 ? ' (${_requests!.incomingCount})' : ''}'),
-              ],
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.search, size: 20),
+                  const SizedBox(width: 8),
+                  const Text('Search'),
+                ],
+              ),
+            ),
+          ),
+          Tab(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.mail_outline, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Requests${_requests?.incomingCount != null && _requests!.incomingCount > 0 ? ' (${_requests!.incomingCount})' : ''}'),
+                ],
+              ),
             ),
           ),
         ],
@@ -358,16 +373,17 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
             ),
             const SizedBox(height: AppTheme.spacingM),
             Text(
-              'Henüz arkadaşın yok',
+              'No friends yet',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppTheme.textSecondary,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: AppTheme.spacingS),
             Text(
-              'Arama sekmesinden arkadaş ekle!',
+              'Add friends from the search tab!',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondary.withOpacity(0.8),
               ),
             ),
           ],
@@ -405,8 +421,10 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
             ),
             child: TextField(
               controller: _searchController,
+              style: const TextStyle(color: AppTheme.textPrimary),
               decoration: InputDecoration(
-                hintText: 'Kullanıcı adı ile ara...',
+                hintText: 'Search by username...',
+                hintStyle: TextStyle(color: AppTheme.textSecondary.withOpacity(0.5)),
                 prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -443,10 +461,11 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                             const SizedBox(height: AppTheme.spacingM),
                             Text(
                               _searchController.text.isEmpty
-                                  ? 'Kullanıcı adı ile arayın'
-                                  : 'Kullanıcı bulunamadı',
+                                  ? 'Type a username to search'
+                                  : 'No user found',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.textSecondary,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -489,9 +508,10 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
             ),
             const SizedBox(height: AppTheme.spacingM),
             Text(
-              'Bekleyen istek yok',
+              'No pending requests',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppTheme.textSecondary,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -508,10 +528,11 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
             Padding(
               padding: const EdgeInsets.only(bottom: AppTheme.spacingS),
               child: Text(
-                'Gelen İstekler (${incoming.length})',
+                'Incoming Requests (${incoming.length})',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.textPrimary,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -527,10 +548,11 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
             Padding(
               padding: const EdgeInsets.only(bottom: AppTheme.spacingS),
               child: Text(
-                'Gönderilen İstekler (${outgoing.length})',
+                'Outgoing Requests (${outgoing.length})',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.textPrimary,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -641,15 +663,15 @@ class _FriendCard extends StatelessWidget {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.person, color: AppTheme.primaryColor),
-                      title: const Text('Profili Görüntüle'),
+                      title: const Text('View Profile'),
                       onTap: () {
                         Navigator.pop(context);
-                        // TODO: Profil sayfasına git
+                        // TODO: Navigate to profile
                       },
                     ),
                     ListTile(
                       leading: const Icon(Icons.person_remove, color: AppTheme.errorColor),
-                      title: const Text('Arkadaşlıktan Çıkar'),
+                      title: const Text('Remove Friend'),
                       onTap: () {
                         Navigator.pop(context);
                         onRemove();
@@ -733,10 +755,10 @@ class _SearchResultCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Text(
-                  'Arkadaş',
+                  'Friend',
                   style: TextStyle(
                     color: AppTheme.successColor,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
                 ),
@@ -749,20 +771,25 @@ class _SearchResultCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Text(
-                      'Beklemede',
+                      'Pending',
                       style: TextStyle(
                         color: Colors.orange,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
                     ),
                   )
                 : ElevatedButton.icon(
                     icon: const Icon(Icons.person_add, size: 16),
-                    label: const Text('Ekle'),
+                    label: const Text('Add'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                     onPressed: onAdd,
                   ),
@@ -827,9 +854,10 @@ class _RequestCard extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          isIncoming ? 'Sana arkadaşlık isteği gönderdi' : 'İstek gönderildi',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppTheme.textSecondary,
+          isIncoming ? 'Sent you a friend request' : 'Request sent',
+          style: TextStyle(
+            color: AppTheme.textSecondary.withOpacity(0.7),
+            fontSize: 12,
           ),
         ),
         trailing: isIncoming
@@ -839,12 +867,12 @@ class _RequestCard extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.close, color: AppTheme.errorColor),
                     onPressed: onReject,
-                    tooltip: 'Reddet',
+                    tooltip: 'Reject',
                   ),
                   IconButton(
                     icon: const Icon(Icons.check, color: AppTheme.successColor),
                     onPressed: onAccept,
-                    tooltip: 'Kabul Et',
+                    tooltip: 'Accept',
                   ),
                 ],
               )
@@ -855,10 +883,10 @@ class _RequestCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Text(
-                  'Beklemede',
+                  'Pending',
                   style: TextStyle(
                     color: Colors.orange,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
                 ),

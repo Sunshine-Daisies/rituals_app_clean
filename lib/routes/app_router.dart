@@ -17,6 +17,7 @@ import '../features/leaderboard/leaderboard_screen.dart';
 import '../features/badges/badges_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/sharing/join_ritual_screen.dart';
+import '../features/common/coming_soon_screen.dart';
 
 import '../services/api_service.dart';
 
@@ -123,6 +124,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final code = state.uri.queryParameters['code'];
           return JoinRitualScreen(initialCode: code);
         },
+      ),
+      GoRoute(
+        path: '/coming-soon',
+        builder: (context, state) => const ComingSoonScreen(),
       ),
     ],
   );

@@ -81,19 +81,19 @@ class FriendsService {
       if (response.statusCode == 201) {
         return FriendRequestResult(
           success: true,
-          message: data['message'] ?? 'İstek gönderildi',
+          message: data['message'] ?? 'Request sent',
         );
       }
       
       return FriendRequestResult(
         success: false,
-        message: data['error'] ?? 'Hata oluştu',
+        message: data['error'] ?? 'An error occurred',
       );
     } catch (e) {
       print('Error sending friend request: $e');
       return FriendRequestResult(
         success: false,
-        message: 'Bağlantı hatası',
+        message: 'Connection error',
       );
     }
   }
@@ -114,19 +114,19 @@ class FriendsService {
       if (response.statusCode == 200) {
         return FriendRequestResult(
           success: true,
-          message: data['message'] ?? 'Kabul edildi',
+          message: data['message'] ?? 'Accepted',
         );
       }
       
       return FriendRequestResult(
         success: false,
-        message: data['error'] ?? 'Hata oluştu',
+        message: data['error'] ?? 'An error occurred',
       );
     } catch (e) {
       print('Error accepting friend request: $e');
       return FriendRequestResult(
         success: false,
-        message: 'Bağlantı hatası',
+        message: 'Connection error',
       );
     }
   }
@@ -144,19 +144,19 @@ class FriendsService {
       if (response.statusCode == 200) {
         return FriendRequestResult(
           success: true,
-          message: data['message'] ?? 'Reddedildi',
+          message: data['message'] ?? 'Rejected',
         );
       }
       
       return FriendRequestResult(
         success: false,
-        message: data['error'] ?? 'Hata oluştu',
+        message: data['error'] ?? 'An error occurred',
       );
     } catch (e) {
       print('Error rejecting friend request: $e');
       return FriendRequestResult(
         success: false,
-        message: 'Bağlantı hatası',
+        message: 'Connection error',
       );
     }
   }
@@ -174,19 +174,19 @@ class FriendsService {
       if (response.statusCode == 200) {
         return FriendRequestResult(
           success: true,
-          message: data['message'] ?? 'Arkadaşlıktan çıkarıldı',
+          message: data['message'] ?? 'Removed from friends',
         );
       }
       
       return FriendRequestResult(
         success: false,
-        message: data['error'] ?? 'Hata oluştu',
+        message: data['error'] ?? 'An error occurred',
       );
     } catch (e) {
       print('Error removing friend: $e');
       return FriendRequestResult(
         success: false,
-        message: 'Bağlantı hatası',
+        message: 'Connection error',
       );
     }
   }

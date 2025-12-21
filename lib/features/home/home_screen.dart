@@ -21,8 +21,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final GamificationService _gamificationService = GamificationService();
+  late AnimationController _menuAnimationController;
+  late Animation<double> _menuAnimation;
+  bool _isMenuOpen = false;
+  
   late Future<List<Ritual>> _myRitualsFuture;
   late Future<List<Partnership>> _partnershipsFuture;
   late Future<List<PartnerRequest>> _pendingRequestsFuture;
@@ -46,6 +50,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _menuAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _menuAnimation = CurvedAnimation(
+      parent: _menuAnimationController,
+      curve: Curves.easeOutQuart,
+    );
     _loadRituals();
     _notificationTimer = Timer.periodic(const Duration(seconds: 10), (_) => _loadUnreadNotifications());
   }
@@ -53,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _notificationTimer?.cancel();
+    _menuAnimationController.dispose();
     // Tüm timer'ları iptal et
     _ritualTimers.values.forEach((timer) => timer?.cancel());
     _partnershipTimers.values.forEach((timer) => timer?.cancel());
@@ -311,418 +324,470 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _toggleMenu() {
+    setState(() {
+      _isMenuOpen = !_isMenuOpen;
+      if (_isMenuOpen) {
+        _menuAnimationController.forward();
+      } else {
+        _menuAnimationController.reverse();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: () async => _loadRituals(),
-            child: FutureBuilder<List<dynamic>>(
-              future: Future.wait([_myRitualsFuture, _partnershipsFuture, _profileFuture]),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData && snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppTheme.backgroundGradient,
+            ),
+            child: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: () async => _loadRituals(),
+                child: FutureBuilder<List<dynamic>>(
+                  future: Future.wait([_myRitualsFuture, _partnershipsFuture, _profileFuture]),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData && snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                final myRituals = snapshot.data?[0] as List<Ritual>? ?? [];
-                final partnerships = snapshot.data?[1] as List<Partnership>? ?? [];
-                final profile = snapshot.data?[2] as UserProfile?;
+                    final myRituals = snapshot.data?[0] as List<Ritual>? ?? [];
+                    final partnerships = snapshot.data?[1] as List<Partnership>? ?? [];
+                    final profile = snapshot.data?[2] as UserProfile?;
 
-                final todayRituals = _filterTodayRituals(myRituals);
-                final todayPartnerships = _filterTodayPartnerships(partnerships);
-                
-                // Partnership'i olmayan kişisel ritüelleri filtrele
-                final todayRitualsWithoutPartnerships = todayRituals
-                    .where((r) => r.partnershipId == null)
-                    .toList();
+                    final todayRituals = _filterTodayRituals(myRituals);
+                    final todayPartnerships = _filterTodayPartnerships(partnerships);
+                    
+                    final todayRitualsWithoutPartnerships = todayRituals
+                        .where((r) => r.partnershipId == null)
+                        .toList();
 
-                final totalToday = todayRitualsWithoutPartnerships.length + todayPartnerships.length;
-                final completedToday = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).length + 
-                                     todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).length;
-                
-                final progressPercent = totalToday > 0 ? (completedToday / totalToday) : 0.0;
+                    final totalToday = todayRitualsWithoutPartnerships.length + todayPartnerships.length;
+                    final completedToday = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).length + 
+                                         todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).length;
+                    
+                    final progressPercent = totalToday > 0 ? (completedToday / totalToday) : 0.0;
 
-                return CustomScrollView(
-                  slivers: [
-                    // New Modern Header
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                        child: Column(
-                          children: [
-                            Row(
+                    return CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                            child: Column(
                               children: [
-                                // Profile Avatar with Level Badge
-                                Stack(
-                                  clipBehavior: Clip.none,
+                                Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.5), width: 2),
-                                      ),
-                                      child: CircleAvatar(
-                                         radius: 28,
-                                         backgroundColor: AppTheme.darkSurface,
-                                         backgroundImage: profile?.avatarUrl != null 
-                                           ? NetworkImage(profile!.avatarUrl!)
-                                           : null,
-                                         child: profile?.avatarUrl == null
-                                            ? const Icon(Icons.person, color: Colors.white, size: 32)
-                                            : null,
-                                       ),
-                                     ),
-                                     Positioned(
-                                       bottom: -5,
-                                       left: 0,
-                                       right: 0,
-                                       child: Center(
-                                         child: Container(
-                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                           decoration: BoxDecoration(
-                                             color: AppTheme.darkSurface,
-                                             borderRadius: BorderRadius.circular(10),
-                                             border: Border.all(color: Colors.white24, width: 1),
+                                    Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: AppTheme.primaryColor.withOpacity(0.5), width: 2),
+                                          ),
+                                          child: CircleAvatar(
+                                             radius: 28,
+                                             backgroundColor: AppTheme.darkSurface,
+                                             backgroundImage: profile?.avatarUrl != null 
+                                               ? NetworkImage(profile!.avatarUrl!)
+                                               : null,
+                                             child: profile?.avatarUrl == null
+                                                ? const Icon(Icons.person, color: Colors.white, size: 32)
+                                                : null,
                                            ),
-                                           child: Text(
-                                             'Lvl ${profile?.level ?? 1}',
+                                         ),
+                                         Positioned(
+                                           bottom: -5,
+                                           left: 0,
+                                           right: 0,
+                                           child: Center(
+                                             child: Container(
+                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                               decoration: BoxDecoration(
+                                                 color: AppTheme.darkSurface,
+                                                 borderRadius: BorderRadius.circular(10),
+                                                 border: Border.all(color: Colors.white24, width: 1),
+                                               ),
+                                               child: Text(
+                                                 'Lvl ${profile?.level ?? 1}',
+                                                 style: const TextStyle(
+                                                   fontSize: 10,
+                                                   fontWeight: FontWeight.bold,
+                                                   color: Colors.white,
+                                                 ),
+                                               ),
+                                             ),
+                                           ),
+                                         ),
+                                       ],
+                                     ),
+                                     const SizedBox(width: 16),
+                                     Expanded(
+                                       child: Column(
+                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                         children: [
+                                           Text(
+                                             _getGreetingMessage(),
                                              style: const TextStyle(
-                                               fontSize: 10,
+                                               fontSize: 18,
                                                fontWeight: FontWeight.bold,
                                                color: Colors.white,
                                              ),
                                            ),
-                                         ),
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                                 const SizedBox(width: 16),
-                                 // Name and XP Bar
-                                 Expanded(
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Text(
-                                         _getGreetingMessage(),
-                                         maxLines: 1,
-                                         overflow: TextOverflow.ellipsis,
-                                         style: const TextStyle(
-                                           fontSize: 18,
-                                           fontWeight: FontWeight.bold,
-                                           color: Colors.white,
-                                         ),
-                                       ),
-                                      const SizedBox(height: 6),
-                                      // XP Bar
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Stack(
+                                          const SizedBox(height: 6),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Container(
-                                                height: 8,
-                                                width: double.infinity,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white10,
-                                                  borderRadius: BorderRadius.circular(4),
-                                                ),
-                                              ),
-                                              FractionallySizedBox(
-                                                widthFactor: ((profile?.xpProgressPercent ?? 0) / 100).clamp(0.0, 1.0),
-                                                child: Container(
-                                                  height: 8,
-                                                  decoration: BoxDecoration(
-                                                    gradient: AppTheme.primaryGradient,
-                                                    borderRadius: BorderRadius.circular(4),
+                                              Stack(
+                                                children: [
+                                                  Container(
+                                                    height: 8,
+                                                    width: double.infinity,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white10,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
                                                   ),
+                                                  FractionallySizedBox(
+                                                    widthFactor: ((profile?.xpProgressPercent ?? 0) / 100).clamp(0.0, 1.0),
+                                                    child: Container(
+                                                      height: 8,
+                                                      decoration: BoxDecoration(
+                                                        gradient: AppTheme.primaryGradient,
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _getXpProgressText(profile),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppTheme.textSecondary,
+                                                  fontWeight: FontWeight.w500,
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            _getXpProgressText(profile),
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppTheme.textSecondary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                         ],
+                                       ),
+                                     ),
+                                     const SizedBox(width: 16),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                                            onPressed: () => context.push('/notifications'),
                                           ),
+                                          if (_unreadNotificationCount > 0)
+                                            Positioned(
+                                              right: 8,
+                                              top: 8,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                constraints: const BoxConstraints(
+                                                  minWidth: 8,
+                                                  minHeight: 8,
+                                                ),
+                                              ),
+                                            ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                // Coins and Streak
-                                // Notification Icon
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                                        onPressed: () => context.push('/notifications'),
-                                      ),
-                                      if (_unreadNotificationCount > 0)
-                                        Positioned(
-                                          right: 8,
-                                          top: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.red,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            constraints: const BoxConstraints(
-                                              minWidth: 8,
-                                              minHeight: 8,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Daily Progress Card
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.04),
-                            borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-                            border: Border.all(color: Colors.white.withOpacity(0.05)),
                           ),
-                          child: Row(
-                            children: [
-                              // Radial Progress
-                              Stack(
-                                alignment: Alignment.center,
+                        ),
+
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.04),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              ),
+                              child: Row(
                                 children: [
-                                  SizedBox(
-                                    height: 80,
-                                    width: 80,
-                                    child: CircularProgressIndicator(
-                                      value: progressPercent,
-                                      strokeWidth: 8,
-                                      backgroundColor: Colors.white10,
-                                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                                    ),
+                                  Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      SizedBox(
+                                        height: 80,
+                                        width: 80,
+                                        child: CircularProgressIndicator(
+                                          value: progressPercent,
+                                          strokeWidth: 8,
+                                          backgroundColor: Colors.white10,
+                                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${(progressPercent * 100).toInt()}%',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    '${(progressPercent * 100).toInt()}%',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        _buildStatTile('Rituals Completed', '$completedToday / $totalToday'),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(width: 20),
-                              // Stats
-                              Expanded(
+                            ),
+                          ),
+                        ),
+
+                        FutureBuilder<List<PartnerRequest>>(
+                          future: _pendingRequestsFuture,
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                            return SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _buildStatTile('Rituals Completed', '$completedToday / $totalToday'),
+                                    const Text(
+                                      'Partner Requests',
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    ...snapshot.data!.map((req) => PendingRequestCard(
+                                      request: req,
+                                      onAccept: () => _acceptRequest(req.id),
+                                      onReject: () => _rejectRequest(req.id),
+                                    )),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      ),
-                    ),
 
-
-                    // Pending Requests (If any)
-                    FutureBuilder<List<PartnerRequest>>(
-                      future: _pendingRequestsFuture,
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
-                        return SliverToBoxAdapter(
+                        SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Partner Requests',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  "Today's Rituals",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                                const SizedBox(height: 12),
-                                ...snapshot.data!.map((req) => PendingRequestCard(
-                                  request: req,
-                                  onAccept: () => _acceptRequest(req.id),
-                                  onReject: () => _rejectRequest(req.id),
-                                )),
                               ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-
-                    // Today's Rituals Header
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Today's Rituals",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            
-                          ],
                         ),
-                      ),
-                    ),
 
-                    // Active Rituals & Partnerships
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final pendingRituals = todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).toList();
-                          final pendingPartnerships = todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).toList();
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final pendingRituals = todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).toList();
+                              final pendingPartnerships = todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).toList();
 
-                          if (pendingRituals.isEmpty && pendingPartnerships.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              child: EmptyTodayCard(
-                                message: 'No rituals left for today!',
-                                icon: Icons.check_circle_outline,
-                              ),
-                            );
-                          }
+                              if (pendingRituals.isEmpty && pendingPartnerships.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                  child: EmptyTodayCard(
+                                    message: 'No rituals left for today!',
+                                    icon: Icons.check_circle_outline,
+                                  ),
+                                );
+                              }
 
-                          if (index < pendingRituals.length) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: TodayRitualCard(
-                                key: ValueKey('active_ritual_${pendingRituals[index].id}'),
-                                ritual: pendingRituals[index],
-                                onComplete: () {
-                                  setState(() {
-                                    _ritualCompletionStatus[pendingRituals[index].id] = true;
-                                  });
-                                  _loadRituals();
-                                },
-                              ),
-                            );
-                          } else {
-                            final partnershipIndex = index - pendingRituals.length;
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: TodayPartnershipCard(
-                                key: ValueKey('active_partnership_${pendingPartnerships[partnershipIndex].id}'),
-                                partnership: pendingPartnerships[partnershipIndex],
-                                onComplete: () {
-                                  setState(() {
-                                    _partnershipCompletionStatus[pendingPartnerships[partnershipIndex].id] = true;
-                                  });
-                                  _loadRituals();
-                                },
-                              ),
-                            );
-                          }
-                        },
-                        childCount: (todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).length + 
-                                     todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).length).clamp(1, 999),
-                      ),
-                    ),
+                              if (index < pendingRituals.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                  child: TodayRitualCard(
+                                    key: ValueKey('active_ritual_${pendingRituals[index].id}'),
+                                    ritual: pendingRituals[index],
+                                    onComplete: () {
+                                      setState(() {
+                                        _ritualCompletionStatus[pendingRituals[index].id] = true;
+                                      });
+                                      _loadRituals();
+                                    },
+                                  ),
+                                );
+                              } else {
+                                final partnershipIndex = index - pendingRituals.length;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                  child: TodayPartnershipCard(
+                                    key: ValueKey('active_partnership_${pendingPartnerships[partnershipIndex].id}'),
+                                    partnership: pendingPartnerships[partnershipIndex],
+                                    onComplete: () {
+                                      setState(() {
+                                        _partnershipCompletionStatus[pendingPartnerships[partnershipIndex].id] = true;
+                                      });
+                                      _loadRituals();
+                                    },
+                                  ),
+                                );
+                              }
+                            },
+                            childCount: (todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).length + 
+                                         todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).length).clamp(1, 999),
+                          ),
+                        ),
 
+                        if (completedToday > 0)
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final completedRitualsList = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).toList();
+                                final completedPartnershipsList = todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).toList();
 
-                    // Completed Rituals Section
-                    if (completedToday > 0)
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final completedRitualsList = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).toList();
-                            final completedPartnershipsList = todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).toList();
+                                if (index == 0) {
+                                  return Padding(
+                                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
+                                    child: Row(
+                                      children: const [
+                                        Text(
+                                          'Completed',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
 
-                            if (index == 0) {
-                              return Padding(
-                                padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-                                child: Row(
-                                  children: [
-      
-       
-                                    const Text(
-                                      'Completed',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                final dataIndex = index - 1;
+                                if (dataIndex < completedRitualsList.length) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                    child: TodayRitualCard(
+                                      key: ValueKey('completed_ritual_${completedRitualsList[dataIndex].id}'),
+                                      ritual: completedRitualsList[dataIndex],
+                                      onComplete: () {}, 
+                                      isCompleted: true,
+                                    ),
+                                  );
+                                } else {
+                                  final pIndex = dataIndex - completedRitualsList.length;
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                    child: Opacity(
+                                      opacity: 0.6,
+                                      child: TodayPartnershipCard(
+                                        key: ValueKey('completed_partnership_${completedPartnershipsList[pIndex].id}'),
+                                        partnership: completedPartnershipsList[pIndex],
+                                        onComplete: () {}, 
+                                        isCompleted: true,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              );
-                            }
-
-                            final dataIndex = index - 1;
-                            if (dataIndex < completedRitualsList.length) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                                child: TodayRitualCard(
-                                  key: ValueKey('completed_ritual_${completedRitualsList[dataIndex].id}'),
-                                  ritual: completedRitualsList[dataIndex],
-                                  onComplete: () {}, // Already completed
-                                  isCompleted: true,
-                                ),
-                              );
-                            } else {
-                              final pIndex = dataIndex - completedRitualsList.length;
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                                child: Opacity(
-                                  opacity: 0.6,
-                                  child: TodayPartnershipCard(
-                                    key: ValueKey('completed_partnership_${completedPartnershipsList[pIndex].id}'),
-                                    partnership: completedPartnershipsList[pIndex],
-                                    onComplete: () {}, // Already completed
-                                    isCompleted: true,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          childCount: 1 + completedToday,
-                        ),
-                      ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                  ],
-                );
-              },
+                                  );
+                                }
+                              },
+                              childCount: 1 + completedToday,
+                            ),
+                          ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-        ),
+          
+          // Background Overlay when menu is open
+          if (_isMenuOpen)
+            GestureDetector(
+              onTap: _toggleMenu,
+              child: FadeTransition(
+                opacity: _menuAnimation,
+                child: Container(
+                  color: Colors.black54,
+                ),
+              ),
+            ),
+
+          // Custom Animated Quick Actions Menu & Bottom Nav
+          AnimatedBuilder(
+            animation: _menuAnimation,
+            builder: (context, child) {
+              final double bottomPadding = MediaQuery.of(context).padding.bottom;
+              const double menuHeight = 500.0; // Estimated height of menu content
+              const double navBarHeight = 60.0;
+              const double buttonRestingY = 55.0; // Where the button sits when closed
+              const double menuOverlap = 28.0; // Button nests into menu
+              
+              // Menu Logic:
+              // Closed: Top of menu aligns with buttonRestingY + overlap.
+              //         Bottom = buttonRestingY - menuHeight + overlap
+              // Open:   Bottom = navBarHeight
+              
+              final double startBottom = buttonRestingY - menuHeight + menuOverlap;
+              final double endBottom = navBarHeight; // On top of nav bar
+              final double travelDistance = endBottom - startBottom;
+
+              return Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                   // Quick Actions Menu (Z=0, Hidden behind Nav Bar when closed)
+                  Positioned(
+                    bottom: startBottom + (_menuAnimation.value * travelDistance), 
+                    left: 0,
+                    right: 0,
+                    child: _buildActionMenuContent(),
+                  ),
+                  
+                  // Bottom Navigation Bar (Z=1, Fixed)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: _buildBottomNav(context),
+                  ),
+
+                  // Floating Logo Button (Z=2, Rides the menu)
+                  Positioned(
+                    bottom: buttonRestingY + (_menuAnimation.value * travelDistance),
+                    child: _buildFloatingButton(), 
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -736,33 +801,39 @@ class _HomeScreenState extends State<HomeScreen> {
     return _partnershipCompletionStatus[partnership.id] ?? false;
   }
 
-  void _showActionMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: AppTheme.darkSurface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+  Widget _buildActionMenuContent() {
+    return Container(
+      height: 500,
+      decoration: BoxDecoration(
+        color: AppTheme.darkSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
+            // Drag handle
+            GestureDetector(
+              onVerticalDragUpdate: (details) {
+                if (details.primaryDelta! > 10) {
+                  _toggleMenu();
+                }
+              },
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -781,7 +852,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Design a new habit for yourself',
               AppTheme.primaryColor,
               () {
-                Navigator.pop(context);
+                _toggleMenu();
                 context.push('/ritual/create');
               },
             ),
@@ -792,7 +863,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Browse all existing rituals',
               Colors.orange,
               () {
-                Navigator.pop(context);
+                _toggleMenu();
                 context.push('/rituals');
               },
             ),
@@ -803,7 +874,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Join a ritual with an invite code',
               Colors.green,
               () {
-                Navigator.pop(context);
+                _toggleMenu();
                 context.push('/join-ritual');
               },
             ),
@@ -814,8 +885,8 @@ class _HomeScreenState extends State<HomeScreen> {
               'Chat with your personal AI guide',
               Colors.purpleAccent,
               () {
-                Navigator.pop(context);
-                context.push('/chat');
+                _toggleMenu();
+                context.push('/coming-soon');
               },
             ),
           ],
@@ -882,6 +953,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildFloatingButton() {
+    return GestureDetector(
+      onTap: _toggleMenu,
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF00D2FF), Color(0xFF007ADF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: SizedBox(
+            width: 45,
+            height: 45,
+            child: Image.asset(
+              'assets/icon/app_icon.png',
+              color: Colors.white,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomNav(BuildContext context) {
     return Container(
       height: 90,
@@ -889,51 +996,18 @@ class _HomeScreenState extends State<HomeScreen> {
         color: AppTheme.darkBackground1,
         border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
       ),
-      child: Stack(
-        alignment: Alignment.topCenter,
-        clipBehavior: Clip.none,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.grid_view_rounded, 'Home', true, () {}),
-                _buildNavItem(Icons.people_alt_rounded, 'Social', false, () => context.push('/friends')),
-                const SizedBox(width: 60), // Space for FAB
-                _buildNavItem(Icons.bar_chart_rounded, 'Stats', false, () => context.push('/stats')),
-                _buildNavItem(Icons.person_rounded, 'Profile', false, () => context.push('/profile')),
-              ],
-            ),
-          ),
-          // Floating Center Button with Glow
-          Positioned(
-            top: -25,
-            child: GestureDetector(
-              onTap: () => _showActionMenu(context),
-              child: Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00D2FF), Color(0xFF007ADF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00D2FF).withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.add, color: Colors.white, size: 32),
-              ),
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.grid_view_rounded, 'Home', true, () {}),
+            _buildNavItem(Icons.people_alt_rounded, 'Social', false, () => context.push('/friends')),
+            const SizedBox(width: 60), // Space for FAB
+            _buildNavItem(Icons.bar_chart_rounded, 'Stats', false, () => context.push('/stats')),
+            _buildNavItem(Icons.person_rounded, 'Profile', false, () => context.push('/profile')),
+          ],
+        ),
       ),
     );
   }
@@ -1022,23 +1096,19 @@ class _HomeScreenState extends State<HomeScreen> {
     if (profile == null) return '0 / 100 XP';
     
     final currentXp = profile.xp;
-    // Backend verisinde 'xpForNextLevel' bazen şimdiki seviyenin BAŞLANGIÇ değerini dönüyor olabilir.
-    // Örnek: XP=260, Next=240, Progress=20%.
-    // Bu durumda Next(240) aslında Base.
-    // Hesap: (260 - 240) = 20. TotalDelta = 20 / 0.20 = 100. RealTarget = 240 + 100 = 340.
-    
     int targetXp = profile.xpForNextLevel;
 
+    // Backend calculation logic refinement
     if (currentXp >= targetXp) {
-       final percent = profile.xpProgressPercent / 100.0;
+       final double percent = profile.xpProgressPercent / 100.0;
        if (percent > 0.01 && percent < 0.99) {
-          final levelStart = targetXp; // Misnamed field assumption
-          final currentDelta = currentXp - levelStart;
-          final totalDelta = (currentDelta / percent).round();
+          final int levelStart = targetXp; 
+          final int currentDelta = currentXp - levelStart;
+          final int totalDelta = (currentDelta / percent).round();
           targetXp = levelStart + totalDelta;
-       } else {
-          // Hesaplayamıyorsak sadece XP göster, kafa karıştırma
-          return '$currentXp XP';
+       } else if (currentXp >= targetXp) {
+          // If we can't calculate a future target, just show current/base
+          return '$currentXp / $targetXp XP';
        }
     }
     
