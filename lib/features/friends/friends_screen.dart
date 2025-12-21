@@ -252,7 +252,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-            onPressed: () => context.go('/profile'),
+            onPressed: () => context.pop(),
           ),
           const Expanded(
             child: Center(
