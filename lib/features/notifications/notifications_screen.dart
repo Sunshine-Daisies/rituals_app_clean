@@ -67,8 +67,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tüm bildirimler okundu olarak işaretlendi'),
-          backgroundColor: AppTheme.successColor,
+          content: Text('All notifications marked as read'),
+          backgroundColor: Colors.teal,
         ),
       );
       _loadNotifications();
@@ -86,18 +86,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
-        title: const Text('Tümünü Sil?'),
-        content: const Text('Tüm bildirimlerin silinecek. Bu işlem geri alınamaz.'),
+        backgroundColor: AppTheme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete All?', style: TextStyle(color: Colors.white)),
+        content: const Text('All your notifications will be deleted. This action cannot be undone.', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Sil'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -108,8 +109,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Tüm bildirimler silindi'),
-            backgroundColor: AppTheme.successColor,
+            content: Text('All notifications deleted'),
+            backgroundColor: AppTheme.errorColor,
           ),
         );
         _loadNotifications();
@@ -123,8 +124,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Partner isteği kabul edildi!'),
-            backgroundColor: AppTheme.successColor,
+            content: Text('Partner request accepted!'),
+            backgroundColor: Colors.teal,
           ),
         );
         _markAsRead(notificationId);
@@ -134,7 +135,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: ${e.toString()}'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -148,7 +149,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Partner isteği reddedildi'),
+            content: Text('Partner request rejected'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -159,7 +160,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: ${e.toString()}'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -169,66 +170,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   IconData _getNotificationIcon(String type) {
     switch (type) {
-      case 'friend_request':
-        return Icons.person_add;
-      case 'friend_accepted':
-        return Icons.people;
-      case 'badge_earned':
-        return Icons.emoji_events;
-      case 'level_up':
-        return Icons.upgrade;
-      case 'streak_milestone':
-        return Icons.local_fire_department;
-      case 'partner_completed':
-        return Icons.check_circle;
-      case 'both_completed':
-        return Icons.celebration;
-      case 'partner_streak_record':
-        return Icons.emoji_events;
-      case 'partner_missed':
-        return Icons.warning;
-      case 'freeze_used':
-        return Icons.ac_unit;
-      case 'ritual_invite':
-        return Icons.group_add;
-      case 'partner_accepted':
-        return Icons.handshake;
-      case 'partner_left':
-        return Icons.person_remove;
-      default:
-        return Icons.notifications;
+      case 'friend_request': return Icons.person_add;
+      case 'friend_accepted': return Icons.people;
+      case 'badge_earned': return Icons.emoji_events;
+      case 'level_up': return Icons.upgrade;
+      case 'streak_milestone': return Icons.local_fire_department;
+      case 'partner_completed': return Icons.check_circle;
+      case 'both_completed': return Icons.celebration;
+      case 'partner_streak_record': return Icons.emoji_events;
+      case 'partner_missed': return Icons.warning;
+      case 'freeze_used': return Icons.ac_unit;
+      case 'ritual_invite': return Icons.group_add;
+      case 'partner_accepted': return Icons.handshake;
+      case 'partner_left': return Icons.person_remove;
+      default: return Icons.notifications;
     }
   }
 
   Color _getNotificationColor(String type) {
     switch (type) {
       case 'friend_request':
-      case 'friend_accepted':
-        return AppTheme.primaryColor;
-      case 'badge_earned':
-        return Colors.amber;
-      case 'level_up':
-        return Colors.purple;
-      case 'streak_milestone':
-        return Colors.orange;
-      case 'partner_completed':
-        return AppTheme.successColor;
-      case 'both_completed':
-        return Colors.deepOrange;
-      case 'partner_streak_record':
-        return Colors.amber;
-      case 'partner_missed':
-        return AppTheme.errorColor;
-      case 'freeze_used':
-        return Colors.lightBlue;
-      case 'ritual_invite':
-        return Colors.teal;
-      case 'partner_accepted':
-        return AppTheme.successColor;
-      case 'partner_left':
-        return Colors.grey;
-      default:
-        return AppTheme.textSecondary;
+      case 'friend_accepted': return Colors.blue;
+      case 'badge_earned': return Colors.amber;
+      case 'level_up': return Colors.purple;
+      case 'streak_milestone': return Colors.orange;
+      case 'partner_completed': return Colors.teal;
+      case 'both_completed': return Colors.deepOrange;
+      case 'partner_streak_record': return Colors.amber;
+      case 'partner_missed': return AppTheme.errorColor;
+      case 'freeze_used': return Colors.cyan;
+      case 'ritual_invite': return Colors.teal;
+      case 'partner_accepted': return Colors.teal;
+      case 'partner_left': return Colors.grey;
+      default: return Colors.blueGrey;
     }
   }
 
@@ -242,222 +216,179 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+      backgroundColor: AppTheme.darkBackground1,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          onPressed: () => context.pop(),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Custom App Bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spacingL,
-                  AppTheme.spacingM,
-                  AppTheme.spacingL,
-                  AppTheme.spacingS,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                        boxShadow: AppTheme.cardShadow,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
-                        onPressed: () => context.go('/home'),
-                        tooltip: 'Geri',
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.spacingM),
-                    Expanded(
-                      child: Text(
-                        'Bildirimler',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ),
-                    // Mark All Read Button
-                    if (_unreadCount > 0) ...[
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                          boxShadow: AppTheme.cardShadow,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.done_all, color: AppTheme.primaryColor, size: 20),
-                          onPressed: _markAllAsRead,
-                          tooltip: 'Tümünü Okundu İşaretle',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    
-                    // Delete All Button
-                    if (_notifications.isNotEmpty)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                          boxShadow: AppTheme.cardShadow,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.delete_sweep, color: AppTheme.errorColor, size: 20),
-                          onPressed: _deleteAllNotifications,
-                          tooltip: 'Tümünü Sil',
-                        ),
-                      ),
-                  ],
-                ),
+        centerTitle: true,
+        title: const Text(
+          'Notifications',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        actions: [
+          if (_unreadCount > 0)
+            IconButton(
+              icon: const Icon(Icons.done_all, color: Colors.cyan, size: 22),
+              onPressed: _markAllAsRead,
+              tooltip: 'Tümünü Oku',
+            ),
+          if (_notifications.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor, size: 22),
+              onPressed: _deleteAllNotifications,
+              tooltip: 'Temizle',
+            ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 10),
+          
+          // Filter Tabs
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
+              child: Row(
+                children: [
+                  _buildFilterTab('All', 'all'),
+                  _buildFilterTab('Unread', 'unread', count: _unreadCount),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Notifications List
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.cyan))
+                : _filteredNotifications.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        onRefresh: _loadNotifications,
+                        color: Colors.cyan,
+                        backgroundColor: AppTheme.cardColor,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                          itemCount: _filteredNotifications.length,
+                          itemBuilder: (context, index) {
+                            final notification = _filteredNotifications[index];
+                            return _NotificationCard(
+                              notification: notification,
+                              icon: _getNotificationIcon(notification.type),
+                              iconColor: _getNotificationColor(notification.type),
+                              onTap: () => _markAsRead(notification.id),
+                              onDismiss: () => _deleteNotification(notification.id),
+                              onAcceptPartner: notification.type == 'ritual_invite' 
+                                ? () {
+                                    final partnerId = notification.data?['partner_id']?.toString();
+                                    if (partnerId != null) {
+                                      _acceptPartnerRequest(notification.id, partnerId);
+                                    }
+                                  }
+                                : null,
+                              onRejectPartner: notification.type == 'ritual_invite'
+                                ? () {
+                                    final partnerId = notification.data?['partner_id']?.toString();
+                                    if (partnerId != null) {
+                                      _rejectPartnerRequest(notification.id, partnerId);
+                                    }
+                                  }
+                                : null,
+                            );
+                          },
+                        ),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              // Filter Tabs
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL, vertical: AppTheme.spacingS),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: AppTheme.cardShadow,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _filter = 'all'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _filter == 'all' ? AppTheme.primaryColor : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Tümü',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _filter == 'all' ? Colors.white : AppTheme.textSecondary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _filter = 'unread'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _filter == 'unread' ? AppTheme.primaryColor : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Okunmamış',
-                                  style: TextStyle(
-                                    color: _filter == 'unread' ? Colors.white : AppTheme.textSecondary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                if (_unreadCount > 0) ...[
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: _filter == 'unread' ? Colors.white : AppTheme.primaryColor,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '$_unreadCount',
-                                      style: TextStyle(
-                                        color: _filter == 'unread' ? AppTheme.primaryColor : Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+  Widget _buildFilterTab(String title, String type, {int count = 0}) {
+    final isSelected = _filter == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _filter = type),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.cyan : Colors.transparent,
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? Colors.black : Colors.white60,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
-              
-              // Notifications List
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _filteredNotifications.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  _filter == 'unread' ? Icons.mark_email_read_outlined : Icons.notifications_off_outlined,
-                                  size: 80,
-                                  color: AppTheme.textSecondary.withOpacity(0.5),
-                                ),
-                                const SizedBox(height: AppTheme.spacingM),
-                                Text(
-                                  _filter == 'unread' ? 'Okunmamış bildirim yok' : 'Bildirim yok',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _loadNotifications,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                              itemCount: _filteredNotifications.length,
-                              itemBuilder: (context, index) {
-                                final notification = _filteredNotifications[index];
-                                return _NotificationCard(
-                                  notification: notification,
-                                  icon: _getNotificationIcon(notification.type),
-                                  iconColor: _getNotificationColor(notification.type),
-                                  onTap: () => _markAsRead(notification.id),
-                                  onDismiss: () => _deleteNotification(notification.id),
-                                  onAcceptPartner: notification.type == 'ritual_invite' 
-                                    ? () {
-                                        final partnerId = notification.data?['partner_id']?.toString();
-                                        if (partnerId != null) {
-                                          _acceptPartnerRequest(notification.id, partnerId);
-                                        }
-                                      }
-                                    : null,
-                                  onRejectPartner: notification.type == 'ritual_invite'
-                                    ? () {
-                                        final partnerId = notification.data?['partner_id']?.toString();
-                                        if (partnerId != null) {
-                                          _rejectPartnerRequest(notification.id, partnerId);
-                                        }
-                                      }
-                                    : null,
-                                );
-                              },
-                            ),
-                          ),
-              ),
+              if (count > 0 && !isSelected) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.cyan.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: const TextStyle(color: Colors.cyan, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: Icon(
+              _filter == 'unread' ? Icons.mark_email_read_outlined : Icons.notifications_none_rounded,
+              size: 50,
+              color: Colors.white24,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            _filter == 'unread' ? "You've read all notifications!" : 'No notifications yet',
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _filter == 'unread' ? "You're doing great." : 'New updates will appear here.',
+            style: const TextStyle(color: Colors.white54, fontSize: 14),
+          ),
+        ],
       ),
     );
   }
@@ -489,13 +420,13 @@ class _NotificationCard extends StatelessWidget {
     if (difference.inDays > 7) {
       return '${date.day}.${date.month}.${date.year}';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} gün önce';
+      return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} saat önce';
+      return '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} dk önce';
+      return '${difference.inMinutes}m ago';
     } else {
-      return 'Az önce';
+      return 'Just now';
     }
   }
 
@@ -505,126 +436,130 @@ class _NotificationCard extends StatelessWidget {
       key: Key('notification_${notification.id}'),
       direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: AppTheme.errorColor,
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          color: AppTheme.errorColor.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(20),
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppTheme.spacingL),
-        child: const Icon(Icons.delete, color: Colors.white),
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
       onDismissed: (_) => onDismiss(),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: notification.isRead 
-                ? AppTheme.surfaceColor 
-                : AppTheme.primaryColor.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(AppTheme.radiusM),
-            boxShadow: AppTheme.cardShadow,
-            border: notification.isRead 
-                ? null 
-                : Border.all(
-                    color: AppTheme.primaryColor.withOpacity(0.2),
-                    width: 1,
-                  ),
+            color: AppTheme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: notification.isRead ? Colors.white.withValues(alpha: 0.05) : Colors.cyan.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
-          child: ListTile(
-            leading: Stack(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: iconColor, size: 24),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icon with circular background
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
                 ),
-                if (!notification.isRead)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            title: Text(
-              notification.title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-                color: AppTheme.textPrimary,
+                child: Icon(icon, color: iconColor, size: 24),
               ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  notification.body,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _formatTimeAgo(notification.createdAt),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary.withOpacity(0.7),
-                    fontSize: 11,
-                  ),
-                ),
-                // Partner request action buttons
-                if (notification.type == 'ritual_invite' && !notification.isRead && onAcceptPartner != null && onRejectPartner != null) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onRejectPartner,
-                          icon: const Icon(Icons.close, size: 16),
-                          label: const Text('Reddet'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.errorColor,
-                            side: const BorderSide(color: AppTheme.errorColor),
-                            padding: const EdgeInsets.symmetric(vertical: 6),
+              const SizedBox(width: 16),
+              
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
+                        Text(
+                          _formatTimeAgo(notification.createdAt),
+                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      notification.body,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 13,
+                        height: 1.4,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: onAcceptPartner,
-                          icon: const Icon(Icons.check, size: 16),
-                          label: const Text('Kabul Et'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.successColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 6),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    
+                    // Partner request actions
+                    if (notification.type == 'ritual_invite' && !notification.isRead && onAcceptPartner != null && onRejectPartner != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _buildActionButton(
+                            'Reject', 
+                            onRejectPartner!, 
+                            isPrimary: false, 
+                            color: AppTheme.errorColor
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          _buildActionButton(
+                            'Accept', 
+                            onAcceptPartner!, 
+                            isPrimary: true, 
+                            color: Colors.teal
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-              ],
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingM,
-              vertical: AppTheme.spacingS,
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String label, VoidCallback onPressed, {required bool isPrimary, required Color color}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isPrimary ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: isPrimary ? null : Border.all(color: color.withValues(alpha: 0.5)),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isPrimary ? Colors.white : color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ),
         ),
