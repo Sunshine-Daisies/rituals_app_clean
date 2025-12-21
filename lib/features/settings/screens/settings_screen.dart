@@ -371,26 +371,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            const Color(0xFFE0F7FA).withOpacity(0.1), // Very light cyan tint
-            const Color(0xFF80DEEA).withOpacity(0.2), // Cyan tint
+            Color(0xFF2C5364), // Dark Teal
+            Color(0xFF0F2027), // Deep Dark
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+        border: Border.all(color: Colors.amber.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: Colors.cyan,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.verified, color: Colors.black, size: 20),
+            child: const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -398,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Unlock Rituals Pro',
+                  'Unlock Full Potential',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -407,7 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Get advanced stats, unlimited habits & custom themes.',
+                  'Join the elite club of habit masters.',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 12,
@@ -418,9 +425,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: _togglePremium,
+            onPressed: () => context.push('/premium'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.cyan,
+              backgroundColor: Colors.amber,
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -429,7 +436,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               elevation: 0,
             ),
             child: const Text(
-              'Upgrade',
+              'Unlock',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),

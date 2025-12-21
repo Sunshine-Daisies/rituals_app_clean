@@ -21,6 +21,7 @@ import '../features/common/coming_soon_screen.dart';
 import '../features/profile/public_profile_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/settings/screens/edit_profile_screen.dart';
+import '../features/premium/screens/premium_screen.dart';
 
 import '../services/api_service.dart';
 
@@ -136,6 +137,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/profile/:userId',
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['userId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/premium',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const PremiumScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
         ),
       ),
       GoRoute(

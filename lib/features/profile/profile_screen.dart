@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:flutter/material.dart' hide Badge;
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/gamification_service.dart';
@@ -65,21 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (_) {}
   }
 
-  Future<void> _pickAndUploadImage() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512, imageQuality: 75);
-    if (image == null) return;
 
-    setState(() => _isLoading = true);
-    try {
-      final bytes = await File(image.path).readAsBytes();
-      final base64Image = base64Encode(bytes);
-      await _gamificationService.uploadProfilePicture(base64Image);
-      await _loadData();
-    } catch (_) {
-      setState(() => _isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +152,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () => context.push('/settings'), 
+                      onPressed: () async {
+                        await context.push('/settings');
+                        _loadData();
+                      }, 
                     ),
                   ],
                 ),
@@ -214,45 +202,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Avatar
-        Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
               ),
-              child: CircleAvatar(
-                backgroundImage: user?.avatarUrl != null 
-                    ? NetworkImage(user!.avatarUrl!) 
-                    : null,
-                backgroundColor: Colors.white.withOpacity(0.1),
-                child: user?.avatarUrl == null 
-                    ? const Icon(Icons.person, size: 50, color: Colors.white) 
-                    : null,
-              ),
-            ),
-            GestureDetector(
-              onTap: _pickAndUploadImage,
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.orange,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.edit, size: 16, color: Colors.white),
-              ),
-            ),
-          ],
+            ],
+          ),
+          child: CircleAvatar(
+            backgroundImage: user?.avatarUrl != null 
+                ? NetworkImage(user!.avatarUrl!) 
+                : null,
+            backgroundColor: Colors.white.withOpacity(0.1),
+            child: user?.avatarUrl == null 
+                ? const Icon(Icons.person, size: 50, color: Colors.white) 
+                : null,
+          ),
         ),
         
         const SizedBox(height: 16),

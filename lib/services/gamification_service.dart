@@ -54,7 +54,86 @@ class GamificationService {
     }
   }
 
-  // ... (Other methods)
+  /// Kullanıcı istatistiklerini getir
+  Future<UserStats?> getUserStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/stats'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return UserStats.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user stats: $e');
+      return null;
+    }
+  }
+
+  /// Başka bir kullanıcının profilini getir
+  Future<UserProfile?> getUserProfile(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/profile/$userId'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return UserProfile.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user profile: $e');
+      return null;
+    }
+  }
+
+  /// Profil bilgilerini güncelle (İsim ve Kullanıcı Adı)
+  Future<bool> updateProfile({String? name, String? username}) async {
+    bool success = true;
+
+    // 1. Username Update
+    if (username != null) {
+      try {
+        final response = await http.put(
+          Uri.parse('$_baseUrl/profile/username'),
+          headers: await _getHeaders(),
+          body: json.encode({'username': username}),
+        );
+        if (response.statusCode != 200) {
+          print('Username update failed: ${response.body}');
+          success = false;
+        }
+      } catch (e) {
+        print('Error updating username: $e');
+        success = false;
+      }
+    }
+
+    // 2. Name Update
+    if (name != null) {
+      try {
+        final response = await http.put(
+          Uri.parse('$_baseUrl/profile'),
+          headers: await _getHeaders(),
+          body: json.encode({'name': name}),
+        );
+        if (response.statusCode != 200) {
+          print('Name update failed: ${response.body}');
+          success = false;
+        }
+      } catch (e) {
+        print('Error updating name: $e');
+        success = false;
+      }
+    }
+
+    return success;
+  }
 
   /// Profil fotoğrafını güncelle (base64)
   Future<String?> uploadProfilePicture(String base64Image) async {
