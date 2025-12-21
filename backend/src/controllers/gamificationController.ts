@@ -12,14 +12,14 @@ export const getMyProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     console.log(`Getting profile for user: ${userId}`);
-    
+
     const profile = await xpService.getUserProfile(userId);
     console.log('Profile fetched:', profile ? 'Found' : 'Not Found');
-    
+
     if (!profile) {
       return res.status(404).json({ error: 'Profil bulunamadı' });
     }
-    
+
     // Kazanılan badge'leri de getir
     console.log('Fetching badges...');
     const badgesResult = await pool.query(
@@ -31,7 +31,7 @@ export const getMyProfile = async (req: Request, res: Response) => {
       [userId]
     );
     console.log(`Badges fetched: ${badgesResult.rows.length}`);
-    
+
     res.json({
       ...profile,
       badges: badgesResult.rows,
@@ -49,13 +49,13 @@ export const getMyProfile = async (req: Request, res: Response) => {
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    
+
     const profile = await xpService.getUserProfile(userId);
-    
+
     if (!profile) {
       return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
     }
-    
+
     // Sadece public bilgileri döndür
     const publicProfile = {
       username: profile.username,
@@ -66,7 +66,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
       friends_count: profile.friends_count,
       rituals_count: profile.rituals_count,
     };
-    
+
     // Public badge'leri getir
     const badgesResult = await pool.query(
       `SELECT b.name, b.icon, b.category, ub.earned_at 
@@ -77,7 +77,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
        LIMIT 10`,
       [userId]
     );
-    
+
     res.json({
       ...publicProfile,
       badges: badgesResult.rows,
@@ -93,16 +93,16 @@ export const updateUsername = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { username } = req.body;
-    
+
     if (!username || username.length < 3 || username.length > 30) {
       return res.status(400).json({ error: 'Kullanıcı adı 3-30 karakter arasında olmalı' });
     }
-    
+
     // Sadece harf, rakam ve alt çizgi
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       return res.status(400).json({ error: 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir' });
     }
-    
+
     const updated = await xpService.updateUsername(userId, username);
     res.json(updated);
   } catch (error: any) {
@@ -111,6 +111,79 @@ export const updateUsername = async (req: Request, res: Response) => {
       return res.status(400).json({ error: error.message });
     }
     res.status(500).json({ error: 'Kullanıcı adı güncellenirken hata oluştu' });
+  }
+};
+
+// POST /api/profile/avatar - Avatar Yükle (Base64)
+export const uploadAvatar = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { image } = req.body; // Base64 string
+
+    if (!image) {
+      return res.status(400).json({ error: 'Resim verisi bulunamadı' });
+    }
+
+    // Base64 decode ve dosya kaydetme
+    const fs = require('fs');
+    const path = require('path');
+
+    // Header varsa temizle (data:image/jpeg;base64,...)
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const fileName = `avatar_${userId}_${Date.now()}.jpg`;
+    // Ensure uploads directory exists
+    const uploadDir = path.join(__dirname, '../../public/uploads');
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadDir, fileName);
+
+    fs.writeFileSync(filePath, buffer);
+
+    // URL oluştur (Public klasörü statik servis edilmeli)
+    // PROD URL veya Local URL. Environment variable'dan almak en iyisi.
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+    const avatarUrl = `${baseUrl}/public/uploads/${fileName}`;
+
+    // DB güncelle
+    await pool.query(
+      'UPDATE user_profiles SET avatar_url = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+      [avatarUrl, userId]
+    );
+
+    res.json({ avatar_url: avatarUrl });
+
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    res.status(500).json({ error: 'Avatar yüklenirken hata oluştu' });
+  }
+};
+
+// PUT /api/profile - Genel Profil Güncelleme (İsim vb.)
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Güncellenecek veri yok' });
+    }
+
+    // Name sütununu güncelle
+    await pool.query(
+      'UPDATE user_profiles SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+      [name, userId]
+    );
+
+    res.json({ message: 'Profil güncellendi', name });
+
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Profil güncellenirken hata oluştu' });
   }
 };
 
@@ -123,10 +196,10 @@ export const getLeaderboard = async (req: Request, res: Response) => {
   try {
     const { type = 'global', limit = 100 } = req.query;
     const userId = (req as any).user?.id;
-    
+
     let query = '';
     let params: any[] = [];
-    
+
     if (type === 'friends' && userId) {
       // Arkadaşlar arası sıralama (sadece giriş yapmış kullanıcılar için)
       query = `
@@ -174,9 +247,9 @@ export const getLeaderboard = async (req: Request, res: Response) => {
       `;
       params = [parseInt(limit as string)];
     }
-    
+
     const result = await pool.query(query, params);
-    
+
     // Kullanıcının kendi sırasını da ekle (sadece giriş yapmışsa)
     let myRank = null;
     if (userId) {
@@ -189,7 +262,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
       );
       myRank = myRankResult.rows[0]?.rank || null;
     }
-    
+
     res.json({
       leaderboard: result.rows,
       myRank: myRank,
@@ -208,7 +281,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
 export const getAllBadges = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
-    
+
     // Eğer kullanıcı giriş yapmışsa, önce yeni kazanılan badge'leri kontrol et
     if (userId) {
       await badgeService.checkAndAwardBadges(userId);
@@ -221,7 +294,7 @@ export const getAllBadges = async (req: Request, res: Response) => {
         LEFT JOIN user_badges ub ON ub.badge_id = b.id AND ub.user_id = $1
         ORDER BY b.category, b.requirement_value
       `, [userId]);
-      
+
       res.json(result.rows);
     } else {
       // Giriş yapmamış kullanıcı için sadece badge listesi
@@ -230,7 +303,7 @@ export const getAllBadges = async (req: Request, res: Response) => {
         FROM badges
         ORDER BY category, requirement_value
       `);
-      
+
       res.json(result.rows);
     }
   } catch (error) {
@@ -243,7 +316,7 @@ export const getAllBadges = async (req: Request, res: Response) => {
 export const getMyBadges = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    
+
     const result = await pool.query(`
       SELECT b.*, ub.earned_at
       FROM user_badges ub
@@ -251,7 +324,7 @@ export const getMyBadges = async (req: Request, res: Response) => {
       WHERE ub.user_id = $1
       ORDER BY ub.earned_at DESC
     `, [userId]);
-    
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error getting my badges:', error);
@@ -263,14 +336,14 @@ export const getMyBadges = async (req: Request, res: Response) => {
 export const checkBadges = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    
+
     const result = await badgeService.checkAndAwardBadges(userId);
-    
+
     res.json({
       success: true,
       newBadges: result.newBadges,
-      message: result.newBadges.length > 0 
-        ? `${result.newBadges.length} yeni rozet kazandın!` 
+      message: result.newBadges.length > 0
+        ? `${result.newBadges.length} yeni rozet kazandın!`
         : 'Yeni rozet kazanılmadı',
     });
   } catch (error) {
@@ -283,9 +356,9 @@ export const checkBadges = async (req: Request, res: Response) => {
 export const getBadgeProgress = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    
+
     const progress = await badgeService.getUserBadgeProgress(userId);
-    
+
     res.json({
       success: true,
       progress,
@@ -305,13 +378,13 @@ export const useFreeze = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { partnershipId } = req.body;
-    
+
     const result = await badgeService.useFreeze(userId, partnershipId);
-    
+
     if (!result.success) {
       return res.status(400).json({ error: result.message });
     }
-    
+
     res.json(result);
   } catch (error) {
     console.error('Error using freeze:', error);
@@ -324,35 +397,35 @@ export const buyFreeze = async (req: Request, res: Response) => {
   const client = await pool.connect();
   const FREEZE_COST = 50; // 50 coin = 1 freeze
   const MAX_FREEZE = 5;
-  
+
   try {
     const userId = (req as any).user.id;
-    
+
     await client.query('BEGIN');
-    
+
     // Mevcut durumu kontrol et
     const profileResult = await client.query(
       'SELECT coins, freeze_count FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    
+
     if (profileResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Profil bulunamadı' });
     }
-    
+
     const { coins, freeze_count } = profileResult.rows[0];
-    
+
     if (freeze_count >= MAX_FREEZE) {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: `Maksimum ${MAX_FREEZE} freeze hakkına sahip olabilirsiniz` });
     }
-    
+
     if (coins < FREEZE_COST) {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: `Yeterli coin yok. Gereken: ${FREEZE_COST}, Mevcut: ${coins}` });
     }
-    
+
     // Satın al
     await client.query(
       `UPDATE user_profiles 
@@ -362,17 +435,17 @@ export const buyFreeze = async (req: Request, res: Response) => {
        WHERE user_id = $2`,
       [FREEZE_COST, userId]
     );
-    
+
     // Coin geçmişine ekle
     await client.query(
       'INSERT INTO coin_history (user_id, amount, source) VALUES ($1, $2, $3)',
       [userId, -FREEZE_COST, 'freeze_purchase']
     );
-    
+
     await client.query('COMMIT');
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: 'Freeze satın alındı!',
       newFreezeCount: freeze_count + 1,
       newCoinBalance: coins - FREEZE_COST,
@@ -395,26 +468,26 @@ export const getNotifications = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { limit = 50, unreadOnly = false } = req.query;
-    
+
     let query = `
       SELECT * FROM notifications 
       WHERE user_id = $1
     `;
-    
+
     if (unreadOnly === 'true') {
       query += ' AND is_read = FALSE';
     }
-    
+
     query += ' ORDER BY created_at DESC LIMIT $2';
-    
+
     const result = await pool.query(query, [userId, parseInt(limit as string)]);
-    
+
     // Okunmamış sayısını da döndür
     const unreadCountResult = await pool.query(
       'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = FALSE',
       [userId]
     );
-    
+
     res.json({
       notifications: result.rows,
       unreadCount: parseInt(unreadCountResult.rows[0].count),
@@ -430,12 +503,12 @@ export const markNotificationRead = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { id } = req.params;
-    
+
     await pool.query(
       'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2',
       [id, userId]
     );
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error marking notification read:', error);
@@ -447,12 +520,12 @@ export const markNotificationRead = async (req: Request, res: Response) => {
 export const markAllNotificationsRead = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    
+
     await pool.query(
       'UPDATE notifications SET is_read = TRUE WHERE user_id = $1 AND is_read = FALSE',
       [userId]
     );
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error marking all notifications read:', error);
@@ -465,12 +538,12 @@ export const deleteNotification = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { id } = req.params;
-    
+
     await pool.query(
       'DELETE FROM notifications WHERE id = $1 AND user_id = $2',
       [id, userId]
     );
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting notification:', error);
@@ -482,12 +555,12 @@ export const deleteNotification = async (req: Request, res: Response) => {
 export const deleteAllNotifications = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    
+
     await pool.query(
       'DELETE FROM notifications WHERE user_id = $1',
       [userId]
     );
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting all notifications:', error);
@@ -504,11 +577,11 @@ export const searchUsers = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { q, limit = 20 } = req.query;
-    
+
     if (!q || (q as string).length < 2) {
       return res.status(400).json({ error: 'Arama terimi en az 2 karakter olmalı' });
     }
-    
+
     const result = await pool.query(`
       SELECT up.user_id, up.username, up.level, up.xp,
              CASE 
@@ -527,7 +600,7 @@ export const searchUsers = async (req: Request, res: Response) => {
       ORDER BY up.level DESC, up.username
       LIMIT $3
     `, [userId, `%${q}%`, parseInt(limit as string)]);
-    
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error searching users:', error);
@@ -544,7 +617,7 @@ export const buyCoins = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { amount, cost } = req.body;
-    
+
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'Geçersiz miktar' });
     }
@@ -554,7 +627,7 @@ export const buyCoins = async (req: Request, res: Response) => {
       'UPDATE user_profiles SET coins = coins + $1 WHERE user_id = $2',
       [amount, userId]
     );
-    
+
     // İşlem geçmişine ekle (Opsiyonel, şimdilik logluyoruz)
     console.log(`User ${userId} bought ${amount} coins for ${cost}`);
 
@@ -563,11 +636,11 @@ export const buyCoins = async (req: Request, res: Response) => {
       'SELECT coins FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       newBalance: result.rows[0].coins,
-      message: `${amount} coin başarıyla satın alındı!` 
+      message: `${amount} coin başarıyla satın alındı!`
     });
   } catch (error) {
     console.error('Error buying coins:', error);
@@ -583,7 +656,7 @@ export const buyCoins = async (req: Request, res: Response) => {
 export const getUserStats = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    
+
     // 1. Temel İstatistikler (Toplam Ritüel, Tamamlananlar, Streak)
     const basicStats = await pool.query(`
       SELECT 

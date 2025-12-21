@@ -82,9 +82,15 @@ export const runMigrations = async () => {
         current_streak INTEGER DEFAULT 0,
         last_freeze_used TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        avatar_url TEXT,
+        name VARCHAR(100)
       );
     `);
+
+    // Add missing columns to user_profiles (Migration)
+    await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
+    await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS name VARCHAR(100);`);
 
     // friendships
     await client.query(`

@@ -205,6 +205,64 @@ router.get('/profile/:userId', gamificationController.getUserProfile);
  */
 router.put('/profile/username', gamificationController.updateUsername);
 
+/**
+ * @swagger
+ * /profile/avatar:
+ *   post:
+ *     summary: Upload profile avatar
+ *     description: Upload a new profile picture (Base64 encoded).
+ *     tags: [Profile]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 description: Base64 encoded image string
+ *     responses:
+ *       200:
+ *         description: Avatar uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 avatar_url:
+ *                   type: string
+ *       500:
+ *         description: Server error
+ */
+router.post('/profile/avatar', gamificationController.uploadAvatar);
+
+/**
+ * @swagger
+ * /profile:
+ *   put:
+ *     summary: Update profile details
+ *     description: Update general profile information (e.g. name).
+ *     tags: [Profile]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       500:
+ *         description: Server error
+ */
+router.put('/profile', gamificationController.updateProfile);
+
 // ============================================
 // FRIENDS ROUTES
 // ============================================
