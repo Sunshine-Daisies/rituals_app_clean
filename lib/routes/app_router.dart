@@ -19,6 +19,8 @@ import '../features/notifications/notifications_screen.dart';
 import '../features/sharing/join_ritual_screen.dart';
 import '../features/common/coming_soon_screen.dart';
 import '../features/profile/public_profile_screen.dart';
+import '../features/settings/screens/settings_screen.dart';
+import '../features/settings/screens/edit_profile_screen.dart';
 
 import '../services/api_service.dart';
 
@@ -134,6 +136,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/profile/:userId',
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['userId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+        routes: [
+           GoRoute(
+            path: 'edit-profile',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
+        ],
+        // Transition animation can be customized if needed
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const SettingsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
         ),
       ),
     ],

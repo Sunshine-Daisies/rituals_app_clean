@@ -137,12 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Achievements
                 _buildAchievementsSection(_badges),
                 
-                const SizedBox(height: 32),
-                
-                // Settings
-                _buildSettingsSection(),
-                
-                const SizedBox(height: 48),
+                const SizedBox(height: 48), // Bottom spacing
               ],
             ),
           ),
@@ -172,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () => {}, 
+                      onPressed: () => context.push('/settings'), 
                     ),
                   ],
                 ),
@@ -615,56 +610,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
   
-  // Settings / Logout Section reused purely functionally
-  Widget _buildSettingsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.cardColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.star, color: Colors.amber),
-              title: const Text('Premium Plan', style: TextStyle(color: Colors.white)),
-              subtitle: Text(
-                _profile?.isPremium == true ? 'Active' : 'Get more features',
-                style: TextStyle(color: Colors.white.withOpacity(0.5)),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
-              onTap: _togglePremiumStatus,
-            ),
-             Divider(height: 1, color: Colors.white.withOpacity(0.1)),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text('Log Out', style: TextStyle(color: Colors.redAccent)),
-              onTap: () => _logout(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   String _formatDate(DateTime date) {
-    // Simple date formatter to avoid intl dependency if not present, or use it if available.
-    // Assuming intl might not be ready, simple implementation:
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${months[date.month - 1]} ${date.day}';
-  }
-
-   Future<void> _togglePremiumStatus() async {
-    // Reusing existing logic...
-    setState(() => _isLoading = true);
-    try {
-      await AuthService.togglePremium();
-      await _loadData();
-    } catch (_) {
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
   }
 }
 
