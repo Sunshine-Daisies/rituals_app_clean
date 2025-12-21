@@ -848,6 +848,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
             const SizedBox(height: 32),
             _buildActionItem(
+              Icons.psychology_outlined,
+              'AI Wellness Assistant',
+              'Chat with your personal AI guide',
+              Colors.orange,
+              () {
+                _toggleMenu();
+                context.push('/llm-chat');
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildActionItem(
               Icons.add_circle_outline,
               'Create New Ritual',
               'Design a new habit for yourself',
@@ -862,7 +873,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               Icons.explore_outlined,
               'Explore Rituals',
               'Browse all existing rituals',
-              Colors.orange,
+              Colors.blueAccent,
               () {
                 _toggleMenu();
                 context.push('/rituals');
@@ -877,17 +888,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               () {
                 _toggleMenu();
                 context.push('/join-ritual');
-              },
-            ),
-            const SizedBox(height: 16),
-            _buildActionItem(
-              Icons.psychology_outlined,
-              'AI Wellness Assistant',
-              'Chat with your personal AI guide',
-              Colors.purpleAccent,
-              () {
-                _toggleMenu();
-                context.push('/coming-soon');
               },
             ),
           ],
