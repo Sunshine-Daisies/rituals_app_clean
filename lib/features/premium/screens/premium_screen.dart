@@ -23,9 +23,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF2C5364), // Dark Teal/Grey
+                  Color(0xFF2C5364),
                   Color(0xFF203A43),
-                  Color(0xFF0F2027), // Deep Dark
+                  Color(0xFF0F2027),
                 ],
               ),
             ),
@@ -64,7 +64,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       const Icon(
                         Icons.emoji_events_rounded,
                         size: 160,
-                        color: Color(0xFFFFD700), // Gold
+                        color: Color(0xFFFFD700),
                       ),
                       Positioned(top: 20, right: 20, child: _buildParticle(Colors.cyanAccent, 10)),
                       Positioned(bottom: 30, left: 20, child: _buildParticle(Colors.amber, 8)),
@@ -75,7 +75,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 
                 const SizedBox(height: 24),
                 
-                // Title
                 const Text(
                   'Unlock Your Full\nPotential',
                   textAlign: TextAlign.center,
@@ -89,7 +88,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 
                 const SizedBox(height: 12),
                 
-                // Subtitle
                 Text(
                   'Join the elite club of habit masters.',
                   textAlign: TextAlign.center,
@@ -102,7 +100,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 
                 const SizedBox(height: 24),
                 
-                // Social Proof
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                   decoration: BoxDecoration(
@@ -126,7 +123,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 
                 const SizedBox(height: 32),
                 
-                // Features List
                 _buildFeatureTile(Icons.all_inclusive, 'Unlimited Habits', 'Track as many rituals as you want'),
                 _buildFeatureTile(Icons.bar_chart, 'Advanced Insights', 'Deep dive into your progress stats'),
                 _buildFeatureTile(Icons.palette, 'Exclusive Themes', 'Customize your app experience'),
@@ -134,7 +130,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 
                 const SizedBox(height: 32),
                 
-                // Pricing Options
                 _buildPricingOption(
                   index: 0,
                   title: 'Yearly',
@@ -152,7 +147,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
                 const SizedBox(height: 24),
                 
-                // CTA Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -176,7 +170,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 
                 const SizedBox(height: 16),
                 
-                // Legal Footer
                 Text(
                   'Recurring billing, cancel anytime. Trial converts to a yearly subscription of \$39.99 unless canceled at least 24 hours before the trial ends.',
                   textAlign: TextAlign.center,
@@ -196,7 +189,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
             ),
           ),
 
-          // Close Button (On top of everything)
           Positioned(
             top: 50,
             right: 20,
@@ -310,7 +302,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
             ),
             child: Row(
               children: [
-                // Radio Circle
                 Container(
                   width: 24,
                   height: 24,

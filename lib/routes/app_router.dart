@@ -22,6 +22,7 @@ import '../features/profile/public_profile_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/settings/screens/edit_profile_screen.dart';
 import '../features/premium/screens/premium_screen.dart';
+import '../features/help/screens/help_support_screen.dart';
 
 import '../services/api_service.dart';
 
@@ -155,6 +156,10 @@ final routerProvider = Provider<GoRouter>((ref) {
            GoRoute(
             path: 'edit-profile',
             builder: (context, state) => const EditProfileScreen(),
+          ),
+          GoRoute(
+            path: 'help',
+            builder: (context, state) => const HelpSupportScreen(),
           ),
         ],
         // Transition animation can be customized if needed

@@ -261,8 +261,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsTile(
                 icon: Icons.help,
                 title: 'Help Center',
-                trailing: Icon(Icons.open_in_new, size: 18, color: Colors.white.withOpacity(0.5)),
-                onTap: () {},
+                trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white.withOpacity(0.5)),
+                onTap: () => context.push('/settings/help'),
               ),
               _buildSettingsTile(
                 icon: Icons.info,
