@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../services/partnership_service.dart';
-import '../../../../theme/app_theme.dart';
+import 'package:rituals_app/services/partnership_service.dart';
+import 'package:rituals_app/theme/app_theme.dart';
 
 class PartnerInfoCard extends StatelessWidget {
   final PartnershipInfo info;

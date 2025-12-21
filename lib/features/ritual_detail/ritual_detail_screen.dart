@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/models/ritual.dart';
-import '../../services/rituals_service.dart';
-import '../../services/partnership_service.dart';
-import '../../theme/app_theme.dart';
-import '../sharing/share_ritual_dialog.dart';
-import 'widgets/partner_info_card.dart';
-import 'widgets/ritual_steps_card.dart';
+import 'package:rituals_app/data/models/ritual.dart';
+import 'package:rituals_app/services/rituals_service.dart';
+import 'package:rituals_app/services/partnership_service.dart';
+import 'package:rituals_app/theme/app_theme.dart';
+import 'package:rituals_app/features/sharing/share_ritual_dialog.dart';
+import 'package:rituals_app/features/ritual_detail/widgets/partner_info_card.dart';
+import 'package:rituals_app/features/ritual_detail/widgets/ritual_steps_card.dart';
 
 class RitualDetailScreen extends StatefulWidget {
   final String ritualId;

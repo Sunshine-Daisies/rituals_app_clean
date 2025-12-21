@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/models/ritual.dart';
-import '../../data/models/sharing_models.dart';
-import '../../services/rituals_service.dart';
-import '../../services/sharing_service.dart';
-import '../../services/partnership_service.dart';
-import '../../theme/app_theme.dart';
-import 'widgets/ritual_card.dart';
-import 'widgets/partner_ritual_card.dart';
+import 'package:rituals_app/data/models/ritual.dart';
+import 'package:rituals_app/data/models/sharing_models.dart';
+import 'package:rituals_app/services/rituals_service.dart';
+import 'package:rituals_app/services/sharing_service.dart';
+import 'package:rituals_app/services/partnership_service.dart';
+import 'package:rituals_app/theme/app_theme.dart';
+import 'package:rituals_app/features/rituals/widgets/ritual_card.dart';
+import 'package:rituals_app/features/rituals/widgets/partner_ritual_card.dart';
 
 class RitualsListScreen extends StatefulWidget {
   const RitualsListScreen({super.key});

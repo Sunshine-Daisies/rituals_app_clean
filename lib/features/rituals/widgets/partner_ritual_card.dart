@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../data/models/sharing_models.dart';
-import '../../../../theme/app_theme.dart';
+import 'package:rituals_app/data/models/sharing_models.dart';
+import 'package:rituals_app/theme/app_theme.dart';
 
 class PartnerRitualCard extends StatefulWidget {
   final SharedRitual ritual;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../data/models/ritual.dart';
-import '../../../../theme/app_theme.dart';
+import 'package:rituals_app/data/models/ritual.dart';
+import 'package:rituals_app/theme/app_theme.dart';
 
 class RitualCard extends StatefulWidget {
   final Ritual ritual;

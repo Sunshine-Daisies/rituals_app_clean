@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/app_theme.dart';
+import 'package:rituals_app/theme/app_theme.dart';
 
 class RitualStepsCard extends StatelessWidget {
   final List<String> steps;

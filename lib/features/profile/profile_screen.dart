@@ -1,4 +1,4 @@
-import 'dart:convert';
+
 
 import 'package:flutter/material.dart' hide Badge;
 import 'package:go_router/go_router.dart';
@@ -57,12 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _logout(BuildContext context) async {
-    try {
-      await AuthService.logout();
-      if (context.mounted) context.go('/auth');
-    } catch (_) {}
-  }
+
 
 
 
@@ -103,21 +98,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     _buildCurvedBackground(),
                     Padding(
-                      padding: const EdgeInsets.only(top: 110, bottom: 80), // Increased top spacing
+                      padding: const EdgeInsets.only(top: 110, bottom: 140), // Increased top and bottom spacing
                       child: _buildProfileHeaderInfo(
                         user, username, userHandle, level, levelTitle, currentXp, nextLevelThreshold, xpNeeded, progress
                       ),
                     ),
                     Positioned(
-                      bottom: -40,
+                      bottom: -80, // Moved lower to accommodate two cards
                       left: 0,
                       right: 0,
-                      child: _buildFloatingStats(streak, ritualCount, earnedBadges.length),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildFloatingStats(streak, ritualCount, earnedBadges.length),
+                          const SizedBox(height: 12),
+                          _buildCurrencyCard(user?.coins ?? 0, user?.freezeCount ?? 0),
+                        ],
+                      ),
                     ),
                   ],
                 ),
                 
-                const SizedBox(height: 60), // Spacer for overlapping card
+                const SizedBox(height: 90), // Adjusted spacer
                 
                 // Achievements
                 _buildAchievementsSection(_badges),
@@ -150,12 +152,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () async {
-                        await context.push('/settings');
-                        _loadData();
-                      }, 
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.settings, color: Colors.white, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () async {
+                            await context.push('/settings');
+                            _loadData();
+                          }, 
+                        ),
+                        const SizedBox(height: 8),
+                        IconButton(
+                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => _showShopDialog(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -298,6 +315,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCurrencyCard(int coins, int freezes) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40), // Narrower card
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildBalanceItem(
+              icon: Icons.monetization_on,
+              value: '$coins',
+              color: Colors.amber,
+              label: 'COINS',
+            ),
+            Container(
+              height: 24,
+              width: 1,
+              color: Colors.white.withOpacity(0.1),
+            ),
+            _buildBalanceItem(
+              icon: Icons.ac_unit,
+              value: '$freezes',
+              color: Colors.cyanAccent,
+              label: 'FREEZES',
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -583,6 +642,184 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
   
 
+
+  Widget _buildBalanceItem({
+    required IconData icon,
+    required String value,
+    required Color color,
+    required String label,
+  }) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+            color: Colors.white.withOpacity(0.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showShopDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.shopping_bag_outlined, color: Colors.orange),
+            SizedBox(width: 12),
+            Text(
+              'Shop',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildShopItem(
+              title: 'Streak Freeze',
+              description: 'Save your streak if you miss a day',
+              price: '50 Coins',
+              icon: Icons.ac_unit,
+              color: Colors.cyanAccent,
+              onTap: () => _handleBuyFreeze(),
+            ),
+            const SizedBox(height: 12),
+            _buildShopItem(
+              title: '100 Coins',
+              description: 'Get extra coins for the shop',
+              price: 'Simulated',
+              icon: Icons.monetization_on,
+              color: Colors.amber,
+              onTap: () => _handleBuyCoins(100, 0.99),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: Colors.white54)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShopItem({
+    required String title,
+    required String description,
+    required String price,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              price,
+              style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleBuyFreeze() async {
+    Navigator.pop(context);
+    setState(() => _isLoading = true);
+    
+    final result = await _gamificationService.buyFreeze();
+    
+    if (mounted) {
+      if (result?.success == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Streak Freeze purchased! ❄️'), backgroundColor: Colors.green),
+        );
+        _loadData(); // Refresh profile
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result?.message ?? 'Insufficient coins!'), backgroundColor: Colors.red),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleBuyCoins(int amount, double cost) async {
+    Navigator.pop(context);
+    setState(() => _isLoading = true);
+    
+    final result = await _gamificationService.buyCoins(amount, cost);
+    
+    if (mounted) {
+      if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$amount Coins purchased! 💰'), backgroundColor: Colors.green),
+        );
+        _loadData(); // Refresh profile
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message), backgroundColor: Colors.red),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   String _formatDate(DateTime date) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
