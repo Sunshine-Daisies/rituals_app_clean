@@ -23,9 +23,9 @@ class RitualDetailScreen extends StatefulWidget {
 class _RitualDetailScreenState extends State<RitualDetailScreen> {
   late Future<Ritual?> _ritualFuture;
   late TextEditingController _nameController;
-  late TextEditingController _timeController;
   late List<String> _selectedDays;
   late List<String> _steps;
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 7, minute: 0);
   bool _isLoading = false;
   
   // Partner (Equal Partnership System)
@@ -36,7 +36,6 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _timeController = TextEditingController();
     _selectedDays = [];
     _steps = [];
     _ritualFuture = RitualsService.getRitualById(widget.ritualId);
@@ -118,12 +117,45 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
     ).then((_) => _loadPartnerInfo());
   }
 
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (context, child) {
+        return Theme(
+          data: AppTheme.darkTheme.copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceColor,
+              onSurface: AppTheme.textPrimary,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: AppTheme.primaryColor),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  String _formatTime() {
+    final hour = _selectedTime.hour.toString().padLeft(2, '0');
+    final minute = _selectedTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
 // _buildPartnerInfoCard is removed as it's now an external widget
 
   @override
   void dispose() {
     _nameController.dispose();
-    _timeController.dispose();
     super.dispose();
   }
 
@@ -305,7 +337,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
       await RitualsService.updateRitual(
         id: widget.ritualId,
         name: _nameController.text,
-        reminderTime: _timeController.text,
+        reminderTime: _formatTime(),
         reminderDays: _selectedDays,
         steps: _steps.map((s) => {'title': s, 'completed': false}).toList(),
       );
@@ -487,7 +519,16 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                     // İlk yükleme
                     if (_nameController.text.isEmpty && isEditable) {
                       _nameController.text = ritual.name;
-                      _timeController.text = ritual.reminderTime;
+                      
+                      // Parse time HH:mm
+                      final timeParts = ritual.reminderTime.split(':');
+                      if (timeParts.length == 2) {
+                        _selectedTime = TimeOfDay(
+                          hour: int.tryParse(timeParts[0]) ?? 7,
+                          minute: int.tryParse(timeParts[1]) ?? 0,
+                        );
+                      }
+                      
                       _selectedDays = List.from(ritual.reminderDays);
                       _steps = ritual.steps
                           .map((s) => (s['title'] as String?) ?? '')
@@ -496,7 +537,15 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                     } else if (!isEditable) {
                       // Read-only mode, always update from ritual
                       _nameController.text = ritual.name;
-                      _timeController.text = ritual.reminderTime;
+                      
+                      final timeParts = ritual.reminderTime.split(':');
+                      if (timeParts.length == 2) {
+                        _selectedTime = TimeOfDay(
+                          hour: int.tryParse(timeParts[0]) ?? 7,
+                          minute: int.tryParse(timeParts[1]) ?? 0,
+                        );
+                      }
+
                       _selectedDays = List.from(ritual.reminderDays);
                       _steps = ritual.steps
                           .map((s) => (s['title'] as String?) ?? '')
@@ -627,17 +676,48 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: AppTheme.spacingM),
-                                TextField(
-                                  controller: _timeController,
-                                  readOnly: !isEditable,
-                                  style: TextStyle(color: AppTheme.textPrimary),
-                                  decoration: InputDecoration(
-                                    hintText: 'HH:mm (ör: 07:00)',
-                                    hintStyle: TextStyle(color: AppTheme.textSecondary),
-                                    fillColor: AppTheme.darkBackground1,
-                                    filled: true,
+                                InkWell(
+                                  onTap: isEditable ? _selectTime : null,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.darkBackground1,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.primaryColor.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Icon(Icons.schedule, color: AppTheme.primaryColor),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Text(
+                                            'Time',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppTheme.textPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatTime(),
+                                          style: const TextStyle(
+                                            color: AppTheme.primaryColor,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  keyboardType: TextInputType.datetime,
                                 ),
                               ],
                             ),

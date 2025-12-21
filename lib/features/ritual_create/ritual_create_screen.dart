@@ -67,9 +67,15 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
       initialTime: _selectedTime,
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+          data: AppTheme.darkTheme.copyWith(
+            colorScheme: ColorScheme.dark(
               primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceColor,
+              onSurface: AppTheme.textPrimary,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: AppTheme.primaryColor),
             ),
           ),
           child: child!,
@@ -84,14 +90,9 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
   }
 
   String _formatTime() {
-    final hour = _selectedTime.hour > 12 
-        ? _selectedTime.hour - 12 
-        : _selectedTime.hour == 0 
-            ? 12 
-            : _selectedTime.hour;
+    final hour = _selectedTime.hour.toString().padLeft(2, '0');
     final minute = _selectedTime.minute.toString().padLeft(2, '0');
-    final period = _selectedTime.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
+    return '$hour:$minute';
   }
 
   Future<void> _saveRitual() async {

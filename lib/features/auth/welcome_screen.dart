@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../theme/app_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -45,13 +46,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    const Color indigoPrimary = Color(0xFF5C5E9A);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.darkBackground1,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          padding: const EdgeInsets.all(AppTheme.spacingXL),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -63,15 +62,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   position: _slideAnimation,
                   child: Hero(
                     tag: 'app_logo',
-                    child: Image.asset(
-                      'assets/icon/app_icon.png',
-                      height: 180,
-                      width: 180,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppTheme.spacingL),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withOpacity(0.1),
+                            blurRadius: 40,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Image.asset(
+                        'assets/icon/app_icon.png',
+                        height: 140,
+                        width: 140,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: AppTheme.spacingXXL),
               
               // App Title
               AnimatedBuilder(
@@ -97,15 +110,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                 child: const Text(
                   'Rituals',
                   style: TextStyle(
-                    fontSize: 40,
+                    fontSize: 42,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF333333),
-                    letterSpacing: 1.2,
+                    color: AppTheme.textPrimary,
+                    letterSpacing: 2.0,
                   ),
                 ),
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.spacingM),
               
               // Tagline
               AnimatedBuilder(
@@ -120,12 +133,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   );
                 },
                 child: const Text(
-                  'Manage your daily routines, strengthen your habits, and relax your soul.',
+                  'Master your habits, elevate your spirit, and find your rhythm.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey,
-                    height: 1.5,
+                    color: AppTheme.textSecondary,
+                    height: 1.6,
                   ),
                 ),
               ),
@@ -146,15 +159,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   children: [
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: 56,
                       child: ElevatedButton(
                         onPressed: () => context.push('/auth?mode=signup'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: indigoPrimary,
+                          backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
-                          elevation: 0,
+                          elevation: 8,
+                          shadowColor: AppTheme.primaryColor.withOpacity(0.3),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusL),
                           ),
                         ),
                         child: const Text(
@@ -163,17 +177,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppTheme.spacingM),
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: 56,
                       child: OutlinedButton(
                         onPressed: () => context.push('/auth?mode=login'),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: indigoPrimary, width: 2),
-                          foregroundColor: indigoPrimary,
+                          side: const BorderSide(color: AppTheme.primaryColor, width: 2),
+                          foregroundColor: AppTheme.primaryColor,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusL),
                           ),
                         ),
                         child: const Text(
@@ -185,7 +199,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   ],
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: AppTheme.spacingXXL),
             ],
           ),
         ),

@@ -127,10 +127,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    const Color indigoPrimary = Color(0xFF5C5E9A);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.darkBackground1,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Center(
@@ -186,7 +185,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF333333),
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -195,9 +194,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                               ? 'Sign in to continue your rituals' 
                               : 'Create a new account to start your journey',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -268,10 +267,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: _showForgotPasswordDialog,
-                          child: Text(
+                          child: const Text(
                             'Forgot Password?',
                             style: TextStyle(
-                              color: indigoPrimary,
+                              color: AppTheme.primaryColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -297,7 +296,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleAuth,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: indigoPrimary,
+                          backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -343,7 +342,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                           child: Text(
                             _isLogin ? 'Sign Up' : 'Sign In',
                             style: const TextStyle(
-                              color: indigoPrimary,
+                              color: AppTheme.primaryColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -375,29 +374,30 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(fontSize: 15, color: Colors.black87),
+      style: const TextStyle(fontSize: 15, color: AppTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: Icon(icon, color: Colors.grey[600], size: 20),
+        hintStyle: const TextStyle(color: AppTheme.textLight),
+        prefixIcon: Icon(icon, color: AppTheme.textSecondary, size: 20),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: const Color(0xFFF5F5F5),
+        fillColor: AppTheme.darkSurface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Color(0xFF5C5E9A), width: 1),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+          borderSide: const BorderSide(color: AppTheme.errorColor, width: 1),
         ),
       ),
     );
@@ -424,11 +424,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              style: const TextStyle(color: Colors.black87),
+              style: const TextStyle(color: AppTheme.textPrimary),
               decoration: const InputDecoration(
                 labelText: 'Email',
-                labelStyle: TextStyle(color: Colors.grey),
-                hintStyle: TextStyle(color: Colors.grey),
+                labelStyle: TextStyle(color: AppTheme.textSecondary),
+                hintStyle: TextStyle(color: AppTheme.textLight),
                 prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryColor),
               ),
             ),
