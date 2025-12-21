@@ -15,12 +15,12 @@ class ChecklistScreen extends StatefulWidget {
 }
 
 class _ChecklistScreenState extends State<ChecklistScreen> {
-  // Örnek veri - gerçek uygulamada API'den gelecek
+  // Example data - in real app, this will come from the API
   final List<Map<String, dynamic>> _checklistItems = [
-    {'title': 'Meditasyon yap', 'completed': true},
-    {'title': 'Kahvaltı et', 'completed': true},
-    {'title': 'Egzersiz', 'completed': false},
-    {'title': 'Kitap oku', 'completed': false},
+    {'title': 'Meditate', 'completed': true},
+    {'title': 'Eat breakfast', 'completed': true},
+    {'title': 'Exercise', 'completed': false},
+    {'title': 'Read a book', 'completed': false},
   ];
 
   void _toggleItem(int index) {
@@ -65,7 +65,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ritual Kontrol Listesi',
+                            'Ritual Checklist',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -102,7 +102,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'İlerleme',
+                                'Progress',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -268,7 +268,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                     ),
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.check_circle),
-                      label: const Text('Ritüeli Tamamla'),
+                      label: const Text('Complete Ritual'),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

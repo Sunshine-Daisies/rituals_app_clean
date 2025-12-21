@@ -71,7 +71,48 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
 
     return Opacity(
       opacity: isDone ? 0.6 : 1.0,
-      child: Container(
+      child: isDone
+          ? _buildCardContent(isDone)
+          : Dismissible(
+              key: Key('partnership_${widget.partnership.id}'),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                if (!_completedToday && !_isCompleting) {
+                  await _completeRitual();
+                  return true;
+                }
+                return false;
+              },
+              background: Container(
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                alignment: Alignment.centerRight,
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Complete',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.check_circle_outline, color: Colors.white),
+                  ],
+                ),
+              ),
+              child: _buildCardContent(isDone),
+            ),
+    );
+  }
+
+  Widget _buildCardContent(bool isDone) {
+    return Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -84,21 +125,22 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
         ),
         child: Row(
           children: [
-            // Checkbox
-            GestureDetector(
-              onTap: _completeRitual,
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDone ? Colors.orange : Colors.orange.withOpacity(0.5),
-                    width: 2,
-                  ),
-                  color: isDone ? Colors.orange : Colors.transparent,
-                ),
-                child: isDone ? const Icon(Icons.check, size: 18, color: Colors.white) : null,
+            // Partnership Icon or Avatar (Moved to Left)
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
+              ),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.orange.withOpacity(0.1),
+                backgroundImage: widget.partnership.partnerAvatarUrl != null ? NetworkImage(widget.partnership.partnerAvatarUrl!) : null,
+                child: widget.partnership.partnerAvatarUrl == null
+                  ? Text(
+                      widget.partnership.partnerUsername.isNotEmpty ? widget.partnership.partnerUsername[0].toUpperCase() : '?',
+                      style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                    )
+                  : null,
               ),
             ),
             const SizedBox(width: 16),
@@ -137,27 +179,12 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
                 ],
               ),
             ),
-            // Partnership Icon or Avatar
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
-              ),
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.orange.withOpacity(0.1),
-                backgroundImage: widget.partnership.partnerAvatarUrl != null ? NetworkImage(widget.partnership.partnerAvatarUrl!) : null,
-                child: widget.partnership.partnerAvatarUrl == null
-                  ? Text(
-                      widget.partnership.partnerUsername.isNotEmpty ? widget.partnership.partnerUsername[0].toUpperCase() : '?',
-                      style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                    )
-                  : null,
-              ),
-            ),
+            if (isDone)
+              const Icon(Icons.check_circle, color: Colors.orange, size: 24)
+            else
+               Icon(Icons.chevron_left, color: Colors.orange.withOpacity(0.3), size: 20),
           ],
         ),
-      ),
-    );
+      );
   }
 }

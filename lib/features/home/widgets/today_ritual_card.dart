@@ -73,95 +73,122 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
 
     return Opacity(
       opacity: isDone ? 0.6 : 1.0,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.darkSurface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-          border: Border.all(
-            color: isDone ? AppTheme.primaryColor.withOpacity(0.3) : Colors.white.withOpacity(0.05),
-            width: 1,
-          ),
-          boxShadow: [
-            if (!isDone)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Checkbox
-            GestureDetector(
-              onTap: _completeRitual,
-              child: Container(
-                width: 28,
-                height: 28,
+      child: isDone
+          ? _buildCardContent(isDone)
+          : Dismissible(
+              key: Key('ritual_${widget.ritual.id}'),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                if (!_completedToday && !_isCompleting) {
+                  await _completeRitual();
+                  return true;
+                }
+                return false;
+              },
+              background: Container(
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                alignment: Alignment.centerRight,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDone ? AppTheme.primaryColor : AppTheme.textSecondary.withOpacity(0.5),
-                    width: 2,
-                  ),
-                  color: isDone ? AppTheme.primaryColor : Colors.transparent,
+                  color: AppTheme.successColor,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusM),
                 ),
-                child: isDone ? const Icon(Icons.check, size: 18, color: Colors.white) : null,
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Ritual Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.ritual.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      decoration: isDone ? TextDecoration.lineThrough : null,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Complete',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        '15 min', // Mock duration if not available
-                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '+20 XP',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    SizedBox(width: 8),
+                    Icon(Icons.check_circle_outline, color: Colors.white),
+                  ],
+                ),
               ),
+              child: _buildCardContent(isDone),
             ),
-            // Category Icon
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _getIconForRitual(widget.ritual),
-                size: 20,
-                color: Colors.white70,
-              ),
-            ),
-          ],
+    );
+  }
+
+  Widget _buildCardContent(bool isDone) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.darkSurface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusM),
+        border: Border.all(
+          color: isDone ? AppTheme.primaryColor.withOpacity(0.3) : Colors.white.withOpacity(0.05),
+          width: 1,
         ),
+        boxShadow: [
+          if (!isDone)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Icon (Moved to left, replacing checkbox)
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: (isDone ? AppTheme.primaryColor : Colors.white).withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _getIconForRitual(widget.ritual),
+              size: 20,
+              color: isDone ? AppTheme.primaryColor : Colors.white70,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Ritual Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.ritual.name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    decoration: isDone ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '15 min',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '+20 XP',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (isDone)
+            const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 24)
+          else
+             Icon(Icons.chevron_left, color: AppTheme.textSecondary.withOpacity(0.3), size: 20),
+        ],
       ),
     );
   }

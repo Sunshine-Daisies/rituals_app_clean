@@ -622,6 +622,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                               child: TodayRitualCard(
+                                key: ValueKey('active_ritual_${pendingRituals[index].id}'),
                                 ritual: pendingRituals[index],
                                 onComplete: () {
                                   setState(() {
@@ -636,6 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                               child: TodayPartnershipCard(
+                                key: ValueKey('active_partnership_${pendingPartnerships[partnershipIndex].id}'),
                                 partnership: pendingPartnerships[partnershipIndex],
                                 onComplete: () {
                                   setState(() {
@@ -652,42 +654,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // Add New Ritual Button (Modern Dashed Design)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        child: GestureDetector(
-                          onTap: () => context.push('/ritual/create'),
-                          child: Container(
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.02),
-                              borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                              border: Border.all(
-                                color: AppTheme.textSecondary.withOpacity(0.2),
-                                width: 1.5,
-                                style: BorderStyle.solid,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add, color: AppTheme.textSecondary, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Add New Ritual',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: AppTheme.textSecondary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
 
                     // Completed Rituals Section
                     if (completedToday > 0)
@@ -722,6 +688,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                                 child: TodayRitualCard(
+                                  key: ValueKey('completed_ritual_${completedRitualsList[dataIndex].id}'),
                                   ritual: completedRitualsList[dataIndex],
                                   onComplete: () {}, // Already completed
                                   isCompleted: true,
@@ -734,6 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Opacity(
                                   opacity: 0.6,
                                   child: TodayPartnershipCard(
+                                    key: ValueKey('completed_partnership_${completedPartnershipsList[pIndex].id}'),
                                     partnership: completedPartnershipsList[pIndex],
                                     onComplete: () {}, // Already completed
                                     isCompleted: true,
@@ -768,6 +736,152 @@ class _HomeScreenState extends State<HomeScreen> {
     return _partnershipCompletionStatus[partnership.id] ?? false;
   }
 
+  void _showActionMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: AppTheme.darkSurface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildActionItem(
+              Icons.add_circle_outline,
+              'Create New Ritual',
+              'Design a new habit for yourself',
+              AppTheme.primaryColor,
+              () {
+                Navigator.pop(context);
+                context.push('/ritual/create');
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildActionItem(
+              Icons.explore_outlined,
+              'Explore Rituals',
+              'Browse all existing rituals',
+              Colors.orange,
+              () {
+                Navigator.pop(context);
+                context.push('/rituals');
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildActionItem(
+              Icons.group_add_outlined,
+              'Join by Code',
+              'Join a ritual with an invite code',
+              Colors.green,
+              () {
+                Navigator.pop(context);
+                context.push('/join-ritual');
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildActionItem(
+              Icons.psychology_outlined,
+              'AI Wellness Assistant',
+              'Chat with your personal AI guide',
+              Colors.purpleAccent,
+              () {
+                Navigator.pop(context);
+                context.push('/chat');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, color: AppTheme.textSecondary, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomNav(BuildContext context) {
     return Container(
       height: 90,
@@ -796,7 +910,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned(
             top: -25,
             child: GestureDetector(
-              onTap: () => context.push('/ritual/create'),
+              onTap: () => _showActionMenu(context),
               child: Container(
                 width: 64,
                 height: 64,
