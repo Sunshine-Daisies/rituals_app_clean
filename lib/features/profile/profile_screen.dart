@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../data/models/user_profile.dart';
@@ -21,6 +21,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   final GamificationService _gamificationService = GamificationService();
 
+  List<Badge> _badges = []; // Store badges separately
+  int _badgeTab = 0; // 0: Earned, 1: In Progress
+
   @override
   void initState() {
     super.initState();
@@ -34,39 +37,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final results = await Future.wait([
         AuthService.getUserEmail(),
         _gamificationService.getMyProfile(),
+        _gamificationService.getAllBadges(), // Fetch all badges explicitly
       ]);
       
       if (mounted) {
+        final badges = results[2] as List<Badge>? ?? [];
+
         setState(() {
           _email = results[0] as String?;
           _profile = results[1] as UserProfile?;
+          _badges = badges; // Use fetched badges
           _isLoading = false;
         });
-        
-        if (_profile == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Failed to load profile. Check your connection.'),
-              backgroundColor: AppTheme.errorColor,
-              behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(
-                label: 'Try Again',
-                textColor: Colors.white,
-                onPressed: _loadData,
-              ),
-            ),
-          );
-        }
       }
     } catch (e) {
+      print('❌ DEBUG: Error loading profile data: $e');
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
       }
     }
   }
@@ -74,478 +61,246 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout(BuildContext context) async {
     try {
       await AuthService.logout();
-      if (context.mounted) {
-        context.go('/auth');
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text('Logout error: $e')),
-              ],
-            ),
-            backgroundColor: AppTheme.errorColor,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusM),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  // XP progress hesapla (backend'den gelen yüzdeyi kullan)
-  double _calculateXpProgress() {
-    if (_profile == null) return 0;
-    // Backend 0-100 arası int dönüyor, 0.0-1.0 arası double'a çevir
-    return (_profile!.xpProgressPercent / 100.0).clamp(0.0, 1.0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                    child: _isLoading 
-                        ? const Center(child: CircularProgressIndicator())
-                        : RefreshIndicator(
-                            onRefresh: _loadData,
-                            child: SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _buildProfileCard(),
-                                  const SizedBox(height: 24),
-                                  _buildStatsRow(),
-                                  const SizedBox(height: 24),
-                                  _buildMenuOptions(),
-                                  const SizedBox(height: 32),
-                                  _buildLogoutButton(),
-                                  const SizedBox(height: 24),
-                                  _buildAppInfo(),
-                                  const SizedBox(height: 20),
-                                ],
-                              ),
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(AppTheme.spacingL),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.go('/home'),
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Text(
-            'Profile',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            width: 40, // Placeholder to keep title centered if needed, or remove completely
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuOptions() {
-    return Column(
-      children: [
-        _ProfileOption(
-          icon: Icons.emoji_events,
-          title: 'My Badges',
-          subtitle: 'Badges and achievements earned',
-          onTap: () => context.push('/badges'),
-        ),
-        const SizedBox(height: 12),
-        _ProfileOption(
-          icon: Icons.leaderboard,
-          title: 'Leaderboard',
-          subtitle: 'See your rank',
-          onTap: () => context.push('/leaderboard'),
-        ),
-        const SizedBox(height: 12),
-        _ProfileOption(
-          icon: Icons.analytics,
-          title: 'Statistics',
-          subtitle: 'View progress and achievements',
-          onTap: () => context.push('/stats'),
-        ),
-        const SizedBox(height: 12),
-        _ProfileOption(
-          icon: _profile?.isPremium == true ? Icons.star_outline : Icons.star,
-          iconColor: Colors.amber,
-          title: _profile?.isPremium == true ? 'Demote to Free ' : 'Try Premium! ✨',
-          subtitle: _profile?.isPremium == true ? 'Return to standard features' : 'Unlock AI limits for demo',
-          onTap: _togglePremiumStatus,
-        ),
-      ],
-    );
-  }
-
-  Future<void> _togglePremiumStatus() async {
-    setState(() => _isLoading = true);
-    try {
-      final isPremiumNow = await AuthService.togglePremium();
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        await _loadData(); // Reload to refresh whole profile object
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isPremiumNow ? 'Welcome to Premium! ✨' : 'Switched to Free Tier.'),
-            backgroundColor: isPremiumNow ? Colors.amber[700] : AppTheme.primaryColor,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
-        );
-      }
-    }
+      if (context.mounted) context.go('/auth');
+    } catch (_) {}
   }
 
   Future<void> _pickAndUploadImage() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 75,
-    );
-
+    final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512, imageQuality: 75);
     if (image == null) return;
 
     setState(() => _isLoading = true);
     try {
       final bytes = await File(image.path).readAsBytes();
       final base64Image = base64Encode(bytes);
-      
-      final newAvatarUrl = await _gamificationService.uploadProfilePicture(base64Image);
-      
-      if (mounted) {
-        if (newAvatarUrl != null) {
-          await _loadData();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile picture updated! ✨'), backgroundColor: Colors.green),
-          );
-        } else {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to upload image.'), backgroundColor: AppTheme.errorColor),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
-        );
-      }
+      await _gamificationService.uploadProfilePicture(base64Image);
+      await _loadData();
+    } catch (_) {
+      setState(() => _isLoading = false);
     }
   }
 
-  Widget _buildLogoutButton() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.errorColor.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading && _profile == null) {
+      return const Scaffold(
+        backgroundColor: AppTheme.darkBackground1,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final user = _profile;
+    final username = user?.username ?? _email?.split('@')[0] ?? 'Ritualist';
+    final userHandle = '@${username.toLowerCase().replaceAll(' ', '')}';
+    final level = user?.level ?? 1;
+    final levelTitle = user?.levelTitle ?? 'Novice';
+    final currentXp = user?.xp ?? 0;
+    final xpNeeded = user?.xpForNextLevel ?? 100; // API returns 'remaining XP'
+    final nextLevelThreshold = currentXp + xpNeeded; // Total XP needed for next level
+    final progress = (user?.xpProgressPercent ?? 0) / 100.0;
+    final streak = user?.longestStreak ?? 0;
+    final ritualCount = user?.ritualsCount ?? 0;
+    final earnedBadges = _badges.where((b) => b.earned).toList();
+    
+    return Scaffold(
+      backgroundColor: AppTheme.darkBackground1,
+      body: Stack(
+        children: [
+          // Single Scroll View containing Header + Content
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                // Header Stack (Background + Info + Floating Card)
+                Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.topCenter,
+                  children: [
+                    _buildCurvedBackground(),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 110, bottom: 80), // Increased top spacing
+                      child: _buildProfileHeaderInfo(
+                        user, username, userHandle, level, levelTitle, currentXp, nextLevelThreshold, xpNeeded, progress
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -40,
+                      left: 0,
+                      right: 0,
+                      child: _buildFloatingStats(streak, ritualCount, earnedBadges.length),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 60), // Spacer for overlapping card
+                
+                // Achievements
+                _buildAchievementsSection(_badges),
+                
+                const SizedBox(height: 32),
+                
+                // Settings
+                _buildSettingsSection(),
+                
+                const SizedBox(height: 48),
+              ],
+            ),
+          ),
+          
+          // Fixed Top Navigation Bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => context.go('/home'),
+                    ),
+                    const Text(
+                      'Profile',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings, color: Colors.white),
+                      onPressed: () => {}, 
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
-      ),
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.logout, color: Colors.white),
-        label: const Text(
-          'Log Out',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.errorColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 0,
-        ),
-        onPressed: () => _logout(context),
       ),
     );
   }
 
-  Widget _buildAppInfo() {
+  Widget _buildCurvedBackground() {
+    return ClipPath(
+      clipper: _CurvedBottomClipper(),
+      child: Container(
+        height: 420,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0F2027), // Deep Dark Blue
+              Color(0xFF203A43),
+              Color(0xFF2C5364), // Blue-Grey/Teal tone
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeaderInfo(
+    UserProfile? user,
+    String username,
+    String handle,
+    int level,
+    String levelTitle,
+    int currentXp,
+    int nextLevelThreshold,
+    int xpNeeded,
+    double progress,
+  ) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // Avatar
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                backgroundImage: user?.avatarUrl != null 
+                    ? NetworkImage(user!.avatarUrl!) 
+                    : null,
+                backgroundColor: Colors.white.withOpacity(0.1),
+                child: user?.avatarUrl == null 
+                    ? const Icon(Icons.person, size: 50, color: Colors.white) 
+                    : null,
+              ),
+            ),
+            GestureDetector(
+              onTap: _pickAndUploadImage,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.edit, size: 16, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Name & Handle
         Text(
-          'Rituals App',
-          style: TextStyle(
-            fontSize: 16,
+          username,
+          style: const TextStyle(
+            fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary.withOpacity(0.5),
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          'Version 1.1.0',
+          '$handle • Level $level $levelTitle',
           style: TextStyle(
-            fontSize: 12,
-            color: AppTheme.textSecondary.withOpacity(0.5),
+            fontSize: 14,
+            color: Colors.white.withOpacity(0.7),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildProfileCard() {
-    if (_profile == null) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
-        ),
-        child: Center(
+        
+        const SizedBox(height: 24),
+        
+        // XP Progress
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
-            children: [
-              Icon(Icons.error_outline, color: AppTheme.errorColor.withOpacity(0.8), size: 48),
-              const SizedBox(height: 16),
-              Text(
-                'Profile could not be loaded',
-                style: TextStyle(color: AppTheme.textPrimary.withOpacity(0.7)),
-              ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: _loadData,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final username = _profile!.username.isNotEmpty ? _profile!.username : (_email?.split('@')[0] ?? 'User');
-    final level = _profile!.level;
-    final xpProgress = _calculateXpProgress();
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Avatar with Level Badge
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white,
-                  backgroundImage: _profile?.avatarUrl != null 
-                    ? NetworkImage(_profile!.avatarUrl!) 
-                    : null,
-                  child: _profile?.avatarUrl == null 
-                    ? const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryColor,
-                        size: 48,
-                      )
-                    : null,
-                ),
-              ),
-              // Edit Badge
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: _pickAndUploadImage,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.edit, color: AppTheme.primaryColor, size: 16),
-                  ),
-                ),
-              ),
-              // Level Badge
-              Transform.translate(
-                offset: const Offset(30, 0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'Lv.$level',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          
-          // Username
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                username,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (_profile!.isPremium) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'PREMIUM',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _email ?? 'Loading...',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.8),
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 24),
-
-          // XP Progress Bar
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'XP Progress',
+                    'CURRENT LEVEL',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      color: Colors.white.withOpacity(0.6),
                     ),
                   ),
                   Text(
-                    '%${(xpProgress * 100).toInt()}',
+                    '$currentXp/$nextLevelThreshold XP',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -556,478 +311,383 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 8),
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: xpProgress,
-                  backgroundColor: Colors.black.withOpacity(0.1),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  minHeight: 8,
+                  value: progress,
+                  minHeight: 10,
+                  backgroundColor: Colors.black.withOpacity(0.3),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$xpNeeded XP to Level ${level + 1}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.5),
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsRow() {
-    final coins = _profile?.coins ?? 0;
-    final freezeCount = _profile?.freezeCount ?? 0;
-    final friendCount = _profile?.friendsCount ?? 0;
-
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.monetization_on,
-            iconColor: Colors.amber,
-            value: coins.toString(),
-            label: 'Coin',
-            onTap: () => _showBuyCoinsDialog(),
-          ),
-        ),
-        const SizedBox(width: AppTheme.spacingS),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.ac_unit,
-            iconColor: Colors.lightBlue,
-            value: freezeCount.toString(),
-            label: 'Freeze',
-            onTap: () => _showFreezeDialog(),
-          ),
-        ),
-        const SizedBox(width: AppTheme.spacingS),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.people,
-            iconColor: AppTheme.primaryColor,
-            value: friendCount.toString(),
-            label: 'Friends',
-            onTap: () => context.push('/friends'),
           ),
         ),
       ],
     );
   }
 
-  void _showBuyCoinsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusL),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.monetization_on, color: Colors.amber, size: 28),
-            const SizedBox(width: 8),
-            const Text('Coin Store'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Unlock features by getting more coins!',
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            _CoinPackageCard(
-              coins: 100,
-              price: '10.00 TL',
-              onTap: () => _buyCoins(100, 10.00),
-            ),
-            const SizedBox(height: 12),
-            _CoinPackageCard(
-              coins: 500,
-              price: '40.00 TL',
-              isPopular: true,
-              onTap: () => _buyCoins(500, 40.00),
-            ),
-            const SizedBox(height: 12),
-            _CoinPackageCard(
-              coins: 1000,
-              price: '70.00 TL',
-              onTap: () => _buyCoins(1000, 70.00),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _buyCoins(int amount, double cost) async {
-    Navigator.pop(context); // Dialogu kapat
-    
-    // Yükleniyor göster
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Backend isteği
-      final result = await _gamificationService.buyCoins(amount, cost);
-      
-      if (mounted) {
-        Navigator.pop(context); // Loading'i kapat
-        
-        if (result.success) {
-          // Başarılı
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.message),
-              backgroundColor: Colors.green,
-            ),
-          );
-          _loadData(); // Profili yenile
-        } else {
-          // Hata
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.message),
-              backgroundColor: AppTheme.errorColor,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('An error occurred'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
-  }
-
-  void _showFreezeDialog() {
-    final freezeCount = _profile?.freezeCount ?? 0;
-    final coins = _profile?.coins ?? 0;
-    const freezeCost = 50;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusL),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.ac_unit, color: Colors.lightBlue, size: 28),
-            const SizedBox(width: 8),
-            const Text('Streak Freeze'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Current freeze count: $freezeCount',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Streak freeze protects your streak if you miss a daily ritual.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppTheme.radiusM),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.monetization_on, color: Colors.amber, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$freezeCost coin = 1 freeze',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  const Spacer(),
-                  Text(
-                    'Balance: $coins',
-                    style: TextStyle(
-                      color: coins >= freezeCost ? AppTheme.successColor : AppTheme.errorColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.shopping_cart, size: 18),
-            label: const Text('Buy'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: coins >= freezeCost ? AppTheme.primaryColor : Colors.grey,
-            ),
-            onPressed: coins >= freezeCost ? () async {
-              Navigator.pop(context);
-              final result = await _gamificationService.buyFreeze();
-              if (result != null && result.success) {
-                _loadData(); // Profili yenile
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(result.message),
-                      backgroundColor: AppTheme.successColor,
-                    ),
-                  );
-                }
-              } else {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(result?.message ?? 'Error occurred'),
-                      backgroundColor: AppTheme.errorColor,
-                    ),
-                  );
-                }
-              }
-            } : null,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String value;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _StatCard({
-    required this.icon,
-    required this.iconColor,
-    required this.value,
-    required this.label,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+  Widget _buildFloatingStats(int streak, int habits, int badgeCount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.textSecondary.withOpacity(0.2)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: iconColor, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppTheme.textSecondary.withOpacity(0.8),
-              ),
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CoinPackageCard extends StatelessWidget {
-  final int coins;
-  final String price;
-  final bool isPopular;
-  final VoidCallback onTap;
-
-  const _CoinPackageCard({
-    required this.coins,
-    required this.price,
-    this.isPopular = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isPopular ? Colors.amber : AppTheme.textSecondary.withOpacity(0.2),
-            width: isPopular ? 2 : 1,
-          ),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
-                shape: BoxShape.circle,
+            _buildStatItem(Icons.local_fire_department, streak.toString(), 'Streak', Colors.orange),
+            _buildVerticalDivider(),
+            // Changed Color from Teal to Purple/Indigo to avoid "Green Lines" look if that was the issue
+            _buildStatItem(Icons.check_circle, habits.toString(), 'Rituals', Colors.indigoAccent),
+            _buildVerticalDivider(),
+            _buildStatItem(Icons.emoji_events, badgeCount.toString(), 'Badges', Colors.amber),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 40,
+      width: 1,
+      color: Colors.white.withOpacity(0.1),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 28),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+            color: Colors.white.withOpacity(0.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAchievementsSection(List<Badge> badges) {
+    final earnedCount = badges.where((b) => b.earned).length;
+    
+    // Filter badges based on tab selection
+    // If tab 0 (Earned), show only earned badges
+    // If tab 1 (In Progress), show only NOT earned badges
+    final displayedBadges = _badgeTab == 0
+        ? badges.where((b) => b.earned).toList()
+        : badges.where((b) => !b.earned).toList();
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Achievements',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-              child: const Icon(Icons.monetization_on, color: Colors.amber),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Toggle Buttons
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(30),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$coins Coin',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (isPopular)
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _badgeTab = 0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(4),
+                        color: _badgeTab == 0 ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                      child: const Text(
-                        'POPULAR',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      child: Center(
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                  text: 'Earned ',
+                                  style: TextStyle(
+                                      color: _badgeTab == 0 ? Colors.black : Colors.white54, 
+                                      fontWeight: FontWeight.bold)),
+                              TextSpan(
+                                  text: '$earnedCount',
+                                  style: TextStyle(
+                                      color: _badgeTab == 0 ? Colors.orange : Colors.white54, 
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _badgeTab = 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _badgeTab == 1 ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'In Progress',
+                          style: TextStyle(
+                            color: _badgeTab == 1 ? Colors.black : Colors.white54,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Badges Grid
+          if (displayedBadges.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  _badgeTab == 0 
+                      ? 'No badges earned yet. Keep going!'
+                      : 'You have earned all badges! Amazing!',
+                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          else
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: 0.85,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: displayedBadges.length,
+                  itemBuilder: (context, index) {
+                    final badge = displayedBadges[index];
+                    return _buildBadgeCard(badge);
+                  },
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeCard(Badge badge) {
+    final isLocked = !badge.earned;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isLocked ? Colors.white.withOpacity(0.02) : Colors.white.withOpacity(0.05)
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.darkBackground1,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: isLocked 
+                      ? Colors.transparent 
+                      : Colors.orange.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            // Show lock icon if locked, or emoji if earned
+            child: isLocked
+                ? const Icon(Icons.lock_outline, color: Colors.white24, size: 32)
+                : Text(
+                    badge.icon, 
+                    style: const TextStyle(fontSize: 32),
+                  ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            badge.name,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isLocked ? Colors.white54 : Colors.white,
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            badge.description,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 10,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          if (badge.earned)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.orange.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                price,
+                'Earned ${badge.earnedAt != null ? _formatDate(badge.earnedAt!) : ""}',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.orange,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+  
+  // Settings / Logout Section reused purely functionally
+  Widget _buildSettingsSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.star, color: Colors.amber),
+              title: const Text('Premium Plan', style: TextStyle(color: Colors.white)),
+              subtitle: Text(
+                _profile?.isPremium == true ? 'Active' : 'Get more features',
+                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+              onTap: _togglePremiumStatus,
+            ),
+             Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text('Log Out', style: TextStyle(color: Colors.redAccent)),
+              onTap: () => _logout(context),
+            ),
           ],
         ),
       ),
     );
   }
+
+  String _formatDate(DateTime date) {
+    // Simple date formatter to avoid intl dependency if not present, or use it if available.
+    // Assuming intl might not be ready, simple implementation:
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}';
+  }
+
+   Future<void> _togglePremiumStatus() async {
+    // Reusing existing logic...
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.togglePremium();
+      await _loadData();
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 }
 
-
-class _ProfileOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color? iconColor;
-  final VoidCallback onTap;
-
-  const _ProfileOption({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.iconColor,
-    required this.onTap,
-  });
+// Custom Clipper for the header curve
+class _CurvedBottomClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 60);
+    
+    // Create a quadratic bezier curve
+    // Control point is at the center bottom, end point at bottom right
+    final controlPoint = Offset(size.width / 2, size.height + 40);
+    final endPoint = Offset(size.width, size.height - 60);
+    
+    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, endPoint.dx, endPoint.dy);
+    
+    path.lineTo(size.width, 0);
+    path.close();
+    
+    return path;
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: iconColor ?? AppTheme.primaryColor,
-            size: 24,
-          ),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppTheme.textSecondary,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: AppTheme.textSecondary,
-        ),
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
