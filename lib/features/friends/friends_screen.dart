@@ -666,7 +666,7 @@ class _FriendCard extends StatelessWidget {
                       title: const Text('View Profile'),
                       onTap: () {
                         Navigator.pop(context);
-                        // TODO: Navigate to profile
+                        context.push('/profile/${friend.userId}');
                       },
                     ),
                     ListTile(
