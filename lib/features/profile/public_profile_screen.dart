@@ -208,7 +208,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   backgroundImage: _profile?.avatarUrl != null 
                     ? NetworkImage(_profile!.avatarUrl!) 
                     : null,
-                  onBackgroundImageError: (exception, stackTrace) {},
+                  onBackgroundImageError: _profile?.avatarUrl != null 
+                    ? (exception, stackTrace) {} 
+                    : null,
                   child: _profile?.avatarUrl == null 
                     ? const Icon(
                         Icons.person,

@@ -183,7 +183,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           backgroundImage: _newAvatarFile != null 
                               ? FileImage(_newAvatarFile!) as ImageProvider
                               : (_profile?.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null),
-                          onBackgroundImageError: (exception, stackTrace) {},
+                          onBackgroundImageError: (_newAvatarFile != null || _profile?.avatarUrl != null) 
+                              ? (exception, stackTrace) {} 
+                              : null,
                           child: (_newAvatarFile == null && _profile?.avatarUrl == null)
                               ? const Icon(Icons.person, size: 50, color: Colors.white)
                               : null,

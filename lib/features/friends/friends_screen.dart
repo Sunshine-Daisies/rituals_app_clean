@@ -12,8 +12,7 @@ class FriendsScreen extends StatefulWidget {
   State<FriendsScreen> createState() => _FriendsScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _FriendsScreenState extends State<FriendsScreen> {
   final FriendsService _friendsService = FriendsService();
   final GamificationService _gamificationService = GamificationService();
   
@@ -28,13 +27,11 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _loadData();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -204,27 +201,40 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                     color: AppTheme.surfaceColor,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                   ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        _buildTabBar(),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: _isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : TabBarView(
-                                  controller: _tabController,
-                                  children: [
-                                    _buildFriendsList(),
-                                    _buildSearchTab(),
-                                    _buildRequestsTab(),
-                                  ],
-                                ),
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSearchBar(),
+                            ],
+                          ),
                         ),
+                      ),
+                      if (_isLoading)
+                        const SliverFillRemaining(
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (_searchController.text.isNotEmpty) ...[
+                        _buildSectionHeaderSliver('Search Results'),
+                        _buildSliverSearchResults(),
+                      ] else ...[
+                        if (_requests != null && _requests!.incomingCount > 0) ...[
+                          _buildSectionHeaderSliver('Pending Requests (${_requests!.incomingCount})'),
+                          _buildSliverRequestsList(),
+                          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                        ],
+                        if (_friends.isNotEmpty) ...[
+                          _buildSectionHeaderSliver('Your Friends'),
+                        ],
+                        _buildSliverFriendsList(),
                       ],
-                    ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 40)),
+                    ],
                   ),
                 ),
               ),
@@ -237,334 +247,247 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(AppTheme.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.go('/profile'),
-              color: Colors.white,
-            ),
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+            onPressed: () => context.go('/profile'),
           ),
-          const SizedBox(width: 16),
-          const Text(
-            'Friends',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const Spacer(),
-          if (_requests != null && _requests!.incomingCount > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.notifications_active, color: Colors.white, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${_requests!.incomingCount}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: AppTheme.primaryColor,
-        unselectedLabelColor: AppTheme.textSecondary,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        dividerColor: Colors.transparent,
-        padding: const EdgeInsets.all(4),
-        tabs: [
-          Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.people_outline, size: 20),
-                  const SizedBox(width: 8),
-                  Text('List (${_friends.length})'),
-                ],
-              ),
-            ),
-          ),
-          Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.search, size: 20),
-                  const SizedBox(width: 8),
-                  const Text('Search'),
-                ],
-              ),
-            ),
-          ),
-          Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.mail_outline, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Requests${_requests?.incomingCount != null && _requests!.incomingCount > 0 ? ' (${_requests!.incomingCount})' : ''}'),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFriendsList() {
-    if (_friends.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.people_outline,
-              size: 80,
-              color: AppTheme.textSecondary.withOpacity(0.5),
-            ),
-            const SizedBox(height: AppTheme.spacingM),
-            Text(
-              'No friends yet',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppTheme.textSecondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingS),
-            Text(
-              'Add friends from the search tab!',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary.withOpacity(0.8),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-        itemCount: _friends.length,
-        itemBuilder: (context, index) {
-          final friend = _friends[index];
-          return _FriendCard(
-            friend: friend,
-            onRemove: () => _removeFriend(friend.friendshipId, friend.username),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSearchTab() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-      child: Column(
-        children: [
-          // Search Bar
-          Container(
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
-              borderRadius: BorderRadius.circular(AppTheme.radiusM),
-              boxShadow: AppTheme.cardShadow,
-            ),
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Search by username...',
-                hintStyle: TextStyle(color: AppTheme.textSecondary.withOpacity(0.5)),
-                prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: AppTheme.textSecondary),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchResults = []);
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.all(AppTheme.spacingM),
-              ),
-              onChanged: _searchUsers,
-            ),
-          ),
-          
-          const SizedBox(height: AppTheme.spacingM),
-          
-          // Search Results
-          Expanded(
-            child: _isSearching
-                ? const Center(child: CircularProgressIndicator())
-                : _searchResults.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search,
-                              size: 60,
-                              color: AppTheme.textSecondary.withOpacity(0.5),
-                            ),
-                            const SizedBox(height: AppTheme.spacingM),
-                            Text(
-                              _searchController.text.isEmpty
-                                  ? 'Type a username to search'
-                                  : 'No user found',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final user = _searchResults[index];
-                          final isFriend = _friends.any((f) => f.userId == user.userId);
-                          final isPending = _requests?.outgoing.any((r) => r.userId == user.userId) ?? false;
-                          
-                          return _SearchResultCard(
-                            user: user,
-                            isFriend: isFriend,
-                            isPending: isPending,
-                            onAdd: () => _sendFriendRequest(user.userId),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRequestsTab() {
-    final incoming = _requests?.incoming ?? [];
-    final outgoing = _requests?.outgoing ?? [];
-
-    if (incoming.isEmpty && outgoing.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.mail_outline,
-              size: 80,
-              color: AppTheme.textSecondary.withOpacity(0.5),
-            ),
-            const SizedBox(height: AppTheme.spacingM),
-            Text(
-              'No pending requests',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppTheme.textSecondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-        children: [
-          if (incoming.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.spacingS),
+          const Expanded(
+            child: Center(
               child: Text(
-                'Incoming Requests (${incoming.length})',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppTheme.textPrimary,
+                'Find Friends',
+                style: TextStyle(
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ),
-            ...incoming.map((request) => _RequestCard(
+          ),
+          const SizedBox(width: 48), // Spacer to balance the back button
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TextField(
+        controller: _searchController,
+        style: const TextStyle(color: AppTheme.textPrimary),
+        decoration: InputDecoration(
+          hintText: 'Find ritual buddies...',
+          hintStyle: TextStyle(color: AppTheme.textSecondary.withOpacity(0.5)),
+          prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+        onChanged: _searchUsers,
+      ),
+    );
+  }
+
+  Widget _buildInviteFriendsBanner() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryColor.withOpacity(0.1),
+            AppTheme.primaryColor.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.diamond_outlined, color: AppTheme.primaryColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'REWARDS',
+                style: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Invite Friends',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+              children: const [
+                TextSpan(text: 'Earn '),
+                TextSpan(
+                  text: '50 gems',
+                  style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: ' for every friend who joins!'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () {
+              // TODO: Implement share
+            },
+            icon: const Icon(Icons.share, size: 18),
+            label: const Text('Invite Contacts'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeaderSliver(String title) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      sliver: SliverToBoxAdapter(
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliverRequestsList() {
+    final incoming = _requests?.incoming ?? [];
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final request = incoming[index];
+            return _RequestCard(
               request: request,
               isIncoming: true,
               onAccept: () => _acceptRequest(request.friendshipId),
               onReject: () => _rejectRequest(request.friendshipId),
-            )),
-            const SizedBox(height: AppTheme.spacingL),
-          ],
-          if (outgoing.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.spacingS),
-              child: Text(
-                'Outgoing Requests (${outgoing.length})',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-            ...outgoing.map((request) => _RequestCard(
-              request: request,
-              isIncoming: false,
-            )),
-          ],
-        ],
+            );
+          },
+          childCount: incoming.length,
+        ),
       ),
     );
   }
+
+  Widget _buildSliverFriendsList() {
+    if (_friends.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            children: [
+              Icon(Icons.people_outline, size: 64, color: AppTheme.textSecondary.withOpacity(0.3)),
+              const SizedBox(height: 16),
+              const Text(
+                'No friends yet',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final friend = _friends[index];
+            return _FriendCard(
+              friend: friend,
+              onRemove: () => _removeFriend(friend.friendshipId, friend.username),
+            );
+          },
+          childCount: _friends.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliverSearchResults() {
+    if (_searchResults.isEmpty && !_isSearching) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(40),
+            child: Text('No users found', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final user = _searchResults[index];
+            final isFriend = _friends.any((f) => f.userId == user.userId);
+            final isPending = _requests?.outgoing.any((r) => r.userId == user.userId) ?? false;
+            
+            return _SearchResultCard(
+              user: user,
+              isFriend: isFriend,
+              isPending: isPending,
+              onAdd: () => _sendFriendRequest(user.userId),
+            );
+          },
+          childCount: _searchResults.length,
+        ),
+      ),
+    );
+  }
+
 }
 
 class _FriendCard extends StatelessWidget {
@@ -597,7 +520,7 @@ class _FriendCard extends StatelessWidget {
             CircleAvatar(
               backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
               backgroundImage: friend.avatarUrl != null ? NetworkImage(friend.avatarUrl!) : null,
-              onBackgroundImageError: (exception, stackTrace) {},
+              onBackgroundImageError: friend.avatarUrl != null ? (exception, stackTrace) {} : null,
               child: friend.avatarUrl == null 
                 ? Text(
                     friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
@@ -725,7 +648,7 @@ class _SearchResultCard extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
           backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-          onBackgroundImageError: (exception, stackTrace) {},
+          onBackgroundImageError: user.avatarUrl != null ? (exception, stackTrace) {} : null,
           child: user.avatarUrl == null
             ? Text(
                 user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
@@ -838,7 +761,7 @@ class _RequestCard extends StatelessWidget {
               ? AppTheme.primaryColor.withOpacity(0.1)
               : Colors.grey.withOpacity(0.1),
           backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
-          onBackgroundImageError: (exception, stackTrace) {},
+          onBackgroundImageError: request.avatarUrl != null ? (exception, stackTrace) {} : null,
           child: request.avatarUrl == null
             ? Text(
                 request.username.isNotEmpty ? request.username[0].toUpperCase() : '?',

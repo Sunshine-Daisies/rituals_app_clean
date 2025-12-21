@@ -335,7 +335,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             CircleAvatar(
               radius: 20,
               backgroundImage: myEntry.avatarUrl != null ? NetworkImage(myEntry.avatarUrl!) : null,
-              onBackgroundImageError: (exception, stackTrace) {},
+              onBackgroundImageError: myEntry.avatarUrl != null ? (exception, stackTrace) {} : null,
               child: myEntry.avatarUrl == null ? const Text('You') : null,
             ),
             const SizedBox(width: 12),
@@ -592,7 +592,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           CircleAvatar(
             radius: 20,
             backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
-            onBackgroundImageError: (exception, stackTrace) {},
+            onBackgroundImageError: request.avatarUrl != null ? (exception, stackTrace) {} : null,
             child: request.avatarUrl == null ? Text(request.username[0]) : null,
           ),
           const SizedBox(width: 12),
@@ -722,7 +722,7 @@ class _LeaderboardCard extends StatelessWidget {
                 radius: 22,
                 backgroundColor: Colors.white.withOpacity(0.05),
                 backgroundImage: entry.avatarUrl != null ? NetworkImage(entry.avatarUrl!) : null,
-                onBackgroundImageError: (exception, stackTrace) {},
+                onBackgroundImageError: entry.avatarUrl != null ? (exception, stackTrace) {} : null,
                 child: entry.avatarUrl == null ? Text(entry.username[0].toUpperCase()) : null,
               ),
             ],
