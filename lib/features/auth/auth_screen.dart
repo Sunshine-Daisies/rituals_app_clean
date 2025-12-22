@@ -450,26 +450,24 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               
               try {
                 await AuthService.forgotPassword(emailController.text.trim());
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Password reset link sent to your email.'),
-                      backgroundColor: AppTheme.successColor,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Password reset link sent to your email.'),
+                    backgroundColor: AppTheme.successColor,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                );
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString().replaceAll('Exception: ', '')),
-                      backgroundColor: AppTheme.errorColor,
-                      behavior: SnackBarBehavior.floating, 
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString().replaceAll('Exception: ', '')),
+                    backgroundColor: AppTheme.errorColor,
+                    behavior: SnackBarBehavior.floating, 
+                  ),
+                );
               }
             },
             child: const Text('Send'),
