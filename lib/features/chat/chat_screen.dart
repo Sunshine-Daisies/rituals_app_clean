@@ -65,8 +65,8 @@ class _ChatScreenState extends State<ChatScreen> {
         _isLoading = false;
       });
 
-      // Intent preview dialog'unu göster
-      if (mounted) {
+      // Intent preview dialog'unu sadece ritüel oluşturma isteği ise göster
+      if (mounted && intent.intent == 'create_ritual') {
         showDialog(
           context: context,
           barrierDismissible: false,
