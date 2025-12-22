@@ -1,0 +1,286 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{float}
+
+% Page setup
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Rituals App}
+\lhead{K6 Stress Test Report}
+\rfoot{Page \thepage}
+
+% Colors
+\definecolor{successgreen}{RGB}{40, 167, 69}
+\definecolor{warningyellow}{RGB}{255, 193, 7}
+\definecolor{dangered}{RGB}{220, 53, 69}
+\definecolor{codeblue}{RGB}{0, 123, 255}
+
+% Title formatting
+\titleformat{\section}{\Large\bfseries\color{codeblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+\title{
+    \vspace{-1cm}
+    \textbf{K6 Stress Test Report}\\
+    \large Rituals App API Performance Analysis\\
+    \vspace{0.5cm}
+    \normalsize December 22, 2024
+}
+\author{
+    Automated Testing Suite\\
+    \texttt{https://ritualsappclean-production.up.railway.app}
+}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Executive Summary}
+
+This report presents the results of a comprehensive stress test conducted on the Rituals App API using k6 load testing tool. The test was designed to evaluate the system's performance under increasing load conditions.
+
+\begin{table}[H]
+\centering
+\caption{Test Overview}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Test Tool & k6 v1.4.2 \\
+Test Date & December 22, 2024 \\
+Test Duration & 4 minutes \\
+Max Virtual Users & 100 \\
+Total Iterations & 1,333 \\
+Target Server & Railway (Production) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Overall Result}
+
+\begin{center}
+\colorbox{warningyellow}{\textbf{\large PARTIAL PASS}}
+\end{center}
+
+The test completed with some threshold violations, indicating potential areas for optimization under high load conditions.
+
+\section{Test Configuration}
+
+\subsection{Load Profile}
+
+The test followed a staged ramp-up pattern:
+
+\begin{table}[H]
+\centering
+\caption{Load Stages}
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Stage} & \textbf{Duration} & \textbf{Target VUs} \\
+\midrule
+1. Warm-up & 30 seconds & 10 \\
+2. Ramp-up & 1 minute & 50 \\
+3. Sustained Load & 2 minutes & 100 \\
+4. Ramp-down & 30 seconds & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Tested Endpoints}
+
+\begin{itemize}
+    \item \textbf{Authentication}: POST /api/auth/login
+    \item \textbf{Rituals}: GET /api/rituals, POST /api/rituals, DELETE /api/rituals/:id
+    \item \textbf{Profile}: GET /api/profile
+    \item \textbf{Gamification}: GET /api/badges, GET /api/leaderboard
+    \item \textbf{Social}: GET /api/friends, GET /api/partnerships/my
+\end{itemize}
+
+\section{Performance Results}
+
+\subsection{Response Time Metrics}
+
+\begin{table}[H]
+\centering
+\caption{HTTP Request Duration Statistics}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} & \textbf{Status} \\
+\midrule
+Average & 9.65s & \textcolor{dangered}{High} \\
+Median (p50) & 9.35s & \textcolor{dangered}{High} \\
+90th Percentile (p90) & 12.80s & \textcolor{dangered}{High} \\
+95th Percentile (p95) & 13.48s & \textcolor{dangered}{Threshold Exceeded} \\
+Maximum & 15.12s & \textcolor{dangered}{Very High} \\
+Minimum & 5.61s & \textcolor{warningyellow}{Moderate} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Threshold}: p(95) < 2000ms \\
+\textbf{Result}: \textcolor{dangered}{FAILED} (13,480ms vs 2,000ms target)
+
+\subsection{Throughput Metrics}
+
+\begin{table}[H]
+\centering
+\caption{Throughput Statistics}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Iterations/second & 5.43 \\
+Data Received & 10 MB (41 kB/s) \\
+Data Sent & 957 KB (3.9 kB/s) \\
+Total Iterations & 1,333 \\
+Virtual Users (Max) & 100 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Error Rate}
+
+\begin{table}[H]
+\centering
+\caption{Error Analysis}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Metric} & \textbf{Rate} & \textbf{Status} \\
+\midrule
+HTTP Request Failed & >5\% & \textcolor{dangered}{Threshold Exceeded} \\
+Custom Error Rate & 100\% & \textcolor{dangered}{Critical} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Note}: The high error rate indicates that the server struggled to handle 100 concurrent users.
+
+\section{Threshold Summary}
+
+\begin{table}[H]
+\centering
+\caption{Threshold Compliance}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Threshold} & \textbf{Target} & \textbf{Actual} & \textbf{Status} \\
+\midrule
+http\_req\_duration p(95) & < 2s & 13.48s & \textcolor{dangered}{\textbf{FAIL}} \\
+http\_req\_failed rate & < 5\% & >5\% & \textcolor{dangered}{\textbf{FAIL}} \\
+errors rate & < 10\% & 100\% & \textcolor{dangered}{\textbf{FAIL}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Analysis \& Observations}
+
+\subsection{Identified Issues}
+
+\begin{enumerate}
+    \item \textbf{High Response Times}: Average response time of 9.65 seconds is significantly above acceptable levels for a real-time application.
+    
+    \item \textbf{Resource Constraints}: The Railway free/hobby tier may have CPU and memory limits causing throttling under load.
+    
+    \item \textbf{Database Bottleneck}: PostgreSQL queries may not be optimized for concurrent access.
+    
+    \item \textbf{No Connection Pooling}: Each request may be creating new database connections.
+\end{enumerate}
+
+\subsection{Root Cause Analysis}
+
+\begin{itemize}
+    \item \textbf{Cold Start}: Railway instances may be scaling or cold-starting during test
+    \item \textbf{Single Instance}: No horizontal scaling configured
+    \item \textbf{Shared Resources}: Free tier shares resources with other applications
+\end{itemize}
+
+\section{Recommendations}
+
+\subsection{Immediate Actions}
+
+\begin{enumerate}
+    \item \textbf{Database Optimization}
+    \begin{itemize}
+        \item Add database indexes on frequently queried columns
+        \item Implement connection pooling (e.g., pgBouncer)
+        \item Review and optimize slow queries
+    \end{itemize}
+    
+    \item \textbf{Caching Layer}
+    \begin{itemize}
+        \item Implement Redis caching for frequently accessed data
+        \item Cache leaderboard and badge data (update every 5 minutes)
+    \end{itemize}
+    
+    \item \textbf{Rate Limiting}
+    \begin{itemize}
+        \item Implement API rate limiting to prevent abuse
+        \item Add request queuing for high-load periods
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Infrastructure Improvements}
+
+\begin{enumerate}
+    \item \textbf{Upgrade Railway Plan}: Move to a paid plan with dedicated resources
+    \item \textbf{Horizontal Scaling}: Enable auto-scaling based on load
+    \item \textbf{CDN Integration}: Use CDN for static assets
+    \item \textbf{Regional Deployment}: Deploy closer to user base
+\end{enumerate}
+
+\section{Test Environment}
+
+\begin{table}[H]
+\centering
+\caption{Environment Details}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Component} & \textbf{Details} \\
+\midrule
+k6 Version & v1.4.2 \\
+Operating System & Windows (amd64) \\
+Go Version & 1.25.4 \\
+Target URL & ritualsappclean-production.up.railway.app \\
+Protocol & HTTPS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion}
+
+The stress test revealed that the Rituals App API requires optimization to handle 100 concurrent users effectively. While the system remained operational, response times exceeded acceptable thresholds. The recommendations in this report should be prioritized based on impact and implementation effort.
+
+\subsection{Priority Matrix}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Action} & \textbf{Impact} & \textbf{Effort} \\
+\midrule
+Database Indexing & High & Low \\
+Redis Caching & High & Medium \\
+Connection Pooling & Medium & Low \\
+Railway Upgrade & High & Low \\
+Horizontal Scaling & High & Medium \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{1cm}
+\noindent\rule{\textwidth}{0.4pt}
+\begin{center}
+\textit{Report generated automatically by k6 stress testing suite}\\
+\textit{Rituals App - Building Better Habits Together}
+\end{center}
+
+\end{document}

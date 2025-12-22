@@ -1,0 +1,263 @@
+{
+    "metrics": {
+        "data_received": {
+            "rate": 22946.25344951837,
+            "count": 1831528
+        },
+        "iteration_duration": {
+            "p(90)": 7171.10873,
+            "p(95)": 7420.451554999997,
+            "avg": 6209.1375005,
+            "min": 5643.8144,
+            "med": 5993.6151,
+            "max": 7661.4584
+        },
+        "http_req_duration": {
+            "p(95)": 539.429175,
+            "avg": 166.0760349015318,
+            "min": 61.2811,
+            "med": 97.3178,
+            "max": 1248.5998,
+            "p(90)": 366.82713999999993,
+            "thresholds": {
+                "p(95)<2000": false
+            }
+        },
+        "data_sent": {
+            "count": 214651,
+            "rate": 2689.249768058456
+        },
+        "group_duration": {
+            "avg": 336.72726517954317,
+            "min": 124.5111,
+            "med": 260.2827,
+            "max": 1248.5998,
+            "p(90)": 722.84402,
+            "p(95)": 839.20249
+        },
+        "checks": {
+            "passes": 453,
+            "fails": 1849,
+            "value": 0.19678540399652475
+        },
+        "errors": {
+            "passes": 1373,
+            "fails": 0,
+            "thresholds": {
+                "rate<0.1": true
+            },
+            "value": 1
+        },
+        "http_req_blocked": {
+            "avg": 3.592870787746171,
+            "min": 0,
+            "med": 0,
+            "max": 269.6693,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "iterations": {
+            "count": 200,
+            "rate": 2.50569507531617
+        },
+        "http_req_failed": {
+            "passes": 1375,
+            "fails": 453,
+            "thresholds": {
+                "rate<0.05": true
+            },
+            "value": 0.7521881838074398
+        },
+        "vus": {
+            "value": 42,
+            "min": 1,
+            "max": 42
+        },
+        "http_reqs": {
+            "count": 1828,
+            "rate": 22.902052988389794
+        },
+        "http_req_connecting": {
+            "max": 155.7798,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 1.5902107768052516,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_tls_handshaking": {
+            "avg": 1.9478613785557983,
+            "min": 0,
+            "med": 0,
+            "max": 143.1711,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "login_duration": {
+            "avg": 372.3801652892562,
+            "min": 155,
+            "med": 295.5,
+            "max": 1248,
+            "p(90)": 758.3000000000001,
+            "p(95)": 850.95
+        },
+        "http_req_waiting": {
+            "max": 1248.07,
+            "p(90)": 366.82713999999993,
+            "p(95)": 539.429175,
+            "avg": 165.70568386214458,
+            "min": 61.2586,
+            "med": 96.9104
+        },
+        "rituals_duration": {
+            "min": 62,
+            "med": 86,
+            "max": 828,
+            "p(90)": 426.2000000000001,
+            "p(95)": 485.75,
+            "avg": 161.60683760683762
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 124.39564657836644,
+            "min": 62.7548,
+            "med": 73.485,
+            "max": 894.0806,
+            "p(90)": 230.3389,
+            "p(95)": 288.5618
+        },
+        "http_req_receiving": {
+            "avg": 0.2630124179431071,
+            "min": 0,
+            "med": 0,
+            "max": 26.9545,
+            "p(90)": 1.0074,
+            "p(95)": 1.4832149999999922
+        },
+        "http_req_sending": {
+            "p(90)": 0.51833,
+            "p(95)": 0.5898949999999991,
+            "avg": 0.10733862144420125,
+            "min": 0,
+            "med": 0,
+            "max": 2.0178
+        }
+    },
+    "setup_data": {
+        "token": null
+    },
+    "root_group": {
+        "checks": {},
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+                "Authentication": {
+                    "name": "Authentication",
+                    "path": "::Authentication",
+                    "id": "e27c07c74d84fc697478e1503d425296",
+                    "groups": {},
+                    "checks": {
+                            "login status is 200": {
+                                "passes": 0,
+                                "fails": 242,
+                                "name": "login status is 200",
+                                "path": "::Authentication::login status is 200",
+                                "id": "0b9c18ff4d7d45ca713c914117724c9a"
+                            },
+                            "login has token": {
+                                "path": "::Authentication::login has token",
+                                "id": "0a109f9c1f41ad596af6ac4318796f2b",
+                                "passes": 0,
+                                "fails": 242,
+                                "name": "login has token"
+                            }
+                        }
+                },
+                "Rituals CRUD": {
+                    "name": "Rituals CRUD",
+                    "path": "::Rituals CRUD",
+                    "id": "eaff47faf619600a0f104516c42c74f5",
+                    "groups": {},
+                    "checks": {
+                            "get rituals status is 200": {
+                                "name": "get rituals status is 200",
+                                "path": "::Rituals CRUD::get rituals status is 200",
+                                "id": "0f1d3fe1dc10f9edeae68064de7e4362",
+                                "passes": 0,
+                                "fails": 234
+                            },
+                            "rituals is array": {
+                                "name": "rituals is array",
+                                "path": "::Rituals CRUD::rituals is array",
+                                "id": "60310215d22fb1e58d50b18e24d139bf",
+                                "passes": 0,
+                                "fails": 234
+                            },
+                            "create ritual status is 201": {
+                                "id": "b442bd756730c5ca193921b453b9aa9f",
+                                "passes": 0,
+                                "fails": 234,
+                                "name": "create ritual status is 201",
+                                "path": "::Rituals CRUD::create ritual status is 201"
+                            }
+                        }
+                },
+                "Profile & Gamification": {
+                    "name": "Profile & Gamification",
+                    "path": "::Profile & Gamification",
+                    "id": "7422804fdbd2e10fb9a4a0089ab42b50",
+                    "groups": {},
+                    "checks": {
+                            "get profile status is 200": {
+                                "fails": 229,
+                                "name": "get profile status is 200",
+                                "path": "::Profile & Gamification::get profile status is 200",
+                                "id": "79afbe751c2a67ceddbf1108153ac977",
+                                "passes": 0
+                            },
+                            "get badges status is 200": {
+                                "path": "::Profile & Gamification::get badges status is 200",
+                                "id": "299c2e93749b3e72e92e7aa0fecb95fb",
+                                "passes": 227,
+                                "fails": 0,
+                                "name": "get badges status is 200"
+                            },
+                            "get leaderboard status is 200": {
+                                "path": "::Profile & Gamification::get leaderboard status is 200",
+                                "id": "fded2186f69a89fc6f5d8154ef70e120",
+                                "passes": 226,
+                                "fails": 0,
+                                "name": "get leaderboard status is 200"
+                            }
+                        }
+                },
+                "Social Features": {
+                    "name": "Social Features",
+                    "path": "::Social Features",
+                    "id": "7991aef12c47a604ad2b071b4554c060",
+                    "groups": {},
+                    "checks": {
+                            "get friends status is 200": {
+                                "name": "get friends status is 200",
+                                "path": "::Social Features::get friends status is 200",
+                                "id": "6a94b2e1855d9c77e53a91afe0564d75",
+                                "passes": 0,
+                                "fails": 217
+                            },
+                            "get partnerships status is 200": {
+                                "fails": 217,
+                                "name": "get partnerships status is 200",
+                                "path": "::Social Features::get partnerships status is 200",
+                                "id": "0dd96452ce1b79e5b9573e46c3a31481",
+                                "passes": 0
+                            }
+                        }
+                }
+            }
+    }
+}

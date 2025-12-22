@@ -240,6 +240,15 @@ export const getLeaderboard = async (req: Request, res: Response) => {
   try {
     const { type = 'global', limit = 100 } = req.query;
     const userId = (req as any).user?.id;
+    const cacheKey = `leaderboard:${type}:${limit}`;
+
+    // 1. Try Cache for non-personalized parts
+    if (!userId) { // Cache only for public users or generic requests
+      const cached = await cacheService.get(cacheKey);
+      if (cached) {
+        return res.json(JSON.parse(cached));
+      }
+    }
 
     let query = '';
     let params: any[] = [];
@@ -293,6 +302,13 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     }
 
     const result = await pool.query(query, params);
+
+    // Cache generic responses (Global/Weekly) for 5 minutes
+    if (type !== 'friends') {
+      const responsePayload = { leaderboard: result.rows, myRank: null };
+      // Cache for 300 seconds (5 mins)
+      await cacheService.set(cacheKey, JSON.stringify(responsePayload), 300);
+    }
 
     // Kullanıcının kendi sırasını da ekle (sadece giriş yapmışsa)
     let myRank = null;
@@ -697,83 +713,80 @@ export const buyCoins = async (req: Request, res: Response) => {
 // ============================================
 
 // GET /api/stats - Kullanıcı istatistiklerini getir
+// GET /api/stats - Kullanıcı istatistiklerini getir
 export const getUserStats = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
 
-    // 1. Temel İstatistikler (Toplam Ritüel, Tamamlananlar, Streak)
-    const basicStats = await pool.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM rituals WHERE user_id = $1) as total_rituals,
-        (SELECT COUNT(*) FROM ritual_logs rl 
-         JOIN rituals r ON rl.ritual_id = r.id 
-         WHERE r.user_id = $1 AND DATE(rl.completed_at) = CURRENT_DATE) as completed_today,
-        (SELECT COUNT(*) FROM ritual_logs rl 
-         JOIN rituals r ON rl.ritual_id = r.id 
-         WHERE r.user_id = $1) as total_completions,
-        (SELECT longest_streak FROM user_profiles WHERE user_id = $1) as longest_streak,
-        (SELECT COALESCE(MAX(current_streak), 0) FROM rituals WHERE user_id = $1) as current_best_streak
-    `, [userId]);
+    // Use Promise.all to run independent queries in parallel
+    const [basicStatsResult, weeklyActivityResult, topRitualsResult, monthlyActivityResult] = await Promise.all([
+      // 1. Temel İstatistikler
+      pool.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM rituals WHERE user_id = $1) as total_rituals,
+          (SELECT COUNT(*) FROM ritual_logs rl 
+           JOIN rituals r ON rl.ritual_id = r.id 
+           WHERE r.user_id = $1 AND DATE(rl.completed_at) = CURRENT_DATE) as completed_today,
+          (SELECT COUNT(*) FROM ritual_logs rl 
+           JOIN rituals r ON rl.ritual_id = r.id 
+           WHERE r.user_id = $1) as total_completions,
+          (SELECT longest_streak FROM user_profiles WHERE user_id = $1) as longest_streak,
+          (SELECT COALESCE(MAX(current_streak), 0) FROM rituals WHERE user_id = $1) as current_best_streak
+      `, [userId]),
 
-    // 2. Haftalık Aktivite (Son 7 gün)
-    const weeklyActivity = await pool.query(`
-      WITH dates AS (
-        SELECT generate_series(
-          CURRENT_DATE - INTERVAL '6 days',
-          CURRENT_DATE,
-          '1 day'::interval
-        )::date AS date
-      )
-      SELECT 
-        EXTRACT(DOW FROM d.date) as day_index,
-        COUNT(rl.id) as count
-      FROM dates d
-      LEFT JOIN ritual_logs rl ON DATE(rl.completed_at) = d.date 
-        AND rl.ritual_id IN (SELECT id FROM rituals WHERE user_id = $1)
-      GROUP BY d.date
-      ORDER BY d.date
-    `, [userId]);
+      // 2. Haftalık Aktivite
+      pool.query(`
+        WITH dates AS (
+          SELECT generate_series(
+            CURRENT_DATE - INTERVAL '6 days',
+            CURRENT_DATE,
+            '1 day'::interval
+          )::date AS date
+        )
+        SELECT 
+          EXTRACT(DOW FROM d.date) as day_index,
+          COUNT(rl.id) as count
+        FROM dates d
+        LEFT JOIN ritual_logs rl ON DATE(rl.completed_at) = d.date 
+          AND rl.ritual_id IN (SELECT id FROM rituals WHERE user_id = $1)
+        GROUP BY d.date
+        ORDER BY d.date
+      `, [userId]),
 
-    // 3. En Çok Yapılan Ritüeller (Top 5)
-    const topRituals = await pool.query(`
-      SELECT r.name, COUNT(rl.id) as count, r.current_streak
-      FROM rituals r
-      JOIN ritual_logs rl ON r.id = rl.ritual_id
-      WHERE r.user_id = $1
-      GROUP BY r.id, r.name, r.current_streak
-      ORDER BY count DESC
-      LIMIT 5
-    `, [userId]);
+      // 3. En Çok Yapılan Ritüeller
+      pool.query(`
+        SELECT r.name, COUNT(rl.id) as count, r.current_streak
+        FROM rituals r
+        JOIN ritual_logs rl ON r.id = rl.ritual_id
+        WHERE r.user_id = $1
+        GROUP BY r.id, r.name, r.current_streak
+        ORDER BY count DESC
+        LIMIT 5
+      `, [userId]),
 
-    // 4. Aylık Aktivite (Son 30 gün - Heatmap için)
-    const monthlyActivity = await pool.query(`
-      SELECT 
-        DATE(completed_at) as date,
-        COUNT(*) as count
-      FROM ritual_logs rl
-      JOIN rituals r ON rl.ritual_id = r.id
-      WHERE r.user_id = $1 
-        AND completed_at >= CURRENT_DATE - INTERVAL '30 days'
-      GROUP BY DATE(completed_at)
-      ORDER BY date
-    `, [userId]);
+      // 4. Aylık Aktivite
+      pool.query(`
+        SELECT 
+          TO_CHAR(rl.completed_at, 'YYYY-MM-DD') as date,
+          COUNT(rl.id) as count
+        FROM ritual_logs rl
+        JOIN rituals r ON rl.ritual_id = r.id
+        WHERE r.user_id = $1
+          AND rl.completed_at >= CURRENT_DATE - INTERVAL '30 days'
+        GROUP BY DATE(rl.completed_at)
+        ORDER BY date
+      `, [userId])
+    ]);
 
     res.json({
-      totalRituals: parseInt(basicStats.rows[0].total_rituals),
-      completedToday: parseInt(basicStats.rows[0].completed_today),
-      totalCompletions: parseInt(basicStats.rows[0].total_completions),
-      longestStreak: parseInt(basicStats.rows[0].longest_streak || '0'),
-      currentBestStreak: parseInt(basicStats.rows[0].current_best_streak || '0'),
-      weeklyActivity: weeklyActivity.rows.map((row: any) => ({
-        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][parseInt(row.day_index)],
-        count: parseInt(row.count)
-      })),
-      topRituals: topRituals.rows,
-      monthlyActivity: monthlyActivity.rows,
+      basic: basicStatsResult.rows[0],
+      weekly_activity: weeklyActivityResult.rows,
+      top_rituals: topRitualsResult.rows,
+      monthly_activity: monthlyActivityResult.rows,
     });
   } catch (error) {
     console.error('Error getting user stats:', error);
-    res.status(500).json({ error: 'Error retrieving statistics' });
+    res.status(500).json({ error: 'Error retrieving user stats' });
   }
 };
 

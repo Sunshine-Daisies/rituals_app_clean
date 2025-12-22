@@ -336,6 +336,17 @@ export const runMigrations = async () => {
       );
     `);
 
+    // ============================================
+    // 3. PERFORMANCE INDEXES (Optimizations)
+    // ============================================
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_user_profiles_xp ON user_profiles (xp DESC);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_user_badges_user_id ON user_badges (user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_user_badges_badge_id ON user_badges (badge_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_rituals_user_id ON rituals (user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_ritual_logs_ritual_id ON ritual_logs (ritual_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_ritual_logs_completed_at ON ritual_logs (completed_at);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships (status);`);
+
     await client.query('COMMIT');
     console.log('✅ Database migrations checked/applied successfully.');
   } catch (error) {
