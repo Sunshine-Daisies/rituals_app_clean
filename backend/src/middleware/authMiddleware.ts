@@ -13,14 +13,14 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
       req.user = decoded;
-      next();
+      return next();
     } catch (error) {
-      res.status(401).json({ error: 'Unauthorized discovery, invalid token' });
+      return res.status(401).json({ error: 'Unauthorized discovery, invalid token' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ error: 'Unauthorized access, no token provided' });
+    return res.status(401).json({ error: 'Unauthorized access, no token provided' });
   }
 };
 
