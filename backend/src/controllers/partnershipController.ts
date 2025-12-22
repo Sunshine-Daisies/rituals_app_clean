@@ -30,14 +30,14 @@ export const createInvite = async (req: Request, res: Response) => {
 
     if (!result.isNew) {
       return res.json({
-        message: 'Mevcut davet kodu',
+        message: 'Existing invite code',
         inviteCode: result.invite.invite_code,
         inviteId: result.invite.id,
       });
     }
 
     res.status(201).json({
-      message: 'Davet kodu oluşturuldu',
+      message: 'Invite code created',
       inviteCode: result.invite.invite_code,
       inviteId: result.invite.id,
       expiresAt: result.invite.expires_at,
@@ -47,7 +47,7 @@ export const createInvite = async (req: Request, res: Response) => {
       return res.status(error.status).json({ error: error.message });
     }
     console.error('Create invite error:', error);
-    res.status(500).json({ error: 'Davet kodu oluşturulurken hata oluştu' });
+    res.status(500).json({ error: 'Error creating invite code' });
   }
 };
 
@@ -68,13 +68,13 @@ export const cancelInvite = async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Davet bulunamadı veya zaten kullanılmış' });
+      return res.status(404).json({ error: 'Invite not found or already used' });
     }
 
-    res.json({ message: 'Davet iptal edildi' });
+    res.json({ message: 'Invite cancelled' });
   } catch (error) {
     console.error('Cancel invite error:', error);
-    res.status(500).json({ error: 'Davet iptal edilirken hata oluştu' });
+    res.status(500).json({ error: 'Error cancelling invite' });
   }
 };
 
@@ -111,10 +111,10 @@ export const joinWithCode = async (req: Request, res: Response) => {
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partnership_request', 'Partner İsteği 🤝', $2, $3)`,
+       VALUES ($1, 'partnership_request', 'Partner Request 🤝', $2, $3)`,
       [
         result.invite.user_id,
-        `${joinerUsername} "${result.invite.ritual_name}" için partner olmak istiyor`,
+        `${joinerUsername} wants to partner up for "${result.invite.ritual_name}"`,
         JSON.stringify({
           request_id: result.request.id,
           requester_id: userId,
@@ -125,7 +125,7 @@ export const joinWithCode = async (req: Request, res: Response) => {
     );
 
     res.status(201).json({
-      message: 'Partner isteği gönderildi',
+      message: 'Partner request sent',
       requestId: result.request.id,
       ritualName: result.invite.ritual_name,
       ownerUsername: result.invite.owner_username,
@@ -136,7 +136,7 @@ export const joinWithCode = async (req: Request, res: Response) => {
       return res.status(error.status).json({ error: error.message });
     }
     console.error('Join with code error:', error);
-    res.status(500).json({ error: 'İstek gönderilirken hata oluştu' });
+    res.status(500).json({ error: 'Error sending request' });
   }
 };
 
@@ -167,11 +167,11 @@ export const acceptRequest = async (req: Request, res: Response) => {
 
     // İsteği kabul etme yetkisi var mı? (davet eden kişi)
     if (req_data.inviter_user_id !== userId) {
-      return res.status(403).json({ error: 'Bu isteği kabul etme yetkiniz yok' });
+      return res.status(403).json({ error: 'You are not authorized to accept this request' });
     }
 
     if (req_data.status !== 'pending') {
-      return res.status(400).json({ error: 'Bu istek zaten işlenmiş' });
+      return res.status(400).json({ error: 'This request has already been processed' });
     }
 
     // Karşı tarafın ritüelini bul veya oluştur
@@ -189,7 +189,7 @@ export const acceptRequest = async (req: Request, res: Response) => {
         );
         inviteeRitualId = newRitual.rows[0].id;
       } else {
-        return res.status(404).json({ error: 'Orijinal ritüel bulunamadı' });
+        return res.status(404).json({ error: 'Original ritual not found' });
       }
     }
 
@@ -234,10 +234,10 @@ export const acceptRequest = async (req: Request, res: Response) => {
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partnership_accepted', 'Partner Oldunuz! 🎉', $2, $3)`,
+       VALUES ($1, 'partnership_accepted', 'Partnership Formed! 🎉', $2, $3)`,
       [
         req_data.invitee_user_id,
-        `${ownerUsername} ile "${req_data.ritual_name}" için partner oldunuz!`,
+        `You have partnered with ${ownerUsername} for "${req_data.ritual_name}"!`,
         JSON.stringify({ partnership_id: partnership.rows[0].id }),
       ]
     );
@@ -270,12 +270,12 @@ export const acceptRequest = async (req: Request, res: Response) => {
     }
 
     res.json({
-      message: 'Partner isteği kabul edildi!',
+      message: 'Partner request accepted!',
       partnershipId: partnership.rows[0].id,
     });
   } catch (error) {
     console.error('Accept request error:', error);
-    res.status(500).json({ error: 'İstek kabul edilirken hata oluştu' });
+    res.status(500).json({ error: 'Error accepting request' });
   }
 };
 
@@ -298,7 +298,7 @@ export const rejectRequest = async (req: Request, res: Response) => {
     }
 
     if (request.rows[0].inviter_user_id !== userId) {
-      return res.status(403).json({ error: 'Bu isteği reddetme yetkiniz yok' });
+      return res.status(403).json({ error: 'You are not authorized to reject this request' });
     }
 
     await pool.query(
@@ -306,10 +306,10 @@ export const rejectRequest = async (req: Request, res: Response) => {
       [requestId]
     );
 
-    res.json({ message: 'İstek reddedildi' });
+    res.json({ message: 'Request rejected' });
   } catch (error) {
     console.error('Reject request error:', error);
-    res.status(500).json({ error: 'İstek reddedilirken hata oluştu' });
+    res.status(500).json({ error: 'Error rejecting request' });
   }
 };
 
@@ -393,7 +393,7 @@ export const getMyPartnerships = async (req: Request, res: Response) => {
     res.json(partnerships);
   } catch (error) {
     console.error('Get my partnerships error:', error);
-    res.status(500).json({ error: 'Partnerlıklar alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving partnerships' });
   }
 };
 
@@ -441,7 +441,7 @@ export const getPartnershipByRitual = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Get partnership by ritual error:', error);
-    res.status(500).json({ error: 'Partnership bilgisi alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving partnership information' });
   }
 };
 
@@ -467,14 +467,14 @@ export const leavePartnership = async (req: Request, res: Response) => {
     );
 
     if (partnership.rows.length === 0) {
-      return res.status(404).json({ error: 'Aktif partnerlık bulunamadı' });
+      return res.status(404).json({ error: 'Active partnership not found' });
     }
 
     const p = partnership.rows[0];
 
     // Bu kullanıcı partnerlığın bir tarafı mı?
     if (p.user_id_1 !== userId && p.user_id_2 !== userId) {
-      return res.status(403).json({ error: 'Bu partnerlığın bir tarafı değilsiniz' });
+      return res.status(403).json({ error: 'You are not a part of this partnership' });
     }
 
     // Partnerlığı sonlandır
@@ -528,20 +528,20 @@ export const leavePartnership = async (req: Request, res: Response) => {
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partnership_ended', 'Partnerlık Bitti 👋', $2, $3)`,
+       VALUES ($1, 'partnership_ended', 'Partnership Ended 👋', $2, $3)`,
       [
         otherUserId,
-        `${leaverUsername} "${p.ritual_name}" için partnerlıktan ayrıldı. Ritüeline kişisel olarak devam edebilirsin!`,
+        `${leaverUsername} left the partnership for "${p.ritual_name}". You can continue your ritual personally!`,
         JSON.stringify({ partnership_id: partnershipId }),
       ]
     );
 
     res.json({
-      message: 'Partnerlıktan ayrıldınız. Ritüeliniz kişisel olarak devam ediyor.',
+      message: 'You have left the partnership. Your ritual continues personally.',
     });
   } catch (error) {
     console.error('Leave partnership error:', error);
-    res.status(500).json({ error: 'Ayrılırken hata oluştu' });
+    res.status(500).json({ error: 'Error while leaving partnership' });
   }
 };
 
@@ -663,7 +663,7 @@ export const getPendingRequests = async (req: Request, res: Response) => {
     })));
   } catch (error) {
     console.error('Get pending requests error:', error);
-    res.status(500).json({ error: 'İstekler alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving requests' });
   }
 };
 
@@ -683,19 +683,19 @@ export const usePartnershipFreeze = async (req: Request, res: Response) => {
     );
 
     if (partnership.rows.length === 0) {
-      return res.status(404).json({ error: 'Partnership bulunamadı' });
+      return res.status(404).json({ error: 'Partnership not found' });
     }
 
     const p = partnership.rows[0];
 
     // Kullanıcı bu partnership'in bir parçası mı?
     if (p.user_id_1 !== userId && p.user_id_2 !== userId) {
-      return res.status(403).json({ error: 'Bu partnership\'e ait değilsiniz' });
+      return res.status(403).json({ error: 'You do not belong to this partnership' });
     }
 
     // Freeze var mı?
     if (p.freeze_count <= 0) {
-      return res.status(400).json({ error: 'Freeze hakkınız kalmamış' });
+      return res.status(400).json({ error: 'No freezes remaining' });
     }
 
     const today = new Date().toISOString().split('T')[0];
@@ -704,7 +704,7 @@ export const usePartnershipFreeze = async (req: Request, res: Response) => {
     if (p.last_freeze_used) {
       const lastFreezeDate = new Date(p.last_freeze_used).toISOString().split('T')[0];
       if (lastFreezeDate === today) {
-        return res.status(400).json({ error: 'Bugün için zaten freeze kullanıldı' });
+        return res.status(400).json({ error: 'Freeze already used for today' });
       }
     }
 
@@ -735,24 +735,24 @@ export const usePartnershipFreeze = async (req: Request, res: Response) => {
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data) 
        VALUES 
-       ($1, 'partnership_freeze_used', 'Freeze Kullanıldı! ❄️', $2, $3),
-       ($4, 'partnership_freeze_used', 'Freeze Kullanıldı! ❄️', $5, $3)`,
+       ($1, 'partnership_freeze_used', 'Freeze Used! ❄️', $2, $3),
+       ($4, 'partnership_freeze_used', 'Freeze Used! ❄️', $5, $3)`,
       [
         userId,
-        `${p.current_streak} günlük partnership streak'inizi korudunuz!`,
+        `You preserved your ${p.current_streak} day partnership streak!`,
         JSON.stringify({ partnership_id: partnershipId, streak: p.current_streak }),
         otherUserId,
-        `${username} freeze kullandı ve ${p.current_streak} günlük streak'iniz korundu!`,
+        `${username} used a freeze and your ${p.current_streak} day streak was preserved!`,
       ]
     );
 
     res.json({
-      message: 'Freeze kullanıldı!',
+      message: 'Freeze used!',
       streakPreserved: p.current_streak,
       freezesRemaining: p.freeze_count - 1
     });
   } catch (error) {
     console.error('Use partnership freeze error:', error);
-    res.status(500).json({ error: 'Freeze kullanırken hata oluştu' });
+    res.status(500).json({ error: 'Error while using freeze' });
   }
 };

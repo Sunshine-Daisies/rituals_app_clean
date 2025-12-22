@@ -16,7 +16,7 @@ export const logUsage = async (req: AuthRequest, res: Response) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'LLM kullanımı kaydedilemedi' });
+    res.status(500).json({ error: 'Failed to log LLM usage' });
   }
 };
 
@@ -33,6 +33,6 @@ export const getUsage = async (req: AuthRequest, res: Response) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Kullanım verileri alınamadı' });
+    res.status(500).json({ error: 'Failed to retrieve usage data' });
   }
 };

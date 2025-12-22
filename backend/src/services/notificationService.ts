@@ -98,7 +98,7 @@ export const sendNotificationToUser = async (
 ): Promise<NotificationResult> => {
   try {
     const tokens = await getUserFcmTokens(userId);
-    
+
     if (tokens.length === 0) {
       console.log(`No FCM tokens found for user ${userId}`);
       return { success: false, successCount: 0, failureCount: 0 };
@@ -178,7 +178,7 @@ export const sendNotificationToTokens = async (
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
-    
+
     // Geçersiz token'ları temizle
     if (response.failureCount > 0 && userId) {
       const failedTokens: string[] = [];
@@ -195,7 +195,7 @@ export const sendNotificationToTokens = async (
     }
 
     console.log(`✅ Notification sent: ${response.successCount} success, ${response.failureCount} failure`);
-    
+
     return {
       success: response.successCount > 0,
       successCount: response.successCount,
@@ -217,8 +217,8 @@ export const sendNotificationToTokens = async (
 // Streak uyarı bildirimi (3 saat kala)
 export const sendStreakWarningNotification = async (userId: string, ritualName: string): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: '⚠️ Streak Tehlikede!',
-    body: `"${ritualName}" ritualini bugün tamamlamadın. Streak'ini kaybetmemek için son 3 saat!`,
+    title: '⚠️ Streak at Risk!',
+    body: `You haven't completed "${ritualName}" today. Only 3 hours left to save your streak!`,
     data: {
       type: 'streak_warning',
       ritual_name: ritualName,
@@ -233,8 +233,8 @@ export const sendPartnerCompletedNotification = async (
   ritualName: string
 ): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: '🎉 Partner Tamamladı!',
-    body: `${partnerName} "${ritualName}" ritualini tamamladı. Senin de sıran!`,
+    title: '🎉 Partner Completed!',
+    body: `${partnerName} completed "${ritualName}". Now it's your turn!`,
     data: {
       type: 'partner_completed',
       partner_name: partnerName,
@@ -250,8 +250,8 @@ export const sendLevelUpNotification = async (
   coinsEarned: number
 ): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: '🎊 Level Atladın!',
-    body: `Tebrikler! Level ${newLevel}'e ulaştın ve ${coinsEarned} coin kazandın!`,
+    title: '🎊 Level Up!',
+    body: `Congratulations! You've reached Level ${newLevel} and earned ${coinsEarned} coins!`,
     data: {
       type: 'level_up',
       new_level: newLevel.toString(),
@@ -267,8 +267,8 @@ export const sendBadgeEarnedNotification = async (
   badgeIcon: string
 ): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: `${badgeIcon} Yeni Rozet!`,
-    body: `"${badgeName}" rozetini kazandın! Tebrikler!`,
+    title: `${badgeIcon} New Badge!`,
+    body: `You've earned the "${badgeName}" badge! Well done!`,
     data: {
       type: 'badge_earned',
       badge_name: badgeName,
@@ -283,8 +283,8 @@ export const sendFriendRequestNotification = async (
   requesterName: string
 ): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: '👋 Arkadaşlık İsteği',
-    body: `${requesterName} sana arkadaşlık isteği gönderdi.`,
+    title: '👋 Friend Request',
+    body: `${requesterName} sent you a friend request.`,
     data: {
       type: 'friend_request',
       requester_name: requesterName,
@@ -299,8 +299,8 @@ export const sendRitualInviteNotification = async (
   ritualName: string
 ): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: '📨 Ritual Daveti',
-    body: `${inviterName} seni "${ritualName}" ritualine davet etti.`,
+    title: '📨 Ritual Invite',
+    body: `${inviterName} invited you to join "${ritualName}".`,
     data: {
       type: 'ritual_invite',
       inviter_name: inviterName,
@@ -315,8 +315,8 @@ export const sendFreezeReminderNotification = async (
   freezeCount: number
 ): Promise<NotificationResult> => {
   return await sendNotificationToUser(userId, {
-    title: '🧊 Freeze Hatırlatması',
-    body: `${freezeCount} freeze hakkın var. Streak'ini korumak için kullanabilirsin!`,
+    title: '🧊 Freeze Reminder',
+    body: `You have ${freezeCount} freeze power-ups. You can use them to protect your streak!`,
     data: {
       type: 'freeze_reminder',
       freeze_count: freezeCount.toString(),
@@ -367,7 +367,7 @@ export const sendAndSaveNotification = async (
 ): Promise<NotificationResult> => {
   // Veritabanına kaydet
   await saveNotificationToDb(userId, type, title, body, data);
-  
+
   // Push notification gönder
   return await sendNotificationToUser(userId, { title, body, data });
 };

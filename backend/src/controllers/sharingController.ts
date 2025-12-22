@@ -31,14 +31,14 @@ export const shareRitual = async (req: Request, res: Response) => {
     );
 
     if (ritualCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Ritual bulunamadı veya size ait değil' });
+      return res.status(404).json({ error: 'Ritual not found or does not belong to you' });
     }
 
     const ritual = ritualCheck.rows[0];
 
     // Private ritual paylaşılamaz
     if (ritual.is_public === false) {
-      return res.status(400).json({ error: 'Private ritualler paylaşılamaz. Önce public yapın.' });
+      return res.status(400).json({ error: 'Private rituals cannot be shared. Make it public first.' });
     }
 
     // Zaten paylaşılmış mı?
@@ -49,7 +49,7 @@ export const shareRitual = async (req: Request, res: Response) => {
 
     if (existingShare.rows.length > 0) {
       return res.json({
-        message: 'Ritual zaten paylaşılmış',
+        message: 'Ritual already shared',
         inviteCode: existingShare.rows[0].invite_code,
         sharedRitualId: existingShare.rows[0].id,
       });
@@ -69,13 +69,13 @@ export const shareRitual = async (req: Request, res: Response) => {
     await addXp(userId, XP_REWARDS.ritual_share, 'ritual_share', parseInt(ritualId));
 
     res.status(201).json({
-      message: 'Ritual paylaşıldı',
+      message: 'Ritual shared',
       inviteCode: inviteCode,
       sharedRitualId: result.rows[0].id,
     });
   } catch (error) {
     console.error('Share ritual error:', error);
-    res.status(500).json({ error: 'Ritual paylaşılırken hata oluştu' });
+    res.status(500).json({ error: 'Error sharing ritual' });
   }
 };
 
@@ -102,14 +102,14 @@ export const joinRitual = async (req: Request, res: Response) => {
     );
 
     if (sharedRitual.rows.length === 0) {
-      return res.status(404).json({ error: 'Geçersiz davet kodu' });
+      return res.status(404).json({ error: 'Invalid invite code' });
     }
 
     const shared = sharedRitual.rows[0];
 
     // Kendi ritualine katılamaz
     if (shared.owner_id === userId) {
-      return res.status(400).json({ error: 'Kendi ritualinize katılamazsınız' });
+      return res.status(400).json({ error: 'You cannot join your own ritual' });
     }
 
     // Zaten katılmış mı?
@@ -121,9 +121,9 @@ export const joinRitual = async (req: Request, res: Response) => {
     if (existingPartner.rows.length > 0) {
       const partner = existingPartner.rows[0];
       if (partner.status === 'accepted') {
-        return res.status(400).json({ error: 'Bu rituale zaten katılmışsınız' });
+        return res.status(400).json({ error: 'You have already joined this ritual' });
       } else if (partner.status === 'pending') {
-        return res.status(400).json({ error: 'Katılım isteğiniz zaten beklemede' });
+        return res.status(400).json({ error: 'Your join request is already pending' });
       }
     }
 
@@ -151,31 +151,31 @@ export const joinRitual = async (req: Request, res: Response) => {
       'SELECT username FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    const joinerUsername = joinerProfile.rows[0]?.username || 'Bir kullanıcı';
+    const joinerUsername = joinerProfile.rows[0]?.username || 'A user';
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'ritual_invite', 'Partner İsteği 🎯', $2, $3)`,
+       VALUES ($1, 'ritual_invite', 'Partner Request 🎯', $2, $3)`,
       [
         shared.owner_id,
-        `${joinerUsername} "${shared.ritual_name}" ritualine katılmak istiyor`,
-        JSON.stringify({ 
-          shared_ritual_id: shared.id, 
+        `${joinerUsername} wants to join your ritual "${shared.ritual_name}"`,
+        JSON.stringify({
+          shared_ritual_id: shared.id,
           partner_id: result.rows[0].id,
-          requester_id: userId 
+          requester_id: userId
         }),
       ]
     );
 
     res.status(201).json({
-      message: 'Katılım isteği gönderildi',
+      message: 'Join request sent',
       partnerId: result.rows[0].id,
       ritualName: shared.ritual_name,
       ownerUsername: shared.owner_username,
     });
   } catch (error) {
     console.error('Join ritual error:', error);
-    res.status(500).json({ error: 'Rituale katılırken hata oluştu' });
+    res.status(500).json({ error: 'Error joining ritual' });
   }
 };
 
@@ -199,17 +199,17 @@ export const acceptPartner = async (req: Request, res: Response) => {
     );
 
     if (partnerCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Partner isteği bulunamadı' });
+      return res.status(404).json({ error: 'Partner request not found' });
     }
 
     const partner = partnerCheck.rows[0];
 
     if (partner.owner_id !== userId) {
-      return res.status(403).json({ error: 'Bu isteği kabul etme yetkiniz yok' });
+      return res.status(403).json({ error: 'You are not authorized to accept this request' });
     }
 
     if (partner.status !== 'pending') {
-      return res.status(400).json({ error: 'Bu istek zaten işlenmiş' });
+      return res.status(400).json({ error: 'This request has already been processed' });
     }
 
     // Kabul et
@@ -227,22 +227,22 @@ export const acceptPartner = async (req: Request, res: Response) => {
       'SELECT username FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    const ownerUsername = ownerProfile.rows[0]?.username || 'Ritual sahibi';
+    const ownerUsername = ownerProfile.rows[0]?.username || 'Ritual owner';
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partner_accepted', 'İstek Kabul Edildi ✅', $2, $3)`,
+       VALUES ($1, 'partner_accepted', 'Request Accepted ✅', $2, $3)`,
       [
         partner.user_id,
-        `${ownerUsername} "${partner.ritual_name}" ritualine katılım isteğinizi kabul etti`,
+        `${ownerUsername} accepted your join request for ritual "${partner.ritual_name}"`,
         JSON.stringify({ shared_ritual_id: partner.shared_ritual_id }),
       ]
     );
 
-    res.json({ message: 'Partner kabul edildi' });
+    res.json({ message: 'Partner accepted' });
   } catch (error) {
     console.error('Accept partner error:', error);
-    res.status(500).json({ error: 'Partner kabul edilirken hata oluştu' });
+    res.status(500).json({ error: 'Error accepting partner' });
   }
 };
 
@@ -261,13 +261,13 @@ export const rejectPartner = async (req: Request, res: Response) => {
     );
 
     if (partnerCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Partner isteği bulunamadı' });
+      return res.status(404).json({ error: 'Partner request not found' });
     }
 
     const partner = partnerCheck.rows[0];
 
     if (partner.owner_id !== userId) {
-      return res.status(403).json({ error: 'Bu isteği reddetme yetkiniz yok' });
+      return res.status(403).json({ error: 'You are not authorized to reject this request' });
     }
 
     await pool.query(
@@ -275,10 +275,10 @@ export const rejectPartner = async (req: Request, res: Response) => {
       [partnerId]
     );
 
-    res.json({ message: 'Partner isteği reddedildi' });
+    res.json({ message: 'Partner request rejected' });
   } catch (error) {
     console.error('Reject partner error:', error);
-    res.status(500).json({ error: 'İstek reddedilirken hata oluştu' });
+    res.status(500).json({ error: 'Error rejecting request' });
   }
 };
 
@@ -294,7 +294,7 @@ export const leavePartnership = async (req: Request, res: Response) => {
     );
 
     if (sharedRitual.rows.length === 0) {
-      return res.status(404).json({ error: 'Paylaşılan ritual bulunamadı' });
+      return res.status(404).json({ error: 'Shared ritual not found' });
     }
 
     const shared = sharedRitual.rows[0];
@@ -306,7 +306,7 @@ export const leavePartnership = async (req: Request, res: Response) => {
     );
 
     if (partnerCheck.rows.length === 0) {
-      return res.status(400).json({ error: 'Bu ritualin partneri değilsiniz' });
+      return res.status(400).json({ error: 'You are not a partner of this ritual' });
     }
 
     await pool.query(
@@ -322,18 +322,18 @@ export const leavePartnership = async (req: Request, res: Response) => {
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partner_left', 'Partner Ayrıldı 👋', $2, $3)`,
+       VALUES ($1, 'partner_left', 'Partner Left 👋', $2, $3)`,
       [
         shared.owner_id,
-        `${leaverProfile.rows[0]?.username || 'Partner'} ritualden ayrıldı`,
+        `${leaverProfile.rows[0]?.username || 'Partner'} left the ritual`,
         JSON.stringify({ ritual_id: ritualId }),
       ]
     );
 
-    res.json({ message: 'Partnerlıktan ayrıldınız' });
+    res.json({ message: 'You have left the partnership' });
   } catch (error) {
     console.error('Leave partnership error:', error);
-    res.status(500).json({ error: 'Ayrılırken hata oluştu' });
+    res.status(500).json({ error: 'Error leaving partnership' });
   }
 };
 
@@ -396,7 +396,7 @@ export const getPartnerInfo = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Get partner info error:', error);
-    res.status(500).json({ error: 'Partner bilgisi alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error getting partner info' });
   }
 };
 
@@ -421,7 +421,7 @@ export const getMyPartnerRituals = async (req: Request, res: Response) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get my partner rituals error:', error);
-    res.status(500).json({ error: 'Partner ritualler alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error getting partner rituals' });
   }
 };
 
@@ -442,7 +442,7 @@ export const updateRitualVisibility = async (req: Request, res: Response) => {
     );
 
     if (ritual.rows.length === 0) {
-      return res.status(404).json({ error: 'Ritual bulunamadı' });
+      return res.status(404).json({ error: 'Ritual not found' });
     }
 
     // Private yapılıyorsa ve aktif partneri varsa uyar
@@ -455,8 +455,8 @@ export const updateRitualVisibility = async (req: Request, res: Response) => {
       );
 
       if (sharedCheck.rows.length > 0) {
-        return res.status(400).json({ 
-          error: 'Bu ritualin aktif partneri var. Önce partnerlığı sonlandırın.' 
+        return res.status(400).json({
+          error: 'Bu ritualin aktif partneri var. Önce partnerlığı sonlandırın.'
         });
       }
     }

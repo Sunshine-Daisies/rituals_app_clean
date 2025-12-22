@@ -141,7 +141,7 @@ export const deleteNotification = async (req: Request, res: Response) => {
 export const sendTestNotification = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    const { title = 'Test Bildirimi', body = 'Bu bir test bildirimidir 🎉' } = req.body;
+    const { title = 'Test Notification', body = 'This is a test notification 🎉' } = req.body;
 
     const result = await notificationService.sendAndSaveNotification(
       userId,

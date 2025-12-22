@@ -31,14 +31,14 @@ async function getPartnerInfo(ritualId: string, oderId: string) {
      WHERE sr.ritual_id = $1`,
     [ritualId]
   );
-  
+
   if (result.rows.length === 0 || !result.rows[0].partner_user_id) {
     return null; // Paylaşılmamış veya partner yok
   }
-  
+
   const data = result.rows[0];
   const isOwner = data.owner_id === oderId;
-  
+
   return {
     sharedRitualId: data.shared_ritual_id,
     partnerRecordId: data.partner_record_id,
@@ -61,7 +61,7 @@ async function getPartnerInfo(ritualId: string, oderId: string) {
 // Helper: Bugün bu ritüeli kim tamamladı?
 async function getTodayCompletions(ritualId: string) {
   const today = new Date().toISOString().split('T')[0];
-  
+
   const result = await pool.query(
     `SELECT DISTINCT rl.ritual_id, r.user_id as owner_id,
             CASE WHEN r.user_id = (
@@ -84,7 +84,7 @@ async function getTodayCompletions(ritualId: string) {
      WHERE rl.ritual_id = $1 AND DATE(rl.completed_at) = $2`,
     [ritualId, today]
   );
-  
+
   // Alternatif: Doğrudan kontrol et
   const ownerCheck = await pool.query(
     `SELECT COUNT(*) FROM ritual_logs rl
@@ -92,7 +92,7 @@ async function getTodayCompletions(ritualId: string) {
      WHERE rl.ritual_id = $1 AND DATE(rl.completed_at) = $2 AND rl.step_index = -1`,
     [ritualId, today]
   );
-  
+
   const partnerCheck = await pool.query(
     `SELECT rp.last_completed_at 
      FROM ritual_partners rp
@@ -101,7 +101,7 @@ async function getTodayCompletions(ritualId: string) {
      AND DATE(rp.last_completed_at) = $2`,
     [ritualId, today]
   );
-  
+
   return {
     ownerCompleted: parseInt(ownerCheck.rows[0]?.count || '0') > 0,
     partnerCompleted: partnerCheck.rows.length > 0,
@@ -111,21 +111,21 @@ async function getTodayCompletions(ritualId: string) {
 // Helper: Partner streak güncelle
 async function updatePartnerStreak(partnerRecordId: string, bothCompletedToday: boolean) {
   const today = new Date().toISOString().split('T')[0];
-  
+
   // Mevcut streak bilgisini al
   const current = await pool.query(
     `SELECT current_streak, longest_streak, last_completed_at 
      FROM ritual_partners WHERE id = $1`,
     [partnerRecordId]
   );
-  
+
   if (current.rows.length === 0) return { newStreak: 0, isNewRecord: false };
-  
+
   const { current_streak, longest_streak, last_completed_at } = current.rows[0];
   const lastDate = last_completed_at ? new Date(last_completed_at).toISOString().split('T')[0] : null;
-  
+
   let newStreak = current_streak || 0;
-  
+
   if (bothCompletedToday) {
     // Her iki partner de tamamladı
     // last_completed_at bugünse, streak zaten artırılmış demek - tekrar artırma
@@ -133,11 +133,11 @@ async function updatePartnerStreak(partnerRecordId: string, bothCompletedToday: 
       console.log(`⚠️ Streak already updated today for partner record ${partnerRecordId}`);
       return { newStreak, isNewRecord: false };
     }
-    
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
-    
+
     if (lastDate === yesterdayStr) {
       // Streak devam ediyor
       newStreak = (current_streak || 0) + 1;
@@ -147,75 +147,75 @@ async function updatePartnerStreak(partnerRecordId: string, bothCompletedToday: 
       newStreak = 1;
       console.log(`🆕 New streak starting! Previous last date: ${lastDate}`);
     }
-    
+
     const newLongest = Math.max(newStreak, longest_streak || 0);
     const isNewRecord = newStreak > (longest_streak || 0);
-    
+
     await pool.query(
       `UPDATE ritual_partners 
        SET current_streak = $1, longest_streak = $2, last_completed_at = NOW()
        WHERE id = $3`,
       [newStreak, newLongest, partnerRecordId]
     );
-    
+
     console.log(`✅ Streak updated: ${newStreak}, longest: ${newLongest}, record: ${isNewRecord}`);
-    
+
     return { newStreak, isNewRecord };
   }
-  
+
   return { newStreak: current_streak || 0, isNewRecord: false };
 }
 
 // Helper: Kişisel ritüel streak güncelle
 async function updatePersonalRitualStreak(ritualId: string) {
   const today = new Date().toISOString().split('T')[0];
-  
+
   // Mevcut streak bilgisini al
   const ritualResult = await pool.query(
     'SELECT current_streak, longest_streak FROM rituals WHERE id = $1',
     [ritualId]
   );
-  
+
   if (ritualResult.rows.length === 0) return;
-  
+
   const { current_streak, longest_streak } = ritualResult.rows[0];
-  
+
   // Bugün daha önce tamamlanmış mı kontrol et (duplicate check)
   const todayLogs = await pool.query(
     `SELECT COUNT(*) FROM ritual_logs 
      WHERE ritual_id = $1 AND DATE(completed_at) = $2 AND step_index = -1`,
     [ritualId, today]
   );
-  
+
   // Eğer bugün 1'den fazla log varsa (şu an eklediğimiz dahil), zaten güncellenmiştir
   if (parseInt(todayLogs.rows[0].count) > 1) {
     return;
   }
-  
+
   // Dün tamamlanmış mı kontrol et
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
-  
+
   const yesterdayLogs = await pool.query(
     `SELECT COUNT(*) FROM ritual_logs 
      WHERE ritual_id = $1 AND DATE(completed_at) = $2 AND step_index = -1`,
     [ritualId, yesterdayStr]
   );
-  
+
   let newStreak = 1;
   // Eğer dün tamamlandıysa streak'i artır
   if (parseInt(yesterdayLogs.rows[0].count) > 0) {
     newStreak = (current_streak || 0) + 1;
   }
-  
+
   const newLongest = Math.max(newStreak, longest_streak || 0);
-  
+
   await pool.query(
     'UPDATE rituals SET current_streak = $1, longest_streak = $2 WHERE id = $3',
     [newStreak, newLongest, ritualId]
   );
-  
+
   console.log(`🔥 Personal ritual streak updated: ${newStreak} (Longest: ${newLongest})`);
 }
 
@@ -223,13 +223,13 @@ async function updatePersonalRitualStreak(ritualId: string) {
 export const logCompletion = async (req: AuthRequest, res: Response) => {
   const { ritual_id, step_index, source, completed_at } = req.body;
   const userId = req.user?.id;
-  
+
   try {
     const result = await pool.query(
       'INSERT INTO ritual_logs (ritual_id, step_index, source, completed_at, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [ritual_id, step_index, source, completed_at || new Date(), userId]
     );
-    
+
     // Eğer tüm adımlar tamamlandıysa (step_index = -1 veya tam tamamlama) XP ver
     if (userId && (step_index === -1 || source === 'full_completion')) {
       try {
@@ -240,17 +240,17 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
            AND step_index = -1`,
           [userId]
         );
-        
+
         const isFirstRitual = parseInt(completionCount.rows[0].count) === 1;
-        
+
         // XP ekle
         const xpResult = await xpService.addXp(
-          userId, 
-          xpService.XP_REWARDS.ritual_complete, 
+          userId,
+          xpService.XP_REWARDS.ritual_complete,
           'ritual_complete',
           ritual_id
         );
-        
+
         // İlk ritual ise bonus XP
         if (isFirstRitual) {
           await xpService.addXp(
@@ -260,13 +260,13 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
             ritual_id
           );
         }
-        
+
         // Streak kontrolü ve bonus
         const streakResult = await pool.query(
           `SELECT current_streak FROM user_profiles WHERE user_id = $1`,
           [userId]
         );
-        
+
         if (streakResult.rows.length > 0) {
           const currentStreak = streakResult.rows[0].current_streak || 0;
           await xpService.checkAndAwardStreakBonus(userId, currentStreak);
@@ -274,46 +274,46 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
 
         // Kişisel ritüel streak güncelle
         await updatePersonalRitualStreak(ritual_id);
-        
+
         // ========================================
         // PARTNER STREAK & NOTIFICATION LOGIC
         // ========================================
         const partnerInfo = await getPartnerInfo(ritual_id, userId);
-        
+
         if (partnerInfo) {
           console.log(`🤝 Partner ritual detected: ${partnerInfo.ritualName}`);
-          
+
           // Kullanıcı profil bilgisi
           const userProfile = await pool.query(
             'SELECT username FROM user_profiles WHERE user_id = $1',
             [userId]
           );
           const username = userProfile.rows[0]?.username || 'Partner';
-          
+
           // Partner'a bildirim gönder: "X tamamladı, sıra sende!"
           await pool.query(
             `INSERT INTO notifications (user_id, type, title, body, data)
-             VALUES ($1, 'partner_completed', 'Partner Tamamladı! 🔥', $2, $3)`,
+             VALUES ($1, 'partner_completed', 'Partner Completed! 🔥', $2, $3)`,
             [
               partnerInfo.otherUserId,
-              `${username} "${partnerInfo.ritualName}" ritüelini tamamladı! Sıra sende 💪`,
-              JSON.stringify({ 
+              `${username} completed "${partnerInfo.ritualName}"! Now it's your turn 💪`,
+              JSON.stringify({
                 ritual_id: ritual_id,
                 completed_by: userId,
                 completed_by_username: username,
               }),
             ]
           );
-          
+
           // Bugünkü tamamlama durumunu kontrol et
           const todayStatus = await getTodayCompletions(ritual_id);
-          
+
           // Partner da tamamladı mı kontrol et (bu completion'dan önce)
           // Eğer owner tamamladıysa: partner'ın bugün log'u var mı?
           // Eğer partner tamamladıysa: owner'ın bugün log'u var mı?
-          
+
           let otherCompletedToday = false;
-          
+
           if (partnerInfo.isOwner) {
             // Owner tamamladı, partner bugün tamamladı mı?
             const partnerLogs = await pool.query(
@@ -337,21 +337,21 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
             );
             otherCompletedToday = parseInt(ownerLogs.rows[0]?.count || '0') > 0;
           }
-          
+
           const bothCompletedToday = otherCompletedToday;
-          
+
           if (bothCompletedToday) {
             console.log(`🎉 Both partners completed today! Updating streak...`);
-            
+
             // Streak güncelle
             const { newStreak, isNewRecord } = await updatePartnerStreak(
-              partnerInfo.partnerRecordId, 
+              partnerInfo.partnerRecordId,
               true
             );
-            
+
             // Her iki partner'a da bildirim gönder
-            const bothNotificationBody = `🎉 Tebrikler! İkiniz de "${partnerInfo.ritualName}" ritüelini bugün tamamladınız! Streak: ${newStreak} gün 🔥`;
-            
+            const bothNotificationBody = `🎉 Congratulations! You both completed "${partnerInfo.ritualName}" today! Streak: ${newStreak} days 🔥`;
+
             // Owner'a bildirim
             await pool.query(
               `INSERT INTO notifications (user_id, type, title, body, data)
@@ -359,14 +359,14 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
               [
                 partnerInfo.ownerId,
                 bothNotificationBody,
-                JSON.stringify({ 
+                JSON.stringify({
                   ritual_id: ritual_id,
                   streak: newStreak,
                   is_new_record: isNewRecord,
                 }),
               ]
             );
-            
+
             // Partner'a bildirim
             await pool.query(
               `INSERT INTO notifications (user_id, type, title, body, data)
@@ -374,14 +374,14 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
               [
                 partnerInfo.partnerUserId,
                 bothNotificationBody,
-                JSON.stringify({ 
+                JSON.stringify({
                   ritual_id: ritual_id,
                   streak: newStreak,
                   is_new_record: isNewRecord,
                 }),
               ]
             );
-            
+
             // Bonus XP ver
             await xpService.addXp(
               partnerInfo.ownerId,
@@ -395,7 +395,7 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
               'partner_both_complete',
               ritual_id
             );
-            
+
             // Streak milestone bonusları
             if (newStreak === 3) {
               await xpService.addXp(partnerInfo.ownerId, PARTNER_STREAK_REWARDS.partner_streak_3, 'partner_streak_3', ritual_id);
@@ -407,13 +407,13 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
               await xpService.addXp(partnerInfo.ownerId, PARTNER_STREAK_REWARDS.partner_streak_30, 'partner_streak_30', ritual_id);
               await xpService.addXp(partnerInfo.partnerUserId, PARTNER_STREAK_REWARDS.partner_streak_30, 'partner_streak_30', ritual_id);
             }
-            
+
             // Yeni rekor bildirimi
             if (isNewRecord && newStreak > 1) {
-              const recordBody = `🏆 Yeni rekor! "${partnerInfo.ritualName}" için partner streak'iniz ${newStreak} güne ulaştı!`;
+              const recordBody = `🏆 New record! Your partner streak for "${partnerInfo.ritualName}" has reached ${newStreak} days!`;
               await pool.query(
                 `INSERT INTO notifications (user_id, type, title, body, data)
-                 VALUES ($1, 'partner_streak_record', 'Yeni Rekor! 🏆', $2, $3)`,
+                 VALUES ($1, 'partner_streak_record', 'New Record! 🏆', $2, $3)`,
                 [partnerInfo.ownerId, recordBody, JSON.stringify({ streak: newStreak, ritual_id })]
               );
               await pool.query(
@@ -424,31 +424,31 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
             }
           }
         }
-        
+
         // ========================================
         // NEW EQUAL PARTNERSHIP LOGIC
         // ========================================
         // Check if this ritual is part of the new partnership system
         const partnershipResult = await updatePartnershipStreak(userId, ritual_id);
-        
+
         if (partnershipResult.updated && partnershipResult.currentStreak) {
           console.log(`🤝 New partnership streak updated: ${partnershipResult.currentStreak}`);
-          
+
           // Her iki tarafa da bildirim gönder
           const userProfile = await pool.query(
             'SELECT username FROM user_profiles WHERE user_id = $1',
             [userId]
           );
           const username = userProfile.rows[0]?.username || 'Partner';
-          
+
           const ritualInfo = await pool.query(
             'SELECT name FROM rituals WHERE id = $1',
             [ritual_id]
           );
           const ritualName = ritualInfo.rows[0]?.name || 'Ritüel';
-          
-          const bothNotificationBody = `🎉 İkiniz de "${ritualName}" ritüelini bugün tamamladınız! Streak: ${partnershipResult.currentStreak} gün 🔥`;
-          
+
+          const bothNotificationBody = `🎉 You both completed "${ritualName}" today! Streak: ${partnershipResult.currentStreak} days 🔥`;
+
           // Partner'a bildirim gönder
           if (partnershipResult.partnerUserId) {
             await pool.query(
@@ -457,13 +457,13 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
               [
                 partnershipResult.partnerUserId,
                 bothNotificationBody,
-                JSON.stringify({ 
+                JSON.stringify({
                   ritual_id: ritual_id,
                   streak: partnershipResult.currentStreak,
                 }),
               ]
             );
-            
+
             // Bonus XP ver
             await xpService.addXp(
               userId,
@@ -477,7 +477,7 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
               'partner_both_complete',
               ritual_id
             );
-            
+
             // Streak milestone bonusları
             const streak = partnershipResult.currentStreak;
             if (streak === 3) {
@@ -498,20 +498,20 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
             [userId]
           );
           const username = userProfile.rows[0]?.username || 'Partner';
-          
+
           const ritualInfo = await pool.query(
             'SELECT name FROM rituals WHERE id = $1',
             [ritual_id]
           );
           const ritualName = ritualInfo.rows[0]?.name || 'Ritüel';
-          
+
           await pool.query(
             `INSERT INTO notifications (user_id, type, title, body, data)
-             VALUES ($1, 'partner_completed', 'Partner Tamamladı! 🔥', $2, $3)`,
+             VALUES ($1, 'partner_completed', 'Partner Completed! 🔥', $2, $3)`,
             [
               partnershipResult.partnerUserId,
-              `${username} "${ritualName}" ritüelini tamamladı! Sıra sende 💪`,
-              JSON.stringify({ 
+              `${username} completed "${ritualName}"! Now it's your turn 💪`,
+              JSON.stringify({
                 ritual_id: ritual_id,
                 completed_by: userId,
               }),
@@ -521,32 +521,32 @@ export const logCompletion = async (req: AuthRequest, res: Response) => {
         // ========================================
         // END PARTNER LOGIC
         // ========================================
-        
+
       } catch (xpError) {
         console.error('XP ekleme hatası (log yine de kaydedildi):', xpError);
       }
     }
-    
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Log oluşturulamadı' });
+    res.status(500).json({ error: 'Log could not be created' });
   }
 };
 
 // Get logs for a ritual
 export const getLogs = async (req: AuthRequest, res: Response) => {
   const { ritualId } = req.params;
-  
+
   try {
     const result = await pool.query(
       'SELECT * FROM ritual_logs WHERE ritual_id = $1 ORDER BY completed_at DESC',
       [ritualId]
     );
-    
+
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Loglar alınamadı' });
+    res.status(500).json({ error: 'Logs could not be retrieved' });
   }
 };

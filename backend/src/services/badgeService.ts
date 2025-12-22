@@ -349,7 +349,7 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
 
     return {
       success: true,
-      message: 'Freeze başarıyla kullanıldı! Streak korundu.',
+      message: 'Freeze successfully used! Streak preserved.',
       freezesRemaining: freeze_count - 1,
     };
 

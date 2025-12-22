@@ -31,7 +31,7 @@ export const registerDevice = async (req: AuthRequest, res: Response) => {
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Cihaz kaydedilemedi' });
+    res.status(500).json({ error: 'Device could not be registered' });
   }
 };
 
@@ -48,6 +48,6 @@ export const updateLastSeen = async (req: AuthRequest, res: Response) => {
     res.json({ message: 'Last seen updated' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Güncelleme başarısız' });
+    res.status(500).json({ error: 'Update failed' });
   }
 };

@@ -121,7 +121,7 @@ class UserProfile extends Equatable {
       username: json['username'] ?? '',
       xp: json['xp'] ?? 0,
       level: json['level'] ?? 1,
-      levelTitle: json['level_title'] ?? '🌱 Tohum',
+      levelTitle: json['level_title'] ?? '🌱 Seed',
       coins: json['coins'] ?? 0,
       freezeCount: json['freeze_count'] ?? 0,
       totalFreezesUsed: json['total_freezes_used'] ?? 0,

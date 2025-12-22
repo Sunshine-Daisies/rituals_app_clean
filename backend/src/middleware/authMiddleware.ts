@@ -15,12 +15,12 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
       req.user = decoded;
       next();
     } catch (error) {
-      res.status(401).json({ error: 'Yetkisiz erişim, token geçersiz' });
+      res.status(401).json({ error: 'Unauthorized discovery, invalid token' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ error: 'Yetkisiz erişim, token yok' });
+    res.status(401).json({ error: 'Unauthorized access, no token provided' });
   }
 };
 

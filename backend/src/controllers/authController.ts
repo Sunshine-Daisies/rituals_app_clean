@@ -18,14 +18,14 @@ export const register = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email ve şifre zorunludur' });
+    return res.status(400).json({ error: 'Email and password are required' });
   }
 
   try {
     // 1. Email kullanımda mı kontrol et
     const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
-      return res.status(400).json({ error: 'Bu email zaten kayıtlı' });
+      return res.status(400).json({ error: 'This email is already registered' });
     }
 
     // 2. Şifreyi hashle
@@ -147,7 +147,7 @@ export const login = async (req: Request, res: Response) => {
     const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
     if (userResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Kullanıcı bulunamadı' });
+      return res.status(400).json({ error: 'User not found' });
     }
 
     const user = userResult.rows[0];
@@ -155,12 +155,12 @@ export const login = async (req: Request, res: Response) => {
     // 2. Şifreyi kontrol et
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Hatalı şifre' });
+      return res.status(400).json({ error: 'Incorrect password' });
     }
 
     // 3. Onay kontrolü
     if (!user.is_verified) {
-      return res.status(403).json({ error: 'Lütfen önce e-posta adresini onayla.' });
+      return res.status(403).json({ error: 'Please verify your email address first.' });
     }
 
     // 4. Token oluştur
@@ -171,7 +171,7 @@ export const login = async (req: Request, res: Response) => {
     );
 
     res.json({
-      message: 'Giriş başarılı',
+      message: 'Login successful',
       user: { id: user.id, email: user.email, isPremium: user.is_premium },
       token
     });
@@ -207,7 +207,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -313,7 +313,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Geçersiz veya süresi dolmuş link.' });
+      return res.status(400).json({ error: 'Invalid or expired link.' });
     }
 
     const user = userResult.rows[0];
@@ -338,7 +338,7 @@ export const togglePremium = async (req: any, res: Response) => {
   const userId = req.user?.id; // Authed user ID from middleware
 
   if (!userId) {
-    return res.status(401).json({ error: 'Yetkisiz erişim' });
+    return res.status(401).json({ error: 'Unauthorized access' });
   }
 
   try {
@@ -348,16 +348,16 @@ export const togglePremium = async (req: any, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+      return res.status(404).json({ error: 'User not found' });
     }
 
     const isPremium = result.rows[0].is_premium;
     res.json({
-      message: isPremium ? 'Premium mod aktif!' : 'Premium mod pasif.',
+      message: isPremium ? 'Premium mode active!' : 'Premium mode inactive.',
       isPremium
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    res.status(500).json({ error: 'Server error' });
   }
 };

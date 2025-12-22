@@ -234,21 +234,21 @@ export const runMigrations = async () => {
     if (parseInt(badgeCheck.rows[0].count) === 0) {
       await client.query(`
         INSERT INTO badges (badge_key, name, description, icon, category, xp_reward, coin_reward, requirement_type, requirement_value) VALUES
-        ('streak_starter', 'Kıvılcım', '3 günlük streak''e ulaştın!', '🔥', 'streak', 15, 5, 'streak_days', 3),
-        ('streak_week', 'Alev', '7 günlük streak''e ulaştın!', '🔥🔥', 'streak', 30, 10, 'streak_days', 7),
-        ('streak_fortnight', 'Ateş Topu', '14 günlük streak''e ulaştın!', '🔥🔥🔥', 'streak', 50, 20, 'streak_days', 14),
-        ('streak_month', 'Meteor', '30 günlük streak''e ulaştın!', '☄️', 'streak', 100, 50, 'streak_days', 30),
-        ('streak_legend', 'Efsane', '100 günlük streak''e ulaştın!', '💎', 'streak', 500, 200, 'streak_days', 100),
-        ('first_friend', 'İlk Arkadaş', 'İlk arkadaşını edindin!', '🤝', 'social', 10, 5, 'friends_count', 1),
-        ('social_butterfly', 'Sosyal Kelebek', '10 arkadaşa ulaştın!', '👥', 'social', 50, 25, 'friends_count', 10),
-        ('popular', 'Popüler', '25 arkadaşa ulaştın!', '🌟', 'social', 100, 50, 'friends_count', 25),
-        ('team_player', 'Takım Oyuncusu', 'İlk partner ritualine katıldın!', '🎯', 'social', 20, 10, 'partner_rituals', 1),
-        ('mentor', 'Mentor', '5 kişi ritualine katıldı!', '🏅', 'social', 100, 50, 'ritual_partners', 5),
-        ('first_ritual', 'Başlangıç', 'İlk ritualini tamamladın!', '🎉', 'milestone', 15, 5, 'rituals_completed', 1),
-        ('ritual_30', 'Düzenli', '30 ritual tamamladın!', '📅', 'milestone', 50, 25, 'rituals_completed', 30),
-        ('collector', 'Koleksiyoncu', '5 ritual oluşturdun!', '📚', 'milestone', 30, 15, 'rituals_created', 5),
-        ('early_bird', 'Sabahçı', '10 sabah rituali tamamladın!', '🌅', 'milestone', 40, 20, 'morning_rituals', 10),
-        ('night_owl', 'Gececi', '10 akşam rituali tamamladın!', '🌙', 'milestone', 40, 20, 'evening_rituals', 10);
+        ('streak_starter', 'Spark', 'You reached a 3-day streak!', '🔥', 'streak', 15, 5, 'streak_days', 3),
+        ('streak_week', 'Flame', 'You reached a 7-day streak!', '🔥🔥', 'streak', 30, 10, 'streak_days', 7),
+        ('streak_fortnight', 'Fireball', 'You reached a 14-day streak!', '🔥🔥🔥', 'streak', 50, 20, 'streak_days', 14),
+        ('streak_month', 'Meteor', 'You reached a 30-day streak!', '☄️', 'streak', 100, 50, 'streak_days', 30),
+        ('streak_legend', 'Legend', 'You reached a 100-day streak!', '💎', 'streak', 500, 200, 'streak_days', 100),
+        ('first_friend', 'First Friend', 'You made your first friend!', '🤝', 'social', 10, 5, 'friends_count', 1),
+        ('social_butterfly', 'Social Butterfly', 'You reached 10 friends!', '👥', 'social', 50, 25, 'friends_count', 10),
+        ('popular', 'Popular', 'You reached 25 friends!', '🌟', 'social', 100, 50, 'friends_count', 25),
+        ('team_player', 'Team Player', 'You joined your first partner ritual!', '🎯', 'social', 20, 10, 'partner_rituals', 1),
+        ('mentor', 'Mentor', '5 people joined your ritual!', '🏅', 'social', 100, 50, 'ritual_partners', 5),
+        ('first_ritual', 'Beginning', 'You completed your first ritual!', '🎉', 'milestone', 15, 5, 'rituals_completed', 1),
+        ('ritual_30', 'Regular', 'You completed 30 rituals!', '📅', 'milestone', 50, 25, 'rituals_completed', 30),
+        ('collector', 'Collector', 'You created 5 rituals!', '📚', 'milestone', 30, 15, 'rituals_created', 5),
+        ('early_bird', 'Early Bird', 'You completed 10 morning rituals!', '🌅', 'milestone', 40, 20, 'morning_rituals', 10),
+        ('night_owl', 'Night Owl', 'You completed 10 evening rituals!', '🌙', 'milestone', 40, 20, 'evening_rituals', 10);
       `);
     }
 

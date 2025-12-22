@@ -29,7 +29,7 @@ class ErrorHandler {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 4),
         action: SnackBarAction(
-          label: 'Kapat',
+          label: 'Close',
           textColor: Colors.white,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -71,11 +71,11 @@ class ErrorHandler {
                 Navigator.of(context).pop();
                 onRetry();
               },
-              child: const Text('Tekrar Dene'),
+              child: const Text('Try Again'),
             ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tamam'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -185,14 +185,14 @@ class ErrorHandler {
   }
 
   static String _getTitle(AppException exception) {
-    if (exception is NetworkException) return 'Bağlantı Hatası';
-    if (exception is ServerException) return 'Sunucu Hatası';
-    if (exception is UnauthorizedException) return 'Oturum Hatası';
-    if (exception is ForbiddenException) return 'Erişim Engellendi';
-    if (exception is NotFoundException) return 'Bulunamadı';
-    if (exception is ValidationException) return 'Geçersiz Bilgi';
-    if (exception is TimeoutException) return 'Zaman Aşımı';
-    if (exception is RateLimitException) return 'Çok Fazla İstek';
-    return 'Hata';
+    if (exception is NetworkException) return 'Connection Error';
+    if (exception is ServerException) return 'Server Error';
+    if (exception is UnauthorizedException) return 'Session Error';
+    if (exception is ForbiddenException) return 'Access Denied';
+    if (exception is NotFoundException) return 'Not Found';
+    if (exception is ValidationException) return 'Invalid Information';
+    if (exception is TimeoutException) return 'Timeout';
+    if (exception is RateLimitException) return 'Too Many Requests';
+    return 'Error';
   }
 }

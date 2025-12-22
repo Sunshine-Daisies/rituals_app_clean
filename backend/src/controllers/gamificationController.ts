@@ -53,7 +53,7 @@ export const getMyProfile = async (req: Request, res: Response) => {
     if (error instanceof Error) {
       console.error('Stack:', error.stack);
     }
-    res.status(500).json({ error: 'Profil alınırken hata oluştu', details: error instanceof Error ? error.message : String(error) });
+    res.status(500).json({ error: 'Error retrieving profile', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -73,7 +73,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
     const profile = await xpService.getUserProfile(userId);
 
     if (!profile) {
-      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+      return res.status(404).json({ error: 'User not found' });
     }
 
     // Sadece public bilgileri döndür
@@ -109,7 +109,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
     res.json(finalPublic);
   } catch (error) {
     console.error('Error getting user profile:', error);
-    res.status(500).json({ error: 'Profil alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving profile' });
   }
 };
 
@@ -120,12 +120,12 @@ export const updateUsername = async (req: Request, res: Response) => {
     const { username } = req.body;
 
     if (!username || username.length < 3 || username.length > 30) {
-      return res.status(400).json({ error: 'Kullanıcı adı 3-30 karakter arasında olmalı' });
+      return res.status(400).json({ error: 'Username must be between 3 and 30 characters' });
     }
 
     // Sadece harf, rakam ve alt çizgi
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir' });
+      return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
     }
 
     const updated = await xpService.updateUsername(userId, username);
@@ -137,10 +137,10 @@ export const updateUsername = async (req: Request, res: Response) => {
     res.json(updated);
   } catch (error: any) {
     console.error('Error updating username:', error);
-    if (error.message === 'Bu kullanıcı adı zaten kullanılıyor') {
+    if (error.message === 'This username is already taken') {
       return res.status(400).json({ error: error.message });
     }
-    res.status(500).json({ error: 'Kullanıcı adı güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Error updating username' });
   }
 };
 
@@ -151,7 +151,7 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     const { image } = req.body; // Base64 string
 
     if (!image) {
-      return res.status(400).json({ error: 'Resim verisi bulunamadı' });
+      return res.status(400).json({ error: 'Image data not found' });
     }
 
     // Base64 decode ve dosya kaydetme
@@ -193,7 +193,7 @@ export const uploadAvatar = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error uploading avatar:', error);
-    res.status(500).json({ error: 'Avatar yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Error uploading avatar' });
   }
 };
 
@@ -206,12 +206,12 @@ export const updateProfile = async (req: Request, res: Response) => {
     // Check existing name to avoid redundant update error
     const profile = await xpService.getUserProfile(userId);
     if (profile && profile.name === name) {
-      return res.json({ message: 'Profil zaten güncel', name });
+      return res.json({ message: 'Profile is already up to date', name });
     }
 
     if (!name) {
       // If name is empty or same, handle it gracefully
-      return res.json({ message: 'Güncellenecek veri yok', name: profile?.name });
+      return res.json({ message: 'No data to update', name: profile?.name });
     }
 
     // Name sütununu güncelle
@@ -223,11 +223,11 @@ export const updateProfile = async (req: Request, res: Response) => {
     // Invalidate Cache
     await cacheService.del(`profile:${userId}`);
 
-    res.json({ message: 'Profil güncellendi', name });
+    res.json({ message: 'Profile updated', name });
 
   } catch (error) {
     console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Profil güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Error updating profile' });
   }
 };
 
@@ -313,7 +313,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error getting leaderboard:', error);
-    res.status(500).json({ error: 'Sıralama alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving leaderboard' });
   }
 };
 
@@ -387,12 +387,12 @@ export const checkBadges = async (req: Request, res: Response) => {
       success: true,
       newBadges: result.newBadges,
       message: result.newBadges.length > 0
-        ? `${result.newBadges.length} yeni rozet kazandın!`
-        : 'Yeni rozet kazanılmadı',
+        ? `You earned ${result.newBadges.length} new badges!`
+        : 'No new badges earned',
     });
   } catch (error) {
     console.error('Error checking badges:', error);
-    res.status(500).json({ error: 'Badge kontrolü yapılırken hata oluştu' });
+    res.status(500).json({ error: 'Error checking badges' });
   }
 };
 
@@ -409,7 +409,7 @@ export const getBadgeProgress = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error getting badge progress:', error);
-    res.status(500).json({ error: 'Badge ilerlemesi alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving badge progress' });
   }
 };
 
@@ -432,7 +432,7 @@ export const useFreeze = async (req: Request, res: Response) => {
     res.json(result);
   } catch (error) {
     console.error('Error using freeze:', error);
-    res.status(500).json({ error: 'Freeze kullanılırken hata oluştu' });
+    res.status(500).json({ error: 'Error using freeze' });
   }
 };
 
@@ -462,12 +462,12 @@ export const buyFreeze = async (req: Request, res: Response) => {
 
     if (freeze_count >= MAX_FREEZE) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ error: `Maksimum ${MAX_FREEZE} freeze hakkına sahip olabilirsiniz` });
+      return res.status(400).json({ error: `You can have a maximum of ${MAX_FREEZE} freezes` });
     }
 
     if (coins < FREEZE_COST) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ error: `Yeterli coin yok. Gereken: ${FREEZE_COST}, Mevcut: ${coins}` });
+      return res.status(400).json({ error: `Not enough coins. Required: ${FREEZE_COST}, Available: ${coins}` });
     }
 
     // Satın al
@@ -490,14 +490,14 @@ export const buyFreeze = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Freeze satın alındı!',
+      message: 'Freeze purchased!',
       newFreezeCount: freeze_count + 1,
       newCoinBalance: coins - FREEZE_COST,
     });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error buying freeze:', error);
-    res.status(500).json({ error: 'Freeze satın alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error purchasing freeze' });
   } finally {
     client.release();
   }
@@ -538,7 +538,7 @@ export const getNotifications = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error getting notifications:', error);
-    res.status(500).json({ error: 'Bildirimler alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving notifications' });
   }
 };
 
@@ -556,7 +556,7 @@ export const markNotificationRead = async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error marking notification read:', error);
-    res.status(500).json({ error: 'Bildirim güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Error updating notification' });
   }
 };
 
@@ -573,7 +573,7 @@ export const markAllNotificationsRead = async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error marking all notifications read:', error);
-    res.status(500).json({ error: 'Bildirimler güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Error updating notifications' });
   }
 };
 
@@ -591,7 +591,7 @@ export const deleteNotification = async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting notification:', error);
-    res.status(500).json({ error: 'Bildirim silinirken hata oluştu' });
+    res.status(500).json({ error: 'Error deleting notification' });
   }
 };
 
@@ -608,7 +608,7 @@ export const deleteAllNotifications = async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting all notifications:', error);
-    res.status(500).json({ error: 'Bildirimler silinirken hata oluştu' });
+    res.status(500).json({ error: 'Error deleting notifications' });
   }
 };
 
@@ -623,7 +623,7 @@ export const searchUsers = async (req: Request, res: Response) => {
     const { q, limit = 20 } = req.query;
 
     if (!q || (q as string).length < 2) {
-      return res.status(400).json({ error: 'Arama terimi en az 2 karakter olmalı' });
+      return res.status(400).json({ error: 'Search term must be at least 2 characters' });
     }
 
     const result = await pool.query(`
@@ -648,7 +648,7 @@ export const searchUsers = async (req: Request, res: Response) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Error searching users:', error);
-    res.status(500).json({ error: 'Kullanıcı araması yapılırken hata oluştu' });
+    res.status(500).json({ error: 'Error searching users' });
   }
 };
 
@@ -663,7 +663,7 @@ export const buyCoins = async (req: Request, res: Response) => {
     const { amount, cost } = req.body;
 
     if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Geçersiz miktar' });
+      return res.status(400).json({ error: 'Invalid amount' });
     }
 
     // Kullanıcının coin miktarını güncelle
@@ -684,11 +684,11 @@ export const buyCoins = async (req: Request, res: Response) => {
     res.json({
       success: true,
       newBalance: result.rows[0].coins,
-      message: `${amount} coin başarıyla satın alındı!`
+      message: `${amount} coins successfully purchased!`
     });
   } catch (error) {
     console.error('Error buying coins:', error);
-    res.status(500).json({ error: 'Satın alma işlemi başarısız' });
+    res.status(500).json({ error: 'Purchase failed' });
   }
 };
 
@@ -773,7 +773,7 @@ export const getUserStats = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error getting user stats:', error);
-    res.status(500).json({ error: 'İstatistikler alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving statistics' });
   }
 };
 

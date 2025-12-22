@@ -2,16 +2,16 @@ import pool from '../config/db';
 
 // Level tanımları
 export const LEVELS = [
-  { level: 1, minXp: 0, maxXp: 99, title: '🌱 Tohum', coinReward: 0 },
-  { level: 2, minXp: 100, maxXp: 249, title: '🌿 Filiz', coinReward: 10 },
-  { level: 3, minXp: 250, maxXp: 499, title: '🌳 Fidan', coinReward: 15 },
-  { level: 4, minXp: 500, maxXp: 849, title: '🌲 Ağaç', coinReward: 20 },
-  { level: 5, minXp: 850, maxXp: 1299, title: '🌴 Orman', coinReward: 30 },
-  { level: 6, minXp: 1300, maxXp: 1899, title: '⭐ Yıldız', coinReward: 40 },
-  { level: 7, minXp: 1900, maxXp: 2699, title: '🌟 Parlak Yıldız', coinReward: 50 },
-  { level: 8, minXp: 2700, maxXp: 3799, title: '💫 Takımyıldızı', coinReward: 75 },
-  { level: 9, minXp: 3800, maxXp: 5199, title: '🌙 Ay', coinReward: 100 },
-  { level: 10, minXp: 5200, maxXp: Infinity, title: '☀️ Güneş', coinReward: 150 },
+  { level: 1, minXp: 0, maxXp: 99, title: '🌱 Seed', coinReward: 0 },
+  { level: 2, minXp: 100, maxXp: 249, title: '🌿 Sprout', coinReward: 10 },
+  { level: 3, minXp: 250, maxXp: 499, title: '🌳 Sapling', coinReward: 15 },
+  { level: 4, minXp: 500, maxXp: 849, title: '🌲 Tree', coinReward: 20 },
+  { level: 5, minXp: 850, maxXp: 1299, title: '🌴 Forest', coinReward: 30 },
+  { level: 6, minXp: 1300, maxXp: 1899, title: '⭐ Star', coinReward: 40 },
+  { level: 7, minXp: 1900, maxXp: 2699, title: '🌟 Shining Star', coinReward: 50 },
+  { level: 8, minXp: 2700, maxXp: 3799, title: '💫 Constellation', coinReward: 75 },
+  { level: 9, minXp: 3800, maxXp: 5199, title: '🌙 Moon', coinReward: 100 },
+  { level: 10, minXp: 5200, maxXp: Infinity, title: '☀️ Sun', coinReward: 150 },
 ];
 
 // XP kazanma miktarları
@@ -49,15 +49,15 @@ export function getXpForNextLevel(currentXp: number): { needed: number; progress
   const currentLevel = calculateLevel(currentXp);
   const levelInfo = getLevelInfo(currentLevel);
   const nextLevelInfo = getLevelInfo(currentLevel + 1);
-  
+
   if (currentLevel >= 10) {
     return { needed: 0, progress: 100 };
   }
-  
+
   const xpInCurrentLevel = currentXp - levelInfo.minXp;
   const xpNeededForLevel = nextLevelInfo.minXp - levelInfo.minXp;
   const progress = Math.floor((xpInCurrentLevel / xpNeededForLevel) * 100);
-  
+
   return {
     needed: nextLevelInfo.minXp - currentXp,
     progress: Math.min(progress, 100),
@@ -72,30 +72,30 @@ export async function addXp(
   sourceId?: string | number | null
 ): Promise<{ newXp: number; newLevel: number; leveledUp: boolean; coinsEarned: number }> {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
-    
+
     // Mevcut profili al
     const profileResult = await client.query(
       'SELECT xp, level, coins FROM user_profiles WHERE user_id = $1',
       [userId]
     );
-    
+
     if (profileResult.rows.length === 0) {
       throw new Error('User profile not found');
     }
-    
+
     const currentXp = profileResult.rows[0].xp;
     const currentLevel = profileResult.rows[0].level;
     const currentCoins = profileResult.rows[0].coins;
-    
+
     const newXp = currentXp + amount;
     const newLevel = calculateLevel(newXp);
     const leveledUp = newLevel > currentLevel;
-    
+
     let coinsEarned = 0;
-    
+
     // Level atladıysa coin ödülü ver
     if (leveledUp) {
       // Atlanan tüm level'ların ödüllerini topla
@@ -104,7 +104,7 @@ export async function addXp(
         coinsEarned += levelInfo.coinReward;
       }
     }
-    
+
     // Profili güncelle
     await client.query(
       `UPDATE user_profiles 
@@ -112,20 +112,20 @@ export async function addXp(
        WHERE user_id = $4`,
       [newXp, newLevel, coinsEarned, userId]
     );
-    
+
     // XP geçmişine ekle
     await client.query(
       'INSERT INTO xp_history (user_id, amount, source, source_id) VALUES ($1, $2, $3, $4)',
       [userId, amount, source, sourceId || null]
     );
-    
+
     // Coin kazandıysa coin geçmişine ekle
     if (coinsEarned > 0) {
       await client.query(
         'INSERT INTO coin_history (user_id, amount, source, source_id) VALUES ($1, $2, $3, $4)',
         [userId, coinsEarned, 'level_up', newLevel]
       );
-      
+
       // Level up bildirimi oluştur
       const levelInfo = getLevelInfo(newLevel);
       await client.query(
@@ -140,16 +140,16 @@ export async function addXp(
         ]
       );
     }
-    
+
     await client.query('COMMIT');
-    
+
     return {
       newXp,
       newLevel,
       leveledUp,
       coinsEarned,
     };
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -172,15 +172,15 @@ export async function getUserProfile(userId: string) {
     WHERE up.user_id = $1`,
     [userId]
   );
-  
+
   if (result.rows.length === 0) {
     return null;
   }
-  
+
   const profile = result.rows[0];
   const levelInfo = getLevelInfo(profile.level);
   const xpProgress = getXpForNextLevel(profile.xp);
-  
+
   return {
     ...profile,
     level_title: levelInfo.title,
@@ -198,24 +198,24 @@ export async function createUserProfile(userId: string, username: string) {
      RETURNING *`,
     [userId, username.toLowerCase().replace(/\s+/g, '_')]
   );
-  
+
   return result.rows[0];
 }
 
 // Username güncelle
 export async function updateUsername(userId: string, newUsername: string) {
   const cleanUsername = newUsername.toLowerCase().replace(/\s+/g, '_');
-  
+
   // Username unique kontrolü
   const existing = await pool.query(
     'SELECT id FROM user_profiles WHERE username = $1 AND user_id != $2',
     [cleanUsername, userId]
   );
-  
+
   if (existing.rows.length > 0) {
     throw new Error('Bu kullanıcı adı zaten kullanılıyor');
   }
-  
+
   const result = await pool.query(
     `UPDATE user_profiles 
      SET username = $1, updated_at = CURRENT_TIMESTAMP 
@@ -223,7 +223,7 @@ export async function updateUsername(userId: string, newUsername: string) {
      RETURNING *`,
     [cleanUsername, userId]
   );
-  
+
   return result.rows[0];
 }
 
@@ -235,7 +235,7 @@ export async function checkAndAwardStreakBonus(userId: string, currentStreak: nu
     { days: 30, source: 'streak_30', xp: XP_REWARDS.streak_30 },
     { days: 100, source: 'streak_100', xp: XP_REWARDS.streak_100 },
   ];
-  
+
   for (const milestone of streakMilestones) {
     if (currentStreak === milestone.days) {
       // Bu milestone için daha önce XP verilmiş mi kontrol et
@@ -245,14 +245,14 @@ export async function checkAndAwardStreakBonus(userId: string, currentStreak: nu
          AND created_at > CURRENT_DATE - INTERVAL '1 day'`,
         [userId, milestone.source]
       );
-      
+
       if (existing.rows.length === 0) {
         await addXp(userId, milestone.xp, milestone.source);
         return { awarded: true, milestone: milestone.days, xp: milestone.xp };
       }
     }
   }
-  
+
   return { awarded: false };
 }
 

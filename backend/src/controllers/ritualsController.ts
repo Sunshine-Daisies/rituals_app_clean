@@ -8,7 +8,7 @@ import { scheduleRitualStreakCheck, cancelRitualStreakCheck, schedulePartnership
 export const getRituals = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user.id;
-    
+
     // Kendi ritüellerini + partnership yapılan ritüelleri getir
     const query = `
       WITH own_rituals AS (
@@ -88,16 +88,16 @@ export const getRituals = async (req: AuthRequest, res: Response) => {
       ORDER BY created_at DESC
     `;
     const result = await pool.query(query, [userId]);
-    
+
     // Remove duplicates by ritual ID (in case a user has partnership with themselves somehow)
-    const uniqueRituals = result.rows.filter((ritual, index, self) => 
+    const uniqueRituals = result.rows.filter((ritual, index, self) =>
       index === self.findIndex(r => r.id === ritual.id)
     );
-    
+
     res.json(uniqueRituals);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Ritüeller alınırken hata oluştu' });
+    res.status(500).json({ error: 'Error retrieving rituals' });
   }
 };
 
@@ -105,9 +105,9 @@ export const getRituals = async (req: AuthRequest, res: Response) => {
 export const createRitual = async (req: AuthRequest, res: Response) => {
   const { name, reminder_time, reminder_days, steps } = req.body as any;
   const userId = req.user.id;
-  
+
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
 
@@ -133,7 +133,7 @@ export const createRitual = async (req: AuthRequest, res: Response) => {
     ritual.steps = steps || [];
 
     await client.query('COMMIT');
-    
+
     // 4. Schedule streak check for this ritual
     scheduleRitualStreakCheck({
       user_id: ritual.user_id,
@@ -142,12 +142,12 @@ export const createRitual = async (req: AuthRequest, res: Response) => {
       reminder_time: ritual.reminder_time,
       reminder_days: ritual.reminder_days
     });
-    
+
     res.status(201).json(ritual);
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);
-    res.status(500).json({ error: 'Ritüel oluşturulamadı' });
+    res.status(500).json({ error: 'Ritual could not be created' });
   } finally {
     client.release();
   }
@@ -172,15 +172,15 @@ export const updateRitual = async (req: AuthRequest, res: Response) => {
 
     if (result.rows.length === 0) {
       await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Ritüel bulunamadı veya yetkiniz yok' });
+      return res.status(404).json({ error: 'Ritual not found or you are not authorized' });
     }
-    
+
     const ritual = result.rows[0];
 
     // 2. Adımları güncelle
     if (steps && Array.isArray(steps)) {
       await client.query('DELETE FROM ritual_steps WHERE ritual_id = $1', [id]);
-      
+
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
         await client.query(
@@ -190,8 +190,8 @@ export const updateRitual = async (req: AuthRequest, res: Response) => {
       }
       ritual.steps = steps;
     } else {
-        const stepsRes = await client.query('SELECT * FROM ritual_steps WHERE ritual_id = $1 ORDER BY order_index', [id]);
-        ritual.steps = stepsRes.rows;
+      const stepsRes = await client.query('SELECT * FROM ritual_steps WHERE ritual_id = $1 ORDER BY order_index', [id]);
+      ritual.steps = stepsRes.rows;
     }
 
     // 3. Partnership varsa partner ritüelini de güncelle
@@ -211,7 +211,7 @@ export const updateRitual = async (req: AuthRequest, res: Response) => {
     if (partnershipCheck.rows.length > 0) {
       const partnerRitualId = partnershipCheck.rows[0].partner_ritual_id;
       const partnershipId = partnershipCheck.rows[0].partnership_id;
-      
+
       // Partner ritüelini aynı şekilde güncelle
       await client.query(
         'UPDATE rituals SET name = COALESCE($1, name), reminder_time = COALESCE($2, reminder_time), reminder_days = COALESCE($3, reminder_days), updated_at = CURRENT_TIMESTAMP WHERE id = $4',
@@ -221,7 +221,7 @@ export const updateRitual = async (req: AuthRequest, res: Response) => {
       // Partner ritüelinin adımlarını da güncelle
       if (steps && Array.isArray(steps)) {
         await client.query('DELETE FROM ritual_steps WHERE ritual_id = $1', [partnerRitualId]);
-        
+
         for (let i = 0; i < steps.length; i++) {
           const step = steps[i];
           await client.query(
@@ -234,12 +234,12 @@ export const updateRitual = async (req: AuthRequest, res: Response) => {
       // Partnership scheduler'ı güncelle
       if (reminder_time) {
         cancelPartnershipStreakCheck(partnershipId);
-        
+
         const partnerRitualData = await client.query(
           'SELECT user_id FROM rituals WHERE id = $1',
           [partnerRitualId]
         );
-        
+
         if (partnerRitualData.rows.length > 0) {
           schedulePartnershipStreakCheck({
             partnership_id: partnershipId,
@@ -274,7 +274,7 @@ export const updateRitual = async (req: AuthRequest, res: Response) => {
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);
-    res.status(500).json({ error: 'Güncelleme başarısız' });
+    res.status(500).json({ error: 'Update failed' });
   } finally {
     client.release();
   }
@@ -295,9 +295,9 @@ export const deleteRitual = async (req: AuthRequest, res: Response) => {
     // Cancel scheduled streak check for this ritual
     cancelRitualStreakCheck(userId, id);
 
-    res.json({ message: 'Ritüel silindi' });
+    res.json({ message: 'Ritual deleted' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Silme işlemi başarısız' });
+    res.status(500).json({ error: 'Deletion failed' });
   }
 };
