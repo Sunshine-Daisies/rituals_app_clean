@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart' hide Badge;
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
@@ -31,14 +29,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final results = await Future.wait([
         AuthService.getUserEmail(),
         _gamificationService.getMyProfile(),
         _gamificationService.getAllBadges(), // Fetch all badges explicitly
       ]);
-      
+
       if (mounted) {
         final badges = results[2] as List<Badge>? ?? [];
 
@@ -57,10 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-
-
-
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading && _profile == null) {
@@ -77,12 +71,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final levelTitle = user?.levelTitle ?? 'Novice';
     final currentXp = user?.xp ?? 0;
     final xpNeeded = user?.xpForNextLevel ?? 100; // API returns 'remaining XP'
-    final nextLevelThreshold = currentXp + xpNeeded; // Total XP needed for next level
+    final nextLevelThreshold =
+        currentXp + xpNeeded; // Total XP needed for next level
     final progress = (user?.xpProgressPercent ?? 0) / 100.0;
     final streak = user?.longestStreak ?? 0;
     final ritualCount = user?.ritualsCount ?? 0;
     final earnedBadges = _badges.where((b) => b.earned).toList();
-    
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackground1,
       body: Stack(
@@ -98,9 +93,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     _buildCurvedBackground(),
                     Padding(
-                      padding: const EdgeInsets.only(top: 110, bottom: 140), // Increased top and bottom spacing
+                      padding: const EdgeInsets.only(
+                        top: 110,
+                        bottom: 140,
+                      ), // Increased top and bottom spacing
                       child: _buildProfileHeaderInfo(
-                        user, username, userHandle, level, levelTitle, currentXp, nextLevelThreshold, xpNeeded, progress
+                        user,
+                        username,
+                        userHandle,
+                        level,
+                        levelTitle,
+                        currentXp,
+                        nextLevelThreshold,
+                        xpNeeded,
+                        progress,
                       ),
                     ),
                     Positioned(
@@ -110,25 +116,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildFloatingStats(streak, ritualCount, earnedBadges.length),
+                          _buildFloatingStats(
+                            streak,
+                            ritualCount,
+                            earnedBadges.length,
+                          ),
                           const SizedBox(height: 12),
-                          _buildCurrencyCard(user?.coins ?? 0, user?.freezeCount ?? 0),
+                          _buildCurrencyCard(
+                            user?.coins ?? 0,
+                            user?.freezeCount ?? 0,
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 90), // Adjusted spacer
-                
                 // Achievements
                 _buildAchievementsSection(_badges),
-                
+
                 const SizedBox(height: 48), // Bottom spacing
               ],
             ),
           ),
-          
+
           // Fixed Top Navigation Bar
           Positioned(
             top: 0,
@@ -136,7 +148,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -157,17 +172,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.settings, color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.settings,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           onPressed: () async {
                             await context.push('/settings');
                             _loadData();
-                          }, 
+                          },
                         ),
                         const SizedBox(height: 8),
                         IconButton(
-                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.shopping_cart_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           onPressed: () => _showShopDialog(),
@@ -234,21 +257,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           child: CircleAvatar(
-            backgroundImage: user?.avatarUrl != null 
-                ? NetworkImage(user!.avatarUrl!) 
+            backgroundImage:
+                (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
+                ? NetworkImage(user.avatarUrl!)
                 : null,
-            onBackgroundImageError: (exception, stackTrace) {
-              // Silently handle image loading errors
-            },
             backgroundColor: Colors.white.withOpacity(0.1),
-            child: (user?.avatarUrl == null)
-                ? const Icon(Icons.person, size: 50, color: Colors.white) 
+            child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
+                ? const Icon(Icons.person, size: 50, color: Colors.white)
                 : null,
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Name & Handle
         Text(
           username,
@@ -261,14 +282,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 4),
         Text(
           '$handle • Level $level $levelTitle',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.7),
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.7)),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // XP Progress
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -303,7 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: progress,
                   minHeight: 10,
                   backgroundColor: Colors.black.withOpacity(0.3),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Colors.orange,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -382,12 +402,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildStatItem(Icons.local_fire_department, streak.toString(), 'Streak', Colors.orange),
+            _buildStatItem(
+              Icons.local_fire_department,
+              streak.toString(),
+              'Streak',
+              Colors.orange,
+            ),
             _buildVerticalDivider(),
             // Changed Color from Teal to Purple/Indigo to avoid "Green Lines" look if that was the issue
-            _buildStatItem(Icons.check_circle, habits.toString(), 'Rituals', Colors.indigoAccent),
+            _buildStatItem(
+              Icons.check_circle,
+              habits.toString(),
+              'Rituals',
+              Colors.indigoAccent,
+            ),
             _buildVerticalDivider(),
-            _buildStatItem(Icons.emoji_events, badgeCount.toString(), 'Badges', Colors.amber),
+            _buildStatItem(
+              Icons.emoji_events,
+              badgeCount.toString(),
+              'Badges',
+              Colors.amber,
+            ),
           ],
         ),
       ),
@@ -402,7 +437,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+  Widget _buildStatItem(
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 28),
@@ -430,14 +470,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildAchievementsSection(List<Badge> badges) {
     final earnedCount = badges.where((b) => b.earned).length;
-    
+
     // Filter badges based on tab selection
     // If tab 0 (Earned), show only earned badges
     // If tab 1 (In Progress), show only NOT earned badges
     final displayedBadges = _badgeTab == 0
         ? badges.where((b) => b.earned).toList()
         : badges.where((b) => !b.earned).toList();
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -457,7 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Toggle Buttons
           Container(
             padding: const EdgeInsets.all(4),
@@ -473,7 +513,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: _badgeTab == 0 ? Colors.white : Colors.transparent,
+                        color: _badgeTab == 0
+                            ? Colors.white
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Center(
@@ -481,15 +523,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                  text: 'Earned ',
-                                  style: TextStyle(
-                                      color: _badgeTab == 0 ? Colors.black : Colors.white54, 
-                                      fontWeight: FontWeight.bold)),
+                                text: 'Earned ',
+                                style: TextStyle(
+                                  color: _badgeTab == 0
+                                      ? Colors.black
+                                      : Colors.white54,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               TextSpan(
-                                  text: '$earnedCount',
-                                  style: TextStyle(
-                                      color: _badgeTab == 0 ? Colors.orange : Colors.white54, 
-                                      fontWeight: FontWeight.bold)),
+                                text: '$earnedCount',
+                                style: TextStyle(
+                                  color: _badgeTab == 0
+                                      ? Colors.orange
+                                      : Colors.white54,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -503,14 +553,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: _badgeTab == 1 ? Colors.white : Colors.transparent,
+                        color: _badgeTab == 1
+                            ? Colors.white
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Center(
                         child: Text(
                           'In Progress',
                           style: TextStyle(
-                            color: _badgeTab == 1 ? Colors.black : Colors.white54,
+                            color: _badgeTab == 1
+                                ? Colors.black
+                                : Colors.white54,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -521,16 +575,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Badges Grid
           if (displayedBadges.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Text(
-                  _badgeTab == 0 
+                  _badgeTab == 0
                       ? 'No badges earned yet. Keep going!'
                       : 'You have earned all badges! Amazing!',
                   style: TextStyle(color: Colors.white.withOpacity(0.5)),
@@ -566,13 +620,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildBadgeCard(Badge badge) {
     final isLocked = !badge.earned;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isLocked ? Colors.white.withOpacity(0.02) : Colors.white.withOpacity(0.05)
+          color: isLocked
+              ? Colors.white.withOpacity(0.02)
+              : Colors.white.withOpacity(0.05),
         ),
       ),
       child: Column(
@@ -585,8 +641,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: isLocked 
-                      ? Colors.transparent 
+                  color: isLocked
+                      ? Colors.transparent
                       : Colors.orange.withOpacity(0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
@@ -595,11 +651,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             // Show lock icon if locked, or emoji if earned
             child: isLocked
-                ? const Icon(Icons.lock_outline, color: Colors.white24, size: 32)
-                : Text(
-                    badge.icon, 
-                    style: const TextStyle(fontSize: 32),
-                  ),
+                ? const Icon(
+                    Icons.lock_outline,
+                    color: Colors.white24,
+                    size: 32,
+                  )
+                : Text(badge.icon, style: const TextStyle(fontSize: 32)),
           ),
           const SizedBox(height: 12),
           Text(
@@ -643,8 +700,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-  
-
 
   Widget _buildBalanceItem({
     required IconData icon,
@@ -693,7 +748,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(width: 12),
             Text(
               'Shop',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -763,18 +821,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     description,
-                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
             ),
             Text(
               price,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -785,18 +853,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleBuyFreeze() async {
     Navigator.pop(context);
     setState(() => _isLoading = true);
-    
+
     final result = await _gamificationService.buyFreeze();
-    
+
     if (mounted) {
       if (result?.success == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Streak Freeze purchased! ❄️'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Streak Freeze purchased! ❄️'),
+            backgroundColor: Colors.green,
+          ),
         );
         _loadData(); // Refresh profile
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result?.message ?? 'Insufficient coins!'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(result?.message ?? 'Insufficient coins!'),
+            backgroundColor: Colors.red,
+          ),
         );
         setState(() => _isLoading = false);
       }
@@ -806,13 +880,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleBuyCoins(int amount, double cost) async {
     Navigator.pop(context);
     setState(() => _isLoading = true);
-    
+
     final result = await _gamificationService.buyCoins(amount, cost);
-    
+
     if (mounted) {
       if (result.success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$amount Coins purchased! 💰'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text('$amount Coins purchased! 💰'),
+            backgroundColor: Colors.green,
+          ),
         );
         _loadData(); // Refresh profile
       } else {
@@ -825,7 +902,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[date.month - 1]} ${date.day}';
   }
 }
@@ -836,17 +926,22 @@ class _CurvedBottomClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 60);
-    
+
     // Create a quadratic bezier curve
     // Control point is at the center bottom, end point at bottom right
     final controlPoint = Offset(size.width / 2, size.height + 40);
     final endPoint = Offset(size.width, size.height - 60);
-    
-    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, endPoint.dx, endPoint.dy);
-    
+
+    path.quadraticBezierTo(
+      controlPoint.dx,
+      controlPoint.dy,
+      endPoint.dx,
+      endPoint.dy,
+    );
+
     path.lineTo(size.width, 0);
     path.close();
-    
+
     return path;
   }
 
