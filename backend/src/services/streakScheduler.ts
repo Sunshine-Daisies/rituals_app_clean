@@ -1,5 +1,6 @@
 import pool from '../config/db';
 import { checkStreakBreak } from './badgeService';
+import { cacheService } from './cacheService';
 
 /**
  * Her ritüel için belirlenen saatten sonra streak kontrolü yap
@@ -164,11 +165,21 @@ function calculateNextCheckTime(reminderTime: string): number | null {
 }
 
 /**
- * Streak kontrolü yap
+ * Streak kontrolü yap (Distributed Lock ile)
  */
 async function performStreakCheck(ritual: RitualSchedule) {
   try {
     const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+
+    // 🔒 DISTRIBUTED LOCK 🔒
+    const lockKey = `streak_check:${ritual.ritual_id}:${today}`;
+    const acquired = await cacheService.acquireLock(lockKey, 86400);
+
+    if (!acquired) {
+      console.log(`  🔒 Streak check already handled by another instance: "${ritual.ritual_name}"`);
+      return;
+    }
+
     const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
 
     // Bugün bu ritüel için aktif gün mü?
@@ -259,11 +270,22 @@ export function cancelPartnershipStreakCheck(partnershipId: number) {
 }
 
 /**
- * Partnership streak kontrolü yap
+ * Partnership streak kontrolü yap (Distributed Lock ile)
  */
 async function performPartnershipStreakCheck(partnership: PartnershipSchedule) {
   try {
     const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+
+    // 🔒 DISTRIBUTED LOCK 🔒
+    const lockKey = `partner_streak_check:${partnership.partnership_id}:${today}`;
+    const acquired = await cacheService.acquireLock(lockKey, 86400);
+
+    if (!acquired) {
+      console.log(`  🔒 Partnership streak check already handled: "${partnership.ritual_name}"`);
+      schedulePartnershipStreakCheck(partnership);
+      return;
+    }
+
     const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
 
     // Bugün bu ritüel için aktif gün mü?
