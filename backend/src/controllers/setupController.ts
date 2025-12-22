@@ -215,6 +215,20 @@ export const runMigrations = async () => {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = FALSE;`);
 
+    // user_fcm_tokens (for push notifications)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_fcm_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        fcm_token TEXT NOT NULL,
+        device_id TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, fcm_token)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_user_fcm_tokens_user_id ON user_fcm_tokens(user_id);`);
+
     // freeze_history
     await client.query(`
       CREATE TABLE IF NOT EXISTS freeze_history (
