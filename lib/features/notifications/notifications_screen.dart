@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
 import '../../services/sharing_service.dart';
+import '../../services/friends_service.dart';
 import '../../theme/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final GamificationService _gamificationService = GamificationService();
   final SharingService _sharingService = SharingService();
+  final FriendsService _friendsService = FriendsService();
   
   List<AppNotification> _notifications = [];
   int _unreadCount = 0;
@@ -168,6 +170,74 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _acceptFriendRequest(int notificationId, int friendshipId) async {
+    try {
+      final result = await _friendsService.acceptFriendRequest(friendshipId);
+      if (mounted) {
+        if (result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Friend request accepted!'),
+              backgroundColor: Colors.teal,
+            ),
+          );
+          _markAsRead(notificationId);
+          _loadNotifications();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${result.message}'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectFriendRequest(int notificationId, int friendshipId) async {
+    try {
+      final result = await _friendsService.rejectFriendRequest(friendshipId);
+      if (mounted) {
+        if (result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Friend request rejected'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          _markAsRead(notificationId);
+          _loadNotifications();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${result.message}'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
   IconData _getNotificationIcon(String type) {
     switch (type) {
       case 'friend_request': return Icons.person_add;
@@ -285,28 +355,35 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           itemCount: _filteredNotifications.length,
                           itemBuilder: (context, index) {
                             final notification = _filteredNotifications[index];
+                            
+                            VoidCallback? onAccept;
+                            VoidCallback? onReject;
+
+                            if (notification.type == 'ritual_invite') {
+                              final partnerId = notification.data?['partner_id']?.toString();
+                              if (partnerId != null) {
+                                onAccept = () => _acceptPartnerRequest(notification.id, partnerId);
+                                onReject = () => _rejectPartnerRequest(notification.id, partnerId);
+                              }
+                            } else if (notification.type == 'friend_request') {
+                              final friendshipId = notification.data?['friendshipId'];
+                              if (friendshipId != null) {
+                                final id = friendshipId is int ? friendshipId : int.tryParse(friendshipId.toString());
+                                if (id != null) {
+                                  onAccept = () => _acceptFriendRequest(notification.id, id);
+                                  onReject = () => _rejectFriendRequest(notification.id, id);
+                                }
+                              }
+                            }
+
                             return _NotificationCard(
                               notification: notification,
                               icon: _getNotificationIcon(notification.type),
                               iconColor: _getNotificationColor(notification.type),
                               onTap: () => _markAsRead(notification.id),
                               onDismiss: () => _deleteNotification(notification.id),
-                              onAcceptPartner: notification.type == 'ritual_invite' 
-                                ? () {
-                                    final partnerId = notification.data?['partner_id']?.toString();
-                                    if (partnerId != null) {
-                                      _acceptPartnerRequest(notification.id, partnerId);
-                                    }
-                                  }
-                                : null,
-                              onRejectPartner: notification.type == 'ritual_invite'
-                                ? () {
-                                    final partnerId = notification.data?['partner_id']?.toString();
-                                    if (partnerId != null) {
-                                      _rejectPartnerRequest(notification.id, partnerId);
-                                    }
-                                  }
-                                : null,
+                              onAccept: onAccept,
+                              onReject: onReject,
                             );
                           },
                         ),
@@ -400,8 +477,8 @@ class _NotificationCard extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
   final VoidCallback onDismiss;
-  final VoidCallback? onAcceptPartner;
-  final VoidCallback? onRejectPartner;
+  final VoidCallback? onAccept;
+  final VoidCallback? onReject;
 
   const _NotificationCard({
     required this.notification,
@@ -409,8 +486,8 @@ class _NotificationCard extends StatelessWidget {
     required this.iconColor,
     required this.onTap,
     required this.onDismiss,
-    this.onAcceptPartner,
-    this.onRejectPartner,
+    this.onAccept,
+    this.onReject,
   });
 
   String _formatTimeAgo(DateTime date) {
@@ -510,21 +587,22 @@ class _NotificationCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    // Partner request actions
-                    if (notification.type == 'ritual_invite' && !notification.isRead && onAcceptPartner != null && onRejectPartner != null) ...[
+                    // Action buttons (Ritual Invite or Friend Request)
+                    if (!notification.isRead && onAccept != null && onReject != null && 
+                       (notification.type == 'ritual_invite' || notification.type == 'friend_request')) ...[
                       const SizedBox(height: 12),
                       Row(
                         children: [
                           _buildActionButton(
                             'Reject', 
-                            onRejectPartner!, 
+                            onReject!, 
                             isPrimary: false, 
                             color: AppTheme.errorColor
                           ),
                           const SizedBox(width: 12),
                           _buildActionButton(
                             'Accept', 
-                            onAcceptPartner!, 
+                            onAccept!, 
                             isPrimary: true, 
                             color: Colors.teal
                           ),

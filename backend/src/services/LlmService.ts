@@ -101,6 +101,9 @@ export class LlmService {
     }
 
     private static checkRateLimit(userId: string, isPremium: boolean = false) {
+        // Skip all checks for premium users
+        if (isPremium) return;
+
         const now = Date.now();
         const userLimit = rateLimits[userId] || { count: 0, lastRequest: 0 };
 
@@ -114,12 +117,9 @@ export class LlmService {
             throw new Error(`Please wait ${Math.ceil((COOLDOWN_MS - (now - userLimit.lastRequest)) / 1000)} seconds.`);
         }
 
-        // Max requests check (Higher for premium)
-        const maxRequests = isPremium ? MAX_REQUESTS_PER_WINDOW * 10 : MAX_REQUESTS_PER_WINDOW;
-        if (userLimit.count >= maxRequests) {
-            throw new Error(isPremium
-                ? 'Premium rate limit exceeded. Please wait a moment.'
-                : 'Free tier limit reached. Please wait or upgrade to Premium! ✨');
+        // Max requests check
+        if (userLimit.count >= MAX_REQUESTS_PER_WINDOW) {
+            throw new Error('Free tier limit reached. Please wait or upgrade to Premium! ✨');
         }
 
         // Update limit
