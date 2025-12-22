@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/ritual.dart';
 import '../../../services/ritual_logs_service.dart';
+import '../../../services/onboarding_service.dart';
 import '../../../theme/app_theme.dart';
+import '../../../widgets/celebration_overlay.dart';
 
 class TodayRitualCard extends StatefulWidget {
   final Ritual ritual;
@@ -36,17 +38,35 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           _completedToday = true;
           _isCompleting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text('${widget.ritual.name} completed! 🎉'),
-            ]),
-            backgroundColor: AppTheme.successColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        
+        // Check if this is the user's first ritual completion
+        final hasCompletedFirst = await OnboardingService.hasCompletedFirstRitual();
+        if (!hasCompletedFirst && mounted) {
+          // Mark first ritual as completed
+          await OnboardingService.markFirstRitualCompleted();
+          // Show celebration
+          if (mounted) {
+            showCelebration(
+              context,
+              title: 'First Ritual Complete! 🎉',
+              subtitle: 'You\'ve taken the first step on your journey!',
+              xpEarned: 20,
+            );
+          }
+        } else if (mounted) {
+          // Regular completion snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text('${widget.ritual.name} completed! 🎉'),
+              ]),
+              backgroundColor: AppTheme.successColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
         widget.onComplete();
       }
     } catch (e) {

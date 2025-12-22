@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rituals_app/theme/app_theme.dart';
+import '../../../services/onboarding_service.dart';
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
@@ -344,10 +345,12 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           style: TextStyle(color: Colors.white54, fontSize: 13),
         ),
         trailing: const Icon(Icons.play_arrow, color: Colors.cyan),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Onboarding flow is coming soon!')),
-          );
+        onTap: () async {
+          // Reset onboarding state
+          await OnboardingService.resetOnboarding();
+          if (context.mounted) {
+            context.go('/onboarding');
+          }
         },
       ),
     );

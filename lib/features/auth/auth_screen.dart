@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../services/onboarding_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -73,7 +74,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           _passwordController.text,
         );
         
-        if (mounted) {
+        if (!mounted) return;
+        
+        // Check if user needs onboarding
+        final needsOnboarding = await OnboardingService.needsOnboarding();
+        if (!mounted) return;
+        
+        if (needsOnboarding) {
+          context.go('/onboarding');
+        } else {
           context.go('/home');
         }
       } else {

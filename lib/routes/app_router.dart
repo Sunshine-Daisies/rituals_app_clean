@@ -23,21 +23,30 @@ import '../features/settings/screens/settings_screen.dart';
 import '../features/settings/screens/edit_profile_screen.dart';
 import '../features/premium/screens/premium_screen.dart';
 import '../features/help/screens/help_support_screen.dart';
+import '../features/onboarding/onboarding_screen.dart';
+import '../features/onboarding/first_ritual_wizard.dart';
 
 import '../services/api_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/welcome', // Start with welcome page
+    initialLocation: '/welcome',
     redirect: (context, state) {
       final isAuthenticated = ApiService.hasToken;
       final isAuthRoute = state.matchedLocation == '/auth';
       final isWelcomeRoute = state.matchedLocation == '/welcome';
+      final isOnboardingRoute = state.matchedLocation == '/onboarding';
+      final isWizardRoute = state.matchedLocation == '/first-ritual-wizard';
 
       if (isAuthenticated) {
         if (isAuthRoute || isWelcomeRoute) {
           return '/home';
         }
+        return null;
+      }
+
+      // Allow access to onboarding routes without auth (they redirect to auth if needed)
+      if (isOnboardingRoute || isWizardRoute) {
         return null;
       }
 
@@ -61,6 +70,39 @@ final routerProvider = Provider<GoRouter>((ref) {
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      ),
+      // Onboarding routes
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const OnboardingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      ),
+      GoRoute(
+        path: '/first-ritual-wizard',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const FirstRitualWizard(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
               child: child,
             );
           },
@@ -162,7 +204,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const HelpSupportScreen(),
           ),
         ],
-        // Transition animation can be customized if needed
         pageBuilder: (context, state) => CustomTransitionPage(
           child: const SettingsScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
