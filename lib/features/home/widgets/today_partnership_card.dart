@@ -167,14 +167,18 @@ class _TodayPartnershipCardState extends State<TodayPartnershipCard> {
                         style: const TextStyle(fontSize: 12, color: Colors.orange),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        '+50 XP',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
+                      if (widget.partnership.myRitualTime != null) ...[
+                        const Icon(
+                          Icons.notifications_active_outlined,
+                          size: 14,
+                          color: Colors.orange,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          widget.partnership.myRitualTime!,
+                          style: const TextStyle(fontSize: 12, color: Colors.orange),
+                        ),
+                      ],
                     ],
                   ),
                 ],

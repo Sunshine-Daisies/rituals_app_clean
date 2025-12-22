@@ -166,18 +166,15 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text(
-                      '15 min',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    const Icon(
+                      Icons.notifications_active_outlined,
+                      size: 14,
+                      color: AppTheme.textSecondary,
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      '+20 XP',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const SizedBox(width: 4),
+                    Text(
+                      widget.ritual.reminderTime,
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                     ),
                   ],
                 ),

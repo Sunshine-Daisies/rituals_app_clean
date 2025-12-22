@@ -41,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Map<String, Timer?> _ritualTimers = {};
   Map<int, Timer?> _partnershipTimers = {};
   Timer? _notificationTimer;
+  bool _showCompleted = false;
   
   String get _todayShort {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -674,20 +675,49 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 if (index == 0) {
                                   return Padding(
                                     padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-                                    child: Row(
-                                      children: const [
-                                        Text(
-                                          'Completed',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
+                                    child: InkWell(
+                                      onTap: () => setState(() => _showCompleted = !_showCompleted),
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.05),
+                                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                          border: Border.all(color: Colors.white.withOpacity(0.05)),
                                         ),
-                                      ],
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.check_circle_outline,
+                                                  color: AppTheme.primaryColor.withOpacity(0.8),
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  '$completedToday Rituals Done',
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Icon(
+                                              _showCompleted ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                              color: AppTheme.textSecondary,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   );
                                 }
+
+                                if (!_showCompleted) return const SizedBox.shrink();
 
                                 final dataIndex = index - 1;
                                 if (dataIndex < completedRitualsList.length) {
@@ -716,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   );
                                 }
                               },
-                              childCount: 1 + completedToday,
+                              childCount: 1 + (completedToday),
                             ),
                           ),
                         const SliverToBoxAdapter(child: SizedBox(height: 100)),
