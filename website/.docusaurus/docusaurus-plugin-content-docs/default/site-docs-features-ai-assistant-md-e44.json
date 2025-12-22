@@ -1,7 +1,7 @@
 {
   "id": "features/ai-assistant",
   "title": "AI Assistant",
-  "description": "The Rituals App features an intelligent AI Assistant designed to act as a personal habit coach.",
+  "description": "The Rituals App features an intelligent AI Assistant powered by OpenAI GPT-4, designed to act as a personal habit coach.",
   "source": "@site/docs/features/ai-assistant.md",
   "sourceDirName": "features",
   "slug": "/features/ai-assistant",
@@ -20,7 +20,7 @@
     "permalink": "/docs/features/social"
   },
   "next": {
-    "title": "Analytics",
-    "permalink": "/docs/features/analytics"
+    "title": "Onboarding Flow",
+    "permalink": "/docs/features/onboarding"
   }
 }

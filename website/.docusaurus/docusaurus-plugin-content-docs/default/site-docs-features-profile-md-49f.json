@@ -1,7 +1,7 @@
 {
   "id": "features/profile",
   "title": "Profile & Settings",
-  "description": "The Profile section allows users to manage their identity, preferences, and account security.",
+  "description": "The Profile section allows users to manage their identity, preferences, account security, and premium subscription.",
   "source": "@site/docs/features/profile.md",
   "sourceDirName": "features",
   "slug": "/features/profile",
@@ -10,8 +10,17 @@
   "unlisted": false,
   "tags": [],
   "version": "current",
-  "sidebarPosition": 6,
+  "sidebarPosition": 8,
   "frontMatter": {
-    "sidebar_position": 6
+    "sidebar_position": 8
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Push Notifications",
+    "permalink": "/docs/features/notifications"
+  },
+  "next": {
+    "title": "Authentication",
+    "permalink": "/docs/features/authentication"
   }
 }

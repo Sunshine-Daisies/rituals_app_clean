@@ -1,7 +1,7 @@
 {
   "id": "features/gamification",
   "title": "Gamification System",
-  "description": "The Rituals App uses a robust gamification system to keep users motivated and engaged. This system includes Experience Points (XP), Levels, Badges, and Streaks.",
+  "description": "The Rituals App uses a robust gamification system to keep users motivated and engaged. This system includes Experience Points (XP), Levels, Coins, Badges, Streaks, and Freezes.",
   "source": "@site/docs/features/gamification.md",
   "sourceDirName": "features",
   "slug": "/features/gamification",
@@ -16,8 +16,8 @@
   },
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "Authentication",
-    "permalink": "/docs/features/authentication"
+    "title": "User Flows",
+    "permalink": "/docs/mobile/user-flows"
   },
   "next": {
     "title": "Rituals Management",

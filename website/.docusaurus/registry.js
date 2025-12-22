@@ -25,4 +25,5 @@ export default {
   "c4f5d8e4": [() => import(/* webpackChunkName: "c4f5d8e4" */ "@site/src/pages/index.js"), "@site/src/pages/index.js", require.resolveWeak("@site/src/pages/index.js")],
   "c5c5003c": [() => import(/* webpackChunkName: "c5c5003c" */ "@site/docs/features/analytics.md"), "@site/docs/features/analytics.md", require.resolveWeak("@site/docs/features/analytics.md")],
   "cc0a2bf3": [() => import(/* webpackChunkName: "cc0a2bf3" */ "@site/docs/features/authentication.md"), "@site/docs/features/authentication.md", require.resolveWeak("@site/docs/features/authentication.md")],
-  "e449ba9e": [() => import(/* webpackChunkName: "e449ba9e" */ "@site/docs/features/ai-assistant.md"), "@site/docs/features/ai-assistant.md", require.resolveWeak("@site/docs/features/ai-assistant.md")],};
+  "e449ba9e": [() => import(/* webpackChunkName: "e449ba9e" */ "@site/docs/features/ai-assistant.md"), "@site/docs/features/ai-assistant.md", require.resolveWeak("@site/docs/features/ai-assistant.md")],
+  "ec8e64a7": [() => import(/* webpackChunkName: "ec8e64a7" */ "@site/docs/features/onboarding.md"), "@site/docs/features/onboarding.md", require.resolveWeak("@site/docs/features/onboarding.md")],};

@@ -52,11 +52,18 @@
             },
             {
               "id": "features/notifications",
-              "path": "/docs/features/notifications"
+              "path": "/docs/features/notifications",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "features/onboarding",
+              "path": "/docs/features/onboarding",
+              "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/profile",
-              "path": "/docs/features/profile"
+              "path": "/docs/features/profile",
+              "sidebar": "tutorialSidebar"
             },
             {
               "id": "features/rituals",

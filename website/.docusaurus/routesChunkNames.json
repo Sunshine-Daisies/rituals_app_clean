@@ -6,17 +6,17 @@
     },
     "config": "5e9f5e1a"
   },
-  "/docs-d17": {
+  "/docs-ad8": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/docs-f20": {
+  "/docs-859": {
     "__comp": "a7bd4aaa",
     "__props": "0058b4c6"
   },
-  "/docs-863": {
+  "/docs-c19": {
     "__comp": "a94703ab"
   },
   "/docs/backend/architecture-cdf": {
@@ -51,11 +51,15 @@
     "__comp": "17896441",
     "content": "25a5422e"
   },
-  "/docs/features/notifications-883": {
+  "/docs/features/notifications-2a7": {
     "__comp": "17896441",
     "content": "73c433b4"
   },
-  "/docs/features/profile-8a7": {
+  "/docs/features/onboarding-727": {
+    "__comp": "17896441",
+    "content": "ec8e64a7"
+  },
+  "/docs/features/profile-724": {
     "__comp": "17896441",
     "content": "49f19af5"
   },

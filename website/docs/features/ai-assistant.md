@@ -2,29 +2,98 @@
 sidebar_position: 4
 ---
 
+import FullscreenDiagram from '@site/src/components/FullscreenDiagram';
+
 # AI Assistant
 
-The Rituals App features an intelligent AI Assistant designed to act as a personal habit coach.
+The Rituals App features an intelligent AI Assistant powered by **OpenAI GPT-4**, designed to act as a personal habit coach.
 
 ## Capabilities
 
-The AI Assistant is accessible via the "Chat" tab and can help with:
-*   **Ritual Creation:** Users can say "I want to start meditating every morning," and the AI will propose a configured ritual.
-*   **Motivation:** Provides encouragement and tips for maintaining streaks.
-*   **Q&A:** Answers questions about habit formation and productivity techniques.
+The AI Assistant is accessible via the "Chat" tab and provides:
+
+### Conversational Features
+*   **Motivation:** Provides encouragement and tips for maintaining streaks
+*   **Q&A:** Answers questions about habit formation and productivity techniques
+*   **Personalized Advice:** Offers suggestions based on your ritual history
+
+### Intent-Based Actions 🚀
+
+The AI can take **in-app actions** when you ask:
+
+| Intent | Example Prompt | Action |
+| :--- | :--- | :--- |
+| **Create Ritual** | "Create a meditation ritual at 7 AM" | Opens ritual creation with pre-filled data |
+| **Show Stats** | "How am I doing this week?" | Navigates to statistics screen |
+| **Check Streaks** | "What's my longest streak?" | Displays streak information |
+
+<FullscreenDiagram definition={`
+flowchart LR
+    User[User Message] --> AI[AI Processing]
+    AI --> Intent{Intent Detected?}
+    
+    Intent -->|Yes| Action[Execute Action]
+    Intent -->|No| Response[Text Response]
+    
+    Action --> Create[Create Ritual]
+    Action --> Navigate[Navigate to Screen]
+    Action --> Display[Display Stats]
+    
+    style Action fill:#9cf,stroke:#09f
+`} />
 
 ## Security & Privacy
 
 We prioritize user safety and data privacy in our AI implementation.
 
-### Keyword Filtering
-The application implements a client-side security service (`LlmSecurityService`) that pre-validates user input.
-*   **Allowed Topics:** The AI is restricted to topics related to rituals, habits, productivity, and well-being.
-*   **Forbidden Topics:** Inputs containing keywords related to violence, illegal acts, or self-harm are blocked immediately before reaching the server.
+### Content Filtering
 
-### Rate Limiting
-To prevent abuse and manage costs, users are limited to a specific number of AI interactions per minute (e.g., 10 requests/minute).
+The application implements a **client-side security service** that pre-validates user input:
 
-## Usage Tracking
+*   **Allowed Topics:** Rituals, habits, productivity, well-being, motivation
+*   **Filtered Topics:** Violence, illegal activities, harmful content
+*   **Safe Responses:** Blocked inputs receive a helpful redirect message
 
-The backend logs token usage and model performance to optimize the experience and manage API costs.
+### Data Privacy
+
+*   Chat history is stored locally on device
+*   Only the current message is sent to the AI
+*   No personal data is shared with third parties
+
+## Usage & Limits
+
+### Free Users
+*   Unlimited AI interactions
+*   Standard response times
+*   Full intent action support
+
+### Premium Users
+*   Priority processing
+*   Enhanced response quality
+*   Exclusive coaching features
+
+> **Note:** Rate limiting has been removed for all users as of December 2024.
+
+## Technical Implementation
+
+### Backend Flow
+
+```mermaid
+sequenceDiagram
+    participant App as Mobile App
+    participant API as Backend API
+    participant OpenAI as OpenAI API
+    
+    App->>API: POST /api/llm/chat
+    API->>OpenAI: Forward with system prompt
+    OpenAI->>API: AI Response
+    API->>App: Formatted response + intent
+```
+
+### System Prompt
+
+The AI is configured with a specialized system prompt that:
+1. Focuses responses on habit-building topics
+2. Maintains a supportive, encouraging tone
+3. Provides actionable advice
+4. Recognizes intent patterns for in-app actions

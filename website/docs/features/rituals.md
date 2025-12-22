@@ -18,7 +18,7 @@ flowchart TD
     B --> C{Is it Due Today?}
     C -->|Yes| D[Show on Dashboard]
     C -->|No| E[Hide from Dashboard]
-    D --> F[User Checks Box]
+    D --> F[User Swipes to Complete]
     F --> G[Mark as Completed]
     G --> H[Award XP]
     H --> I{Streak Continued?}
@@ -28,6 +28,7 @@ flowchart TD
     K --> L
     
     style A fill:#f9f,stroke:#333
+    style F fill:#9cf,stroke:#333
     style G fill:#9f9,stroke:#333
 `} />
 
@@ -35,30 +36,103 @@ flowchart TD
 
 Each ritual consists of the following properties:
 
-*   **Title:** The name of the ritual (e.g., "Morning Meditation").
-*   **Description:** Optional details about the ritual.
-*   **Frequency:** How often the ritual should be performed (Daily, Weekly, Specific Days).
-*   **Time:** The target time for the ritual.
-*   **Reminder:** Whether the user should receive a push notification.
-*   **Category:** Tags like Health, Productivity, Mindfulness.
+| Property | Description | Required |
+| :--- | :--- | :--- |
+| **Name** | The name of the ritual (e.g., "Morning Meditation") | ✅ |
+| **Steps** | Optional checklist items within the ritual | ❌ |
+| **Reminder Time** | When to send a push notification | ✅ |
+| **Reminder Days** | Which days the ritual is active (Mon-Sun) | ✅ |
+| **Is Public** | Whether the ritual can be shared with partners | ❌ |
 
-## Creating a Ritual
+## Creating Rituals
 
-Users can create rituals via the "Create" tab.
-1.  Enter a title and description.
-2.  Select frequency (e.g., "Every Mon, Wed, Fri").
-3.  Set a reminder time.
-4.  Choose an icon and color for visual distinction.
+### Standard Creation
+
+Users can create rituals via the "Create" tab:
+1. Enter a name
+2. (Optional) Add step-by-step checklist items
+3. Set a reminder time
+4. Choose which days (Mon, Tue, Wed, etc.)
+5. Save the ritual
+
+### First Ritual Wizard (Onboarding)
+
+New users are guided through a **4-step wizard** after signup:
+
+<FullscreenDiagram definition={`
+flowchart LR
+    S1[Step 1: Choose Habit] --> S2[Step 2: Set Time]
+    S2 --> S3[Step 3: Select Days]
+    S3 --> S4[Step 4: Confirm]
+    S4 --> Home[Go to Home]
+    
+    style S1 fill:#f9f,stroke:#333
+    style S4 fill:#9f9,stroke:#333
+`} />
+
+**Step 1: Habit Selection**
+- Preset options: Morning Meditation, Daily Exercise, Reading, Journaling, Hydration, Gratitude Practice
+- Custom input for personalized habits
+
+**Step 2: Time Selection**
+- Large time picker UI
+- Default: 7:00 AM
+
+**Step 3: Day Selection**
+- Visual day selector (M, T, W, T, F, S, S)
+- Default: Weekdays (Mon-Fri)
+
+**Step 4: Summary & Confirmation**
+- Review all settings
+- "Create My Ritual" button
 
 ## Tracking & Completion
 
-*   **Dashboard:** The home screen shows rituals due for the current day.
-*   **Check-in:** Users mark a ritual as "Complete" by tapping the checkbox.
-*   **History:** Users can view a calendar history of their completions.
+### Dashboard View
+
+The home screen shows rituals due for the current day:
+- **Active Rituals:** Available for completion
+- **Completed Rituals:** Collapsed section showing today's completions
+
+### Swipe-to-Complete
+
+Users can complete rituals using a **swipe gesture**:
+1. Swipe the ritual card from right to left
+2. Card animates with green "Complete" background
+3. Ritual marked as done
+4. XP awarded instantly
+
+### First Completion Celebration 🎉
+
+When a user completes their **first ritual ever**, they receive:
+- Full-screen confetti animation
+- "First Ritual Complete!" message
+- Bonus 20 XP
+- Celebration overlay with trophy icon
+
+### Checklist Mode
+
+For rituals with steps:
+1. Tap the ritual card to open checklist
+2. Check off individual steps
+3. Ritual auto-completes when all steps are done
 
 ## Social Rituals (Partnerships)
 
-Users can invite friends to join a ritual.
-*   **Partnership:** When a friend accepts, both users track the same ritual.
-*   **Accountability:** Partners can see each other's progress on that specific ritual.
-*   **Nudges:** Partners can send "Nudges" to remind each other to complete the task.
+Users can invite friends to join a ritual for accountability.
+
+### Creating a Partnership
+1. Tap "Invite Partner" on any ritual
+2. Share the generated invite code
+3. Partner enters code in "Join Ritual" screen
+
+### Partnership Features
+- **Shared Progress:** Both partners track the same ritual
+- **Visibility:** See when your partner completes their ritual
+- **Nudges:** Send friendly reminders to partners
+- **Dual Streak:** Both users maintain individual streaks
+
+### Managing Partnerships
+- View active partnerships on home screen
+- Accept/reject pending invitations
+- Leave a partnership at any time

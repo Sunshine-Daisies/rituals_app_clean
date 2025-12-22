@@ -9,15 +9,15 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', 'd17'),
+    component: ComponentCreator('/docs', 'ad8'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', 'f20'),
+        component: ComponentCreator('/docs', '859'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', '863'),
+            component: ComponentCreator('/docs', 'c19'),
             routes: [
               {
                 path: '/docs/backend/architecture',
@@ -69,13 +69,21 @@ export default [
               },
               {
                 path: '/docs/features/notifications',
-                component: ComponentCreator('/docs/features/notifications', '883'),
-                exact: true
+                component: ComponentCreator('/docs/features/notifications', '2a7'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/features/onboarding',
+                component: ComponentCreator('/docs/features/onboarding', '727'),
+                exact: true,
+                sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/features/profile',
-                component: ComponentCreator('/docs/features/profile', '8a7'),
-                exact: true
+                component: ComponentCreator('/docs/features/profile', '724'),
+                exact: true,
+                sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/features/rituals',

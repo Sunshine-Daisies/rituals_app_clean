@@ -16,11 +16,11 @@
   },
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "User Flows",
-    "permalink": "/docs/mobile/user-flows"
+    "title": "Profile & Settings",
+    "permalink": "/docs/features/profile"
   },
   "next": {
-    "title": "Gamification System",
-    "permalink": "/docs/features/gamification"
+    "title": "Analytics",
+    "permalink": "/docs/features/analytics"
   }
 }

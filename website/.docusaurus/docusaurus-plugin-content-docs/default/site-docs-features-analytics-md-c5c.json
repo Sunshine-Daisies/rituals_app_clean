@@ -16,8 +16,8 @@
   },
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "AI Assistant",
-    "permalink": "/docs/features/ai-assistant"
+    "title": "Authentication",
+    "permalink": "/docs/features/authentication"
   },
   "next": {
     "title": "Deployment Guide",

@@ -1,7 +1,7 @@
 {
   "id": "features/social",
   "title": "Social & Community",
-  "description": "Building habits is easier when you're not alone. The Rituals App includes social features to foster accountability and competition.",
+  "description": "Building habits is easier when you're not alone. The Rituals App includes comprehensive social features to foster accountability and friendly competition.",
   "source": "@site/docs/features/social.md",
   "sourceDirName": "features",
   "slug": "/features/social",

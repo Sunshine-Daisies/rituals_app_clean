@@ -1,0 +1,26 @@
+{
+  "id": "features/onboarding",
+  "title": "Onboarding Flow",
+  "description": "The Onboarding Flow provides a seamless introduction for new users, guiding them through the app's core features and helping them create their first ritual.",
+  "source": "@site/docs/features/onboarding.md",
+  "sourceDirName": "features",
+  "slug": "/features/onboarding",
+  "permalink": "/docs/features/onboarding",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "AI Assistant",
+    "permalink": "/docs/features/ai-assistant"
+  },
+  "next": {
+    "title": "Push Notifications",
+    "permalink": "/docs/features/notifications"
+  }
+}
