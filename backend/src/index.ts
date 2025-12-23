@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
 
 // DB Setup Endpoint (Temporary)
 import pool from './config/db';
-import { setupFullDatabase, runMigrations, seedZenBadges } from './controllers/setupController';
+import { setupFullDatabase, runMigrations, seedZenBadges, resetDatabase } from './controllers/setupController';
 
 app.get('/setup-db', async (req, res) => {
   // ... existing simple setup ...
@@ -76,6 +76,7 @@ app.get('/setup-db', async (req, res) => {
 
 app.get('/setup-full', setupFullDatabase);
 app.get('/setup/zen-badges', seedZenBadges);
+app.get('/setup/reset-db', resetDatabase);
 
 // =================================================================
 // API DOCUMENTATION (Swagger)

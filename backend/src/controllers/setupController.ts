@@ -408,3 +408,21 @@ export const seedZenBadges = async (req: Request, res: Response) => {
     client.release();
   }
 };
+
+export const resetDatabase = async (req: Request, res: Response) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Nuke all user data but keep static definitions (Badges, etc.)
+    await client.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE');
+
+    await client.query('COMMIT');
+    res.send('✅ Database RESET successful! All users, rituals, and logs have been deleted. Badges definitions are preserved.');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    res.status(500).send('❌ Error resetting database: ' + error);
+  } finally {
+    client.release();
+  }
+};
