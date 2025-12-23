@@ -778,12 +778,42 @@ export const getUserStats = async (req: Request, res: Response) => {
       `, [userId])
     ]);
 
-    res.json({
-      basic: basicStatsResult.rows[0],
-      weekly_activity: weeklyActivityResult.rows,
-      top_rituals: topRitualsResult.rows,
-      monthly_activity: monthlyActivityResult.rows,
-    });
+    const basic = basicStatsResult.rows[0] || {};
+    const weeklyRaw = weeklyActivityResult.rows;
+    const topRaw = topRitualsResult.rows;
+    const monthlyRaw = monthlyActivityResult.rows;
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    const responseData = {
+      // Flatten Basic Stats and convert to camelCase
+      totalRituals: parseInt(basic.total_rituals || '0'),
+      completedToday: parseInt(basic.completed_today || '0'),
+      totalCompletions: parseInt(basic.total_completions || '0'),
+      longestStreak: parseInt(basic.longest_streak || '0'),
+      currentBestStreak: parseInt(basic.current_best_streak || '0'),
+
+      // Map Weekly Activity
+      weeklyActivity: weeklyRaw.map((w: any) => ({
+        day: days[parseInt(w.day_index || '0')],
+        count: parseInt(w.count || '0'),
+      })),
+
+      // Map Top Rituals
+      topRituals: topRaw.map((t: any) => ({
+        name: t.name,
+        count: parseInt(t.count || '0'),
+        currentStreak: parseInt(t.current_streak || '0'),
+      })),
+
+      // Map Monthly Activity
+      monthlyActivity: monthlyRaw.map((m: any) => ({
+        date: m.date,
+        count: parseInt(m.count || '0'),
+      })),
+    };
+
+    res.json(responseData);
   } catch (error) {
     console.error('Error getting user stats:', error);
     res.status(500).json({ error: 'Error retrieving user stats' });
