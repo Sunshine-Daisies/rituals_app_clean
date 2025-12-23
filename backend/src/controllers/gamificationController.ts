@@ -773,7 +773,7 @@ export const getUserStats = async (req: Request, res: Response) => {
         JOIN rituals r ON rl.ritual_id = r.id
         WHERE r.user_id = $1
           AND rl.completed_at >= CURRENT_DATE - INTERVAL '30 days'
-        GROUP BY DATE(rl.completed_at)
+        GROUP BY TO_CHAR(rl.completed_at, 'YYYY-MM-DD')
         ORDER BY date
       `, [userId])
     ]);
