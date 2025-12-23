@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/llm_service.dart';
 import '../../services/rituals_service.dart';
 import '../../widgets/ritual_intent_preview.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
 class ChatMessage {
   final String text;
@@ -17,14 +19,14 @@ class ChatMessage {
   });
 }
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
@@ -39,18 +41,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
-    
+
     if (message.isEmpty) {
       return;
     }
 
     // Add user message
     setState(() {
-      _messages.add(ChatMessage(
-        text: message,
-        isUser: true,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(text: message, isUser: true, timestamp: DateTime.now()),
+      );
       _isLoading = true;
     });
 
@@ -60,7 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       // JSON intent'i parse et (terminale yazacak)
       final intent = await LlmService.inferRitualIntent(message);
-      
+
       setState(() {
         _isLoading = false;
       });
@@ -74,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
             intent: intent,
             onApprove: (updatedIntent) async {
               Navigator.pop(dialogContext);
-              
+
               // DB'ye ekle
               try {
                 await RitualsService.createRitual(
@@ -83,20 +83,24 @@ class _ChatScreenState extends State<ChatScreen> {
                       .map((step) => {'title': step, 'completed': false})
                       .toList(),
                   reminderTime: updatedIntent.reminderTime ?? '09:00',
-                  reminderDays: updatedIntent.reminderDays ?? const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                  reminderDays:
+                      updatedIntent.reminderDays ??
+                      const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 );
 
                 if (mounted) {
                   setState(() {
-                    _messages.add(ChatMessage(
-                      text: '✅ Ritual saved successfully!',
-                      isUser: false,
-                      timestamp: DateTime.now(),
-                    ));
+                    _messages.add(
+                      ChatMessage(
+                        text: '✅ Ritual saved successfully!',
+                        isUser: false,
+                        timestamp: DateTime.now(),
+                      ),
+                    );
                   });
-                  
+
                   _scrollToBottom();
-                  
+
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -109,59 +113,68 @@ class _ChatScreenState extends State<ChatScreen> {
               } catch (e) {
                 if (mounted) {
                   setState(() {
-                    _messages.add(ChatMessage(
-                      text: '❌ Error: $e',
-                      isUser: false,
-                      timestamp: DateTime.now(),
-                    ));
+                    _messages.add(
+                      ChatMessage(
+                        text: '❌ Error: $e',
+                        isUser: false,
+                        timestamp: DateTime.now(),
+                      ),
+                    );
                   });
-                  
+
                   _scrollToBottom();
                 }
               }
             },
             onReject: () {
               Navigator.pop(dialogContext);
-              
+
               if (mounted) {
                 setState(() {
-                  _messages.add(ChatMessage(
-                    text: '❌ Ritual rejected.',
-                    isUser: false,
-                    timestamp: DateTime.now(),
-                  ));
+                  _messages.add(
+                    ChatMessage(
+                      text: '❌ Ritual rejected.',
+                      isUser: false,
+                      timestamp: DateTime.now(),
+                    ),
+                  );
                 });
-                
+
                 _scrollToBottom();
               }
             },
           ),
         );
       }
-      
+
       // Normal chat yanıtı al (background'da)
       final response = await LlmService.getChatResponse(message);
-      
+
       if (mounted) {
         setState(() {
-          _messages.add(ChatMessage(
-            text: response,
-            isUser: false,
-            timestamp: DateTime.now(),
-          ));
+          _messages.add(
+            ChatMessage(
+              text: response,
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
         });
-        
+
         _scrollToBottom();
       }
     } catch (e) {
-        setState(() {
-          _messages.add(ChatMessage(
+      setState(() {
+        _messages.add(
+          ChatMessage(
             text: 'Sorry, an error occurred: $e',
             isUser: false,
             timestamp: DateTime.now(),
-          ));
-          _isLoading = false;
-        });      _scrollToBottom();
+          ),
+        );
+        _isLoading = false;
+      });
+      _scrollToBottom();
     }
   }
 
@@ -179,10 +192,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -192,10 +210,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                     child: Column(
                       children: [
                         Expanded(child: _buildMessageList()),
@@ -255,7 +277,7 @@ class _ChatScreenState extends State<ChatScreen> {
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
               shape: BoxShape.circle,
-              ),
+            ),
             child: const Icon(Icons.auto_awesome, color: Colors.white),
           ),
         ],
@@ -294,10 +316,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Text(
               'To create a new ritual,\ntell me about your goals.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: AppTheme.textSecondary,
-                ),
+              style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -323,7 +342,9 @@ class _ChatScreenState extends State<ChatScreen> {
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: isUser ? AppTheme.primaryColor : AppTheme.backgroundColor,
@@ -382,10 +403,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 8),
             Text(
               'Typing...',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
             ),
           ],
         ),
@@ -413,7 +431,9 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.backgroundColor,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                ),
               ),
               child: TextField(
                 controller: _messageController,
@@ -421,7 +441,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   hintText: 'Type your message...',
                   hintStyle: TextStyle(color: AppTheme.textSecondary),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
                 ),
                 maxLines: null,
                 textInputAction: TextInputAction.send,

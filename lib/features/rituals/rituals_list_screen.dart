@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rituals_app/data/models/ritual.dart';
 import 'package:rituals_app/data/models/sharing_models.dart';
@@ -9,15 +10,16 @@ import 'package:rituals_app/services/partnership_service.dart';
 import 'package:rituals_app/theme/app_theme.dart';
 import 'package:rituals_app/features/rituals/widgets/ritual_card.dart';
 import 'package:rituals_app/features/rituals/widgets/partner_ritual_card.dart';
+import 'package:rituals_app/providers/theme_provider.dart';
 
-class RitualsListScreen extends StatefulWidget {
+class RitualsListScreen extends ConsumerStatefulWidget {
   const RitualsListScreen({super.key});
 
   @override
-  State<RitualsListScreen> createState() => _RitualsListScreenState();
+  ConsumerState<RitualsListScreen> createState() => _RitualsListScreenState();
 }
 
-class _RitualsListScreenState extends State<RitualsListScreen> {
+class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
   late Future<List<Ritual>> _ritualsFuture;
   late Future<List<SharedRitual>> _partnerRitualsFuture;
   final SharingService _sharingService = SharingService();
@@ -49,7 +51,9 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
             Text('Delete Ritual'),
           ],
         ),
-        content: const Text('This ritual will be permanently deleted. Do you want to continue?'),
+        content: const Text(
+          'This ritual will be permanently deleted. Do you want to continue?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -64,9 +68,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
             ),
             child: TextButton(
               onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
               child: const Text('Delete'),
             ),
           ),
@@ -128,7 +130,12 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: AppTheme.primaryColor.withOpacity(0.3), width: 1)),
+          border: Border(
+            top: BorderSide(
+              color: AppTheme.primaryColor.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -155,7 +162,7 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 32),
-            
+
             // AI Option
             InkWell(
               onTap: () {
@@ -178,7 +185,10 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.auto_awesome, color: Colors.white),
+                      child: const Icon(
+                        Icons.auto_awesome,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -204,14 +214,18 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Manual Option
             InkWell(
               onTap: () {
@@ -224,7 +238,9 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.backgroundColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withOpacity(0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -234,7 +250,10 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         color: AppTheme.primaryColor.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.edit_note, color: AppTheme.primaryColor),
+                      child: const Icon(
+                        Icons.edit_note,
+                        color: AppTheme.primaryColor,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -260,7 +279,11 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios, color: AppTheme.textSecondary, size: 16),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppTheme.textSecondary,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
@@ -274,6 +297,10 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateOptions(context),
@@ -282,8 +309,9 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
         backgroundColor: AppTheme.primaryColor,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: RefreshIndicator(
@@ -299,7 +327,9 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: AppTheme.surfaceColor,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusM,
+                            ),
                             boxShadow: AppTheme.cardShadow,
                           ),
                           child: IconButton(
@@ -315,15 +345,13 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                             children: [
                               Text(
                                 'My Rituals',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 'Your own and partner rituals',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppTheme.textSecondary),
                               ),
                             ],
                           ),
@@ -336,7 +364,12 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 // My Rituals Header
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppTheme.spacingL, AppTheme.spacingM, AppTheme.spacingL, AppTheme.spacingS),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.spacingL,
+                      AppTheme.spacingM,
+                      AppTheme.spacingL,
+                      AppTheme.spacingS,
+                    ),
                     child: Text(
                       'Personal Rituals',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -353,7 +386,12 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 // Partner Rituals Header
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppTheme.spacingL, AppTheme.spacingL, AppTheme.spacingL, AppTheme.spacingS),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.spacingL,
+                      AppTheme.spacingL,
+                      AppTheme.spacingL,
+                      AppTheme.spacingS,
+                    ),
                     child: Text(
                       'Partner Rituals',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -385,28 +423,38 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Only show loader for the main list to avoid double loaders
-          if (showShared) return const SliverToBoxAdapter(child: SizedBox.shrink());
+          if (showShared)
+            return const SliverToBoxAdapter(child: SizedBox.shrink());
           return const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+            child: Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
+            ),
           );
         }
 
         if (snapshot.hasError) {
-          if (showShared) return const SliverToBoxAdapter(child: SizedBox.shrink());
+          if (showShared)
+            return const SliverToBoxAdapter(child: SizedBox.shrink());
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.spacingL),
-              child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppTheme.errorColor)),
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: const TextStyle(color: AppTheme.errorColor),
+              ),
             ),
           );
         }
 
         final rituals = snapshot.data ?? [];
-        final filteredRituals = rituals.where((r) => r.isMine && r.hasPartner == showShared).toList();
+        final filteredRituals = rituals
+            .where((r) => r.isMine && r.hasPartner == showShared)
+            .toList();
 
         if (filteredRituals.isEmpty) {
-          if (showShared) return const SliverToBoxAdapter(child: SizedBox.shrink());
-          
+          if (showShared)
+            return const SliverToBoxAdapter(child: SizedBox.shrink());
+
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.spacingL),
@@ -415,15 +463,23 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withOpacity(0.2),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.psychology, size: 48, color: AppTheme.textSecondary),
+                    const Icon(
+                      Icons.psychology,
+                      size: 48,
+                      color: AppTheme.textSecondary,
+                    ),
                     const SizedBox(height: AppTheme.spacingM),
                     Text(
                       'No rituals yet',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: AppTheme.spacingS),
                     ElevatedButton.icon(
@@ -439,22 +495,21 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
         }
 
         return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final ritual = filteredRituals[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                child: RitualCard(
-                  ritual: ritual,
-                  onEdit: () => context.push('/ritual/${ritual.id}'),
-                  onDelete: () => _deleteRitual(ritual.id),
-                  onRefresh: _loadRituals,
-                  onShare: () => _showShareBottomSheet(context, ritual),
-                ),
-              );
-            },
-            childCount: filteredRituals.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final ritual = filteredRituals[index];
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingL,
+              ),
+              child: RitualCard(
+                ritual: ritual,
+                onEdit: () => context.push('/ritual/${ritual.id}'),
+                onDelete: () => _deleteRitual(ritual.id),
+                onRefresh: _loadRituals,
+                onShare: () => _showShareBottomSheet(context, ritual),
+              ),
+            );
+          }, childCount: filteredRituals.length),
         );
       },
     );
@@ -466,7 +521,9 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.orange),
+            ),
           );
         }
 
@@ -489,18 +546,26 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.people_outline, size: 48, color: AppTheme.textSecondary),
+                    const Icon(
+                      Icons.people_outline,
+                      size: 48,
+                      color: AppTheme.textSecondary,
+                    ),
                     const SizedBox(height: AppTheme.spacingM),
                     Text(
                       'No partner rituals',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: AppTheme.spacingS),
                     OutlinedButton.icon(
                       icon: const Icon(Icons.group_add),
                       label: const Text('Join Ritual'),
                       onPressed: () => context.push('/join-ritual'),
-                      style: OutlinedButton.styleFrom(foregroundColor: Colors.orange),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                      ),
                     ),
                   ],
                 ),
@@ -510,22 +575,21 @@ class _RitualsListScreenState extends State<RitualsListScreen> {
         }
 
         return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final partnerRitual = partnerRituals[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
-                child: PartnerRitualCard(
-                  ritual: partnerRitual,
-                  onTap: () {
-                    context.push('/ritual/${partnerRitual.ritualId}');
-                  },
-                  onRefresh: _loadRituals,
-                ),
-              );
-            },
-            childCount: partnerRituals.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final partnerRitual = partnerRituals[index];
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingL,
+              ),
+              child: PartnerRitualCard(
+                ritual: partnerRitual,
+                onTap: () {
+                  context.push('/ritual/${partnerRitual.ritualId}');
+                },
+                onRefresh: _loadRituals,
+              ),
+            );
+          }, childCount: partnerRituals.length),
         );
       },
     );
@@ -591,9 +655,9 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
   void _copyCode() {
     if (_inviteCode != null) {
       Clipboard.setData(ClipboardData(text: _inviteCode!));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Copied!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Copied!')));
       Navigator.pop(context);
     }
   }
@@ -605,7 +669,12 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: AppTheme.primaryColor.withOpacity(0.3), width: 1)),
+        border: Border(
+          top: BorderSide(
+            color: AppTheme.primaryColor.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -632,7 +701,7 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
             style: TextStyle(color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 32),
-          
+
           if (_isLoading)
             const CircularProgressIndicator(color: AppTheme.primaryColor)
           else if (_error != null)
@@ -640,18 +709,28 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
               children: [
                 Icon(Icons.error_outline, size: 48, color: AppTheme.errorColor),
                 const SizedBox(height: 16),
-                Text(_error!, style: const TextStyle(color: AppTheme.errorColor), textAlign: TextAlign.center),
+                Text(
+                  _error!,
+                  style: const TextStyle(color: AppTheme.errorColor),
+                  textAlign: TextAlign.center,
+                ),
               ],
             )
           else
             Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.darkBackground1,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.5), width: 2),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withOpacity(0.5),
+                      width: 2,
+                    ),
                   ),
                   child: Text(
                     _inviteCode ?? '',
@@ -687,7 +766,3 @@ class _ShareBottomSheetState extends State<_ShareBottomSheet> {
     );
   }
 }
-
-
-
-

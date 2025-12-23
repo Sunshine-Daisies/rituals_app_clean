@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/ritual.dart';
 import '../../services/rituals_service.dart';
@@ -13,36 +14,38 @@ import 'widgets/pending_request_card.dart';
 import 'widgets/today_partnership_card.dart';
 import 'widgets/today_ritual_card.dart';
 import '../../data/models/user_profile.dart';
+import '../../providers/theme_provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final GamificationService _gamificationService = GamificationService();
   late AnimationController _menuAnimationController;
   late Animation<double> _menuAnimation;
   bool _isMenuOpen = false;
-  
+
   late Future<List<Ritual>> _myRitualsFuture;
   late Future<List<Partnership>> _partnershipsFuture;
   late Future<List<PartnerRequest>> _pendingRequestsFuture;
   late Future<UserProfile?> _profileFuture;
   int _unreadNotificationCount = 0;
-  
+
   // Bugün tamamlanan ritüeller (backend'den gelecek)
   Map<String, bool> _ritualCompletionStatus = {};
   Map<int, bool> _partnershipCompletionStatus = {};
-  
+
   // Ritüel bazında zamanlayicilar
   Map<String, Timer?> _ritualTimers = {};
   Map<int, Timer?> _partnershipTimers = {};
   Timer? _notificationTimer;
   bool _showCompleted = false;
-  
+
   String get _todayShort {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return days[DateTime.now().weekday - 1];
@@ -60,7 +63,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       curve: Curves.easeOutQuart,
     );
     _loadRituals();
-    _notificationTimer = Timer.periodic(const Duration(seconds: 10), (_) => _loadUnreadNotifications());
+    _notificationTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _loadUnreadNotifications(),
+    );
   }
 
   @override
@@ -77,16 +83,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final ritualsFuture = _fetchRitualsWithStatus();
     final partnershipsFuture = _fetchPartnershipsWithStatus();
     final profileFuture = _gamificationService.getMyProfile();
-    
+
     setState(() {
       _myRitualsFuture = ritualsFuture;
       _partnershipsFuture = partnershipsFuture;
       _pendingRequestsFuture = PartnershipService.getPendingRequests();
       _profileFuture = profileFuture;
     });
-    
+
     _loadUnreadNotifications();
-    
+
     // Timer'ları kurmak için verilerin gelmesini bekle
     Future.wait([ritualsFuture, partnershipsFuture]).then((results) {
       if (mounted) {
@@ -99,18 +105,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<List<Ritual>> _fetchRitualsWithStatus() async {
     final rituals = await RitualsService.getRituals('temp_user_id');
-    
+
     // Status fetch logic
     final statusUpdates = <String, bool>{};
-    await Future.wait(rituals.map((r) async {
-      try {
-        final response = await RitualLogsService.getCompletionStatus(r.id);
-        statusUpdates[r.id] = response['completedToday'] ?? false;
-      } catch (e) {
-        statusUpdates[r.id] = false;
-      }
-    }));
-    
+    await Future.wait(
+      rituals.map((r) async {
+        try {
+          final response = await RitualLogsService.getCompletionStatus(r.id);
+          statusUpdates[r.id] = response['completedToday'] ?? false;
+        } catch (e) {
+          statusUpdates[r.id] = false;
+        }
+      }),
+    );
+
     // Update map directly (FutureBuilder will see this when it rebuilds)
     _ritualCompletionStatus.addAll(statusUpdates);
     return rituals;
@@ -118,12 +126,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<List<Partnership>> _fetchPartnershipsWithStatus() async {
     final partnerships = await PartnershipService.getMyPartnerships();
-    
+
     final statusUpdates = <int, bool>{};
     for (var p in partnerships) {
-       statusUpdates[p.id] = p.myCompletedToday;
+      statusUpdates[p.id] = p.myCompletedToday;
     }
-    
+
     _partnershipCompletionStatus.addAll(statusUpdates);
     return partnerships;
   }
@@ -171,30 +179,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   // ============================================
 
   /// Her ritüel için belirlenen saatte refresh yapacak timer'lar oluştur
-  void _scheduleRitualRefreshTimers(List<Ritual> rituals, List<Partnership> partnerships) {
+  void _scheduleRitualRefreshTimers(
+    List<Ritual> rituals,
+    List<Partnership> partnerships,
+  ) {
     // Önce eski timer'ları temizle
     _ritualTimers.values.forEach((timer) => timer?.cancel());
     _partnershipTimers.values.forEach((timer) => timer?.cancel());
     _ritualTimers.clear();
     _partnershipTimers.clear();
-    
+
     print('🕒 Scheduling refresh timers...');
-    
+
     // Kişisel ritüeller için
     for (final ritual in rituals) {
       if (ritual.reminderTime.isNotEmpty) {
         _scheduleRitualTimer(ritual);
       }
     }
-    
+
     // Partnership ritüelleri için
     for (final partnership in partnerships) {
-      if (partnership.myRitualTime != null && partnership.myRitualTime!.isNotEmpty) {
+      if (partnership.myRitualTime != null &&
+          partnership.myRitualTime!.isNotEmpty) {
         _schedulePartnershipTimer(partnership);
       }
     }
-    
-    print('🕒 Scheduled ${_ritualTimers.length} ritual timers and ${_partnershipTimers.length} partnership timers');
+
+    print(
+      '🕒 Scheduled ${_ritualTimers.length} ritual timers and ${_partnershipTimers.length} partnership timers',
+    );
   }
 
   /// Kişisel ritüel için timer kur
@@ -202,15 +216,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final duration = _calculateNextRefreshTime(ritual.reminderTime);
     if (duration != null) {
       final scheduledTime = DateTime.now().add(duration);
-      print('  ⏰ Ritual "${ritual.name}" refresh: ${scheduledTime.hour}:${scheduledTime.minute.toString().padLeft(2, '0')}');
-      
+      print(
+        '  ⏰ Ritual "${ritual.name}" refresh: ${scheduledTime.hour}:${scheduledTime.minute.toString().padLeft(2, '0')}',
+      );
+
       _ritualTimers[ritual.id] = Timer(duration, () {
         print('🔄 Refreshing ritual: ${ritual.name}');
         // Bu ritüelin completion status'unu sıfırla
         setState(() {
           _ritualCompletionStatus[ritual.id] = false;
         });
-        
+
         // Bir sonraki gün için tekrar schedule et
         _scheduleRitualTimer(ritual);
       });
@@ -222,8 +238,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final duration = _calculateNextRefreshTime(partnership.myRitualTime!);
     if (duration != null) {
       final scheduledTime = DateTime.now().add(duration);
-      print('  ⏰ Partnership "${partnership.myRitualName}" refresh: ${scheduledTime.hour}:${scheduledTime.minute.toString().padLeft(2, '0')}');
-      
+      print(
+        '  ⏰ Partnership "${partnership.myRitualName}" refresh: ${scheduledTime.hour}:${scheduledTime.minute.toString().padLeft(2, '0')}',
+      );
+
       _partnershipTimers[partnership.id] = Timer(duration, () {
         print('🔄 Refreshing partnership: ${partnership.myRitualName}');
         setState(() {
@@ -240,18 +258,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       // "07:00" formatını parse et
       final parts = timeString.split(':');
       if (parts.length != 2) return null;
-      
+
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
-      
+
       final now = DateTime.now();
       var scheduledTime = DateTime(now.year, now.month, now.day, hour, minute);
-      
+
       // Eğer bugünün o saati geçtiyse, yarının aynı saatini ayarla
       if (scheduledTime.isBefore(now)) {
         scheduledTime = scheduledTime.add(const Duration(days: 1));
       }
-      
+
       return scheduledTime.difference(now);
     } catch (e) {
       print('❌ Error parsing time "$timeString": $e');
@@ -264,7 +282,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   List<Partnership> _filterTodayPartnerships(List<Partnership> partnerships) {
-    return partnerships.where((p) => p.myRitualDays?.contains(_todayShort) ?? true).toList();
+    return partnerships
+        .where((p) => p.myRitualDays?.contains(_todayShort) ?? true)
+        .toList();
   }
 
   Future<void> _acceptRequest(int requestId) async {
@@ -293,10 +313,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -307,19 +324,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       final success = await PartnershipService.rejectRequest(requestId);
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Partner isteği reddedildi'),
-          ),
+          const SnackBar(content: Text('Partner isteği reddedildi')),
         );
         _loadRituals();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -338,39 +350,61 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
-              gradient: AppTheme.backgroundGradient,
+            decoration: BoxDecoration(
+              gradient: isDark ? AppTheme.backgroundGradient : null,
+              color: isDark ? null : AppTheme.lightBackground,
             ),
             child: SafeArea(
               child: RefreshIndicator(
                 onRefresh: () async => _loadRituals(),
                 child: FutureBuilder<List<dynamic>>(
-                  future: Future.wait([_myRitualsFuture, _partnershipsFuture, _profileFuture]),
+                  future: Future.wait([
+                    _myRitualsFuture,
+                    _partnershipsFuture,
+                    _profileFuture,
+                  ]),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData && snapshot.connectionState == ConnectionState.waiting) {
+                    if (!snapshot.hasData &&
+                        snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
                     final myRituals = snapshot.data?[0] as List<Ritual>? ?? [];
-                    final partnerships = snapshot.data?[1] as List<Partnership>? ?? [];
+                    final partnerships =
+                        snapshot.data?[1] as List<Partnership>? ?? [];
                     final profile = snapshot.data?[2] as UserProfile?;
 
                     final todayRituals = _filterTodayRituals(myRituals);
-                    final todayPartnerships = _filterTodayPartnerships(partnerships);
-                    
+                    final todayPartnerships = _filterTodayPartnerships(
+                      partnerships,
+                    );
+
                     final todayRitualsWithoutPartnerships = todayRituals
                         .where((r) => r.partnershipId == null)
                         .toList();
 
-                    final totalToday = todayRitualsWithoutPartnerships.length + todayPartnerships.length;
-                    final completedToday = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).length + 
-                                         todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).length;
-                    
-                    final progressPercent = totalToday > 0 ? (completedToday / totalToday) : 0.0;
+                    final totalToday =
+                        todayRitualsWithoutPartnerships.length +
+                        todayPartnerships.length;
+                    final completedToday =
+                        todayRitualsWithoutPartnerships
+                            .where((r) => _isCompletedToday(r))
+                            .length +
+                        todayPartnerships
+                            .where((p) => _isPartnershipCompletedToday(p))
+                            .length;
+
+                    final progressPercent = totalToday > 0
+                        ? (completedToday / totalToday)
+                        : 0.0;
 
                     return CustomScrollView(
                       slivers: [
@@ -388,61 +422,112 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                           padding: const EdgeInsets.all(2),
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            border: Border.all(color: AppTheme.primaryColor.withOpacity(0.5), width: 2),
+                                            border: Border.all(
+                                              color: AppTheme.primaryColor
+                                                  .withOpacity(0.5),
+                                              width: 2,
+                                            ),
                                           ),
                                           child: CircleAvatar(
-                                             radius: 28,
-                                             backgroundColor: AppTheme.darkSurface,
-                                             backgroundImage: profile?.avatarUrl != null 
-                                               ? NetworkImage(profile!.avatarUrl!)
-                                               : null,
-                                             onBackgroundImageError: profile?.avatarUrl != null ? (exception, stackTrace) {} : null,
-                                             child: profile?.avatarUrl == null
-                                                ? const Icon(Icons.person, color: Colors.white, size: 32)
+                                            radius: 28,
+                                            backgroundColor: isDark
+                                                ? AppTheme.darkSurface
+                                                : AppTheme.lightSurface,
+                                            backgroundImage:
+                                                profile?.avatarUrl != null
+                                                ? NetworkImage(
+                                                    profile!.avatarUrl!,
+                                                  )
                                                 : null,
-                                           ),
-                                         ),
-                                         Positioned(
-                                           bottom: -5,
-                                           left: 0,
-                                           right: 0,
-                                           child: Center(
-                                             child: Container(
-                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                               decoration: BoxDecoration(
-                                                 color: AppTheme.darkSurface,
-                                                 borderRadius: BorderRadius.circular(10),
-                                                 border: Border.all(color: Colors.white24, width: 1),
-                                               ),
-                                               child: Text(
-                                                 'Lvl ${profile?.level ?? 1}',
-                                                 style: const TextStyle(
-                                                   fontSize: 10,
-                                                   fontWeight: FontWeight.bold,
-                                                   color: Colors.white,
-                                                 ),
-                                               ),
-                                             ),
-                                           ),
-                                         ),
-                                       ],
-                                     ),
-                                     const SizedBox(width: 16),
-                                     Expanded(
-                                       child: Column(
-                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                         children: [
-                                           Text(
-                                             _getGreetingMessage(),
-                                             style: const TextStyle(
-                                               fontSize: 18,
-                                               fontWeight: FontWeight.bold,
-                                               color: Colors.white,
-                                             ),
-                                           ),
+                                            onBackgroundImageError:
+                                                profile?.avatarUrl != null
+                                                ? (exception, stackTrace) {}
+                                                : null,
+                                            child: profile?.avatarUrl == null
+                                                ? Icon(
+                                                    Icons.person,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : AppTheme
+                                                              .lightTextSecondary,
+                                                    size: 32,
+                                                  )
+                                                : null,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          bottom: -5,
+                                          left: 0,
+                                          right: 0,
+                                          child: Center(
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? AppTheme.darkSurface
+                                                    : Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: isDark
+                                                      ? Colors.white24
+                                                      : AppTheme.primaryColor
+                                                            .withOpacity(0.3),
+                                                  width: 1,
+                                                ),
+                                                boxShadow: isDark
+                                                    ? null
+                                                    : [
+                                                        BoxShadow(
+                                                          color: Colors.black
+                                                              .withOpacity(0.1),
+                                                          blurRadius: 4,
+                                                          offset: const Offset(
+                                                            0,
+                                                            2,
+                                                          ),
+                                                        ),
+                                                      ],
+                                              ),
+                                              child: Text(
+                                                'Lvl ${profile?.level ?? 1}',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : AppTheme.primaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _getGreetingMessage(),
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.lightTextPrimary,
+                                            ),
+                                          ),
                                           const SizedBox(height: 6),
                                           Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Stack(
                                                 children: [
@@ -450,17 +535,33 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                     height: 8,
                                                     width: double.infinity,
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white10,
-                                                      borderRadius: BorderRadius.circular(4),
+                                                      color: isDark
+                                                          ? Colors.white10
+                                                          : Colors.black
+                                                                .withOpacity(
+                                                                  0.1,
+                                                                ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
                                                     ),
                                                   ),
                                                   FractionallySizedBox(
-                                                    widthFactor: ((profile?.xpProgressPercent ?? 0) / 100).clamp(0.0, 1.0),
+                                                    widthFactor:
+                                                        ((profile?.xpProgressPercent ??
+                                                                    0) /
+                                                                100)
+                                                            .clamp(0.0, 1.0),
                                                     child: Container(
                                                       height: 8,
                                                       decoration: BoxDecoration(
-                                                        gradient: AppTheme.primaryGradient,
-                                                        borderRadius: BorderRadius.circular(4),
+                                                        gradient: AppTheme
+                                                            .primaryGradient,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              4,
+                                                            ),
                                                       ),
                                                     ),
                                                   ),
@@ -471,41 +572,55 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                 _getXpProgressText(profile),
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: AppTheme.textSecondary,
+                                                  color: isDark
+                                                      ? AppTheme.textSecondary
+                                                      : AppTheme
+                                                            .lightTextSecondary,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
                                             ],
                                           ),
-                                         ],
-                                       ),
-                                     ),
-                                     const SizedBox(width: 16),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.1),
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.1)
+                                            : Colors.black.withOpacity(0.05),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Stack(
                                         children: [
                                           IconButton(
-                                            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                                            onPressed: () => context.push('/notifications'),
+                                            icon: Icon(
+                                              Icons.notifications_outlined,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.lightTextPrimary,
+                                            ),
+                                            onPressed: () =>
+                                                context.push('/notifications'),
                                           ),
                                           if (_unreadNotificationCount > 0)
                                             Positioned(
                                               right: 8,
                                               top: 8,
                                               child: Container(
-                                                padding: const EdgeInsets.all(4),
+                                                padding: const EdgeInsets.all(
+                                                  4,
+                                                ),
                                                 decoration: const BoxDecoration(
                                                   color: Colors.red,
                                                   shape: BoxShape.circle,
                                                 ),
-                                                constraints: const BoxConstraints(
-                                                  minWidth: 8,
-                                                  minHeight: 8,
-                                                ),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                      minWidth: 8,
+                                                      minHeight: 8,
+                                                    ),
                                               ),
                                             ),
                                         ],
@@ -524,9 +639,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             child: Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.04),
-                                borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.04)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusXL,
+                                ),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withOpacity(0.05)
+                                      : Colors.black.withOpacity(0.05),
+                                ),
+                                boxShadow: isDark
+                                    ? null
+                                    : [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                               ),
                               child: Row(
                                 children: [
@@ -539,16 +671,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         child: CircularProgressIndicator(
                                           value: progressPercent,
                                           strokeWidth: 8,
-                                          backgroundColor: Colors.white10,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                                          backgroundColor: isDark
+                                              ? Colors.white10
+                                              : Colors.black.withOpacity(0.1),
+                                          valueColor:
+                                              const AlwaysStoppedAnimation<
+                                                Color
+                                              >(AppTheme.primaryColor),
                                         ),
                                       ),
                                       Text(
                                         '${(progressPercent * 100).toInt()}%',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.lightTextPrimary,
                                         ),
                                       ),
                                     ],
@@ -557,7 +696,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   Expanded(
                                     child: Column(
                                       children: [
-                                        _buildStatTile('Rituals Completed', '$completedToday / $totalToday'),
+                                        _buildStatTile(
+                                          'Rituals Completed',
+                                          '$completedToday / $totalToday',
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -570,23 +712,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         FutureBuilder<List<PartnerRequest>>(
                           future: _pendingRequestsFuture,
                           builder: (context, snapshot) {
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                            if (!snapshot.hasData || snapshot.data!.isEmpty)
+                              return const SliverToBoxAdapter(
+                                child: SizedBox.shrink(),
+                              );
                             return SliverToBoxAdapter(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Partner Requests',
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.lightTextPrimary,
+                                      ),
                                     ),
                                     const SizedBox(height: 12),
-                                    ...snapshot.data!.map((req) => PendingRequestCard(
-                                      request: req,
-                                      onAccept: () => _acceptRequest(req.id),
-                                      onReject: () => _rejectRequest(req.id),
-                                    )),
+                                    ...snapshot.data!.map(
+                                      (req) => PendingRequestCard(
+                                        request: req,
+                                        onAccept: () => _acceptRequest(req.id),
+                                        onReject: () => _rejectRequest(req.id),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -599,13 +755,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
+                              children: [
                                 Text(
                                   "Today's Rituals",
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.lightTextPrimary,
                                   ),
                                 ),
                               ],
@@ -616,12 +774,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
-                              final pendingRituals = todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).toList();
-                              final pendingPartnerships = todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).toList();
+                              final pendingRituals =
+                                  todayRitualsWithoutPartnerships
+                                      .where((r) => !_isCompletedToday(r))
+                                      .toList();
+                              final pendingPartnerships = todayPartnerships
+                                  .where(
+                                    (p) => !_isPartnershipCompletedToday(p),
+                                  )
+                                  .toList();
 
-                              if (pendingRituals.isEmpty && pendingPartnerships.isEmpty) {
+                              if (pendingRituals.isEmpty &&
+                                  pendingPartnerships.isEmpty) {
                                 return const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
                                   child: EmptyTodayCard(
                                     message: 'No rituals left for today!',
                                     icon: Icons.check_circle_outline,
@@ -631,28 +800,44 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                               if (index < pendingRituals.length) {
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 4,
+                                  ),
                                   child: TodayRitualCard(
-                                    key: ValueKey('active_ritual_${pendingRituals[index].id}'),
+                                    key: ValueKey(
+                                      'active_ritual_${pendingRituals[index].id}',
+                                    ),
                                     ritual: pendingRituals[index],
                                     onComplete: () {
                                       setState(() {
-                                        _ritualCompletionStatus[pendingRituals[index].id] = true;
+                                        _ritualCompletionStatus[pendingRituals[index]
+                                                .id] =
+                                            true;
                                       });
                                       _loadRituals();
                                     },
                                   ),
                                 );
                               } else {
-                                final partnershipIndex = index - pendingRituals.length;
+                                final partnershipIndex =
+                                    index - pendingRituals.length;
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 4,
+                                  ),
                                   child: TodayPartnershipCard(
-                                    key: ValueKey('active_partnership_${pendingPartnerships[partnershipIndex].id}'),
-                                    partnership: pendingPartnerships[partnershipIndex],
+                                    key: ValueKey(
+                                      'active_partnership_${pendingPartnerships[partnershipIndex].id}',
+                                    ),
+                                    partnership:
+                                        pendingPartnerships[partnershipIndex],
                                     onComplete: () {
                                       setState(() {
-                                        _partnershipCompletionStatus[pendingPartnerships[partnershipIndex].id] = true;
+                                        _partnershipCompletionStatus[pendingPartnerships[partnershipIndex]
+                                                .id] =
+                                            true;
                                       });
                                       _loadRituals();
                                     },
@@ -660,94 +845,165 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 );
                               }
                             },
-                            childCount: (todayRitualsWithoutPartnerships.where((r) => !_isCompletedToday(r)).length + 
-                                         todayPartnerships.where((p) => !_isPartnershipCompletedToday(p)).length).clamp(1, 999),
+                            childCount:
+                                (todayRitualsWithoutPartnerships
+                                            .where((r) => !_isCompletedToday(r))
+                                            .length +
+                                        todayPartnerships
+                                            .where(
+                                              (p) =>
+                                                  !_isPartnershipCompletedToday(
+                                                    p,
+                                                  ),
+                                            )
+                                            .length)
+                                    .clamp(1, 999),
                           ),
                         ),
 
                         if (completedToday > 0)
                           SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final completedRitualsList = todayRitualsWithoutPartnerships.where((r) => _isCompletedToday(r)).toList();
-                                final completedPartnershipsList = todayPartnerships.where((p) => _isPartnershipCompletedToday(p)).toList();
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final completedRitualsList =
+                                  todayRitualsWithoutPartnerships
+                                      .where((r) => _isCompletedToday(r))
+                                      .toList();
+                              final completedPartnershipsList =
+                                  todayPartnerships
+                                      .where(
+                                        (p) => _isPartnershipCompletedToday(p),
+                                      )
+                                      .toList();
 
-                                if (index == 0) {
-                                  return Padding(
-                                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-                                    child: InkWell(
-                                      onTap: () => setState(() => _showCompleted = !_showCompleted),
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.05),
-                                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                          border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              if (index == 0) {
+                                return Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    24,
+                                    20,
+                                    10,
+                                  ),
+                                  child: InkWell(
+                                    onTap: () => setState(
+                                      () => _showCompleted = !_showCompleted,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      AppTheme.radiusM,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.05)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusM,
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.check_circle_outline,
-                                                  color: AppTheme.primaryColor.withOpacity(0.8),
-                                                  size: 20,
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Text(
-                                                  '$completedToday Rituals Done',
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.white,
-                                                  ),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? Colors.white.withOpacity(0.05)
+                                              : Colors.black.withOpacity(0.05),
+                                        ),
+                                        boxShadow: isDark
+                                            ? null
+                                            : [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.05),
+                                                  blurRadius: 5,
+                                                  offset: const Offset(0, 1),
                                                 ),
                                               ],
-                                            ),
-                                            Icon(
-                                              _showCompleted ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                              color: AppTheme.textSecondary,
-                                            ),
-                                          ],
-                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle_outline,
+                                                color: AppTheme.primaryColor
+                                                    .withOpacity(0.8),
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                '$completedToday Rituals Done',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : AppTheme
+                                                            .lightTextPrimary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Icon(
+                                            _showCompleted
+                                                ? Icons.keyboard_arrow_up
+                                                : Icons.keyboard_arrow_down,
+                                            color: isDark
+                                                ? AppTheme.textSecondary
+                                                : AppTheme.lightTextSecondary,
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                }
+                                  ),
+                                );
+                              }
 
-                                if (!_showCompleted) return const SizedBox.shrink();
+                              if (!_showCompleted)
+                                return const SizedBox.shrink();
 
-                                final dataIndex = index - 1;
-                                if (dataIndex < completedRitualsList.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                                    child: TodayRitualCard(
-                                      key: ValueKey('completed_ritual_${completedRitualsList[dataIndex].id}'),
-                                      ritual: completedRitualsList[dataIndex],
-                                      onComplete: () {}, 
+                              final dataIndex = index - 1;
+                              if (dataIndex < completedRitualsList.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 4,
+                                  ),
+                                  child: TodayRitualCard(
+                                    key: ValueKey(
+                                      'completed_ritual_${completedRitualsList[dataIndex].id}',
+                                    ),
+                                    ritual: completedRitualsList[dataIndex],
+                                    onComplete: () {},
+                                    isCompleted: true,
+                                  ),
+                                );
+                              } else {
+                                final pIndex =
+                                    dataIndex - completedRitualsList.length;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 4,
+                                  ),
+                                  child: Opacity(
+                                    opacity: 0.6,
+                                    child: TodayPartnershipCard(
+                                      key: ValueKey(
+                                        'completed_partnership_${completedPartnershipsList[pIndex].id}',
+                                      ),
+                                      partnership:
+                                          completedPartnershipsList[pIndex],
+                                      onComplete: () {},
                                       isCompleted: true,
                                     ),
-                                  );
-                                } else {
-                                  final pIndex = dataIndex - completedRitualsList.length;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                                    child: Opacity(
-                                      opacity: 0.6,
-                                      child: TodayPartnershipCard(
-                                        key: ValueKey('completed_partnership_${completedPartnershipsList[pIndex].id}'),
-                                        partnership: completedPartnershipsList[pIndex],
-                                        onComplete: () {}, 
-                                        isCompleted: true,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              childCount: 1 + (completedToday),
-                            ),
+                                  ),
+                                );
+                              }
+                            }, childCount: 1 + (completedToday)),
                           ),
                         const SliverToBoxAdapter(child: SizedBox(height: 100)),
                       ],
@@ -757,16 +1013,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
           ),
-          
+
           // Background Overlay when menu is open
           if (_isMenuOpen)
             GestureDetector(
               onTap: _toggleMenu,
               child: FadeTransition(
                 opacity: _menuAnimation,
-                child: Container(
-                  color: Colors.black54,
-                ),
+                child: Container(color: Colors.black54),
               ),
             ),
 
@@ -774,32 +1028,38 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           AnimatedBuilder(
             animation: _menuAnimation,
             builder: (context, child) {
-              final double bottomPadding = MediaQuery.of(context).padding.bottom;
-              const double menuHeight = 500.0; // Estimated height of menu content
+              final double bottomPadding = MediaQuery.of(
+                context,
+              ).padding.bottom;
+              const double menuHeight =
+                  500.0; // Estimated height of menu content
               const double navBarHeight = 60.0;
-              const double buttonRestingY = 55.0; // Where the button sits when closed
+              const double buttonRestingY =
+                  55.0; // Where the button sits when closed
               const double menuOverlap = 28.0; // Button nests into menu
-              
+
               // Menu Logic:
               // Closed: Top of menu aligns with buttonRestingY + overlap.
               //         Bottom = buttonRestingY - menuHeight + overlap
               // Open:   Bottom = navBarHeight
-              
-              final double startBottom = buttonRestingY - menuHeight + menuOverlap;
+
+              final double startBottom =
+                  buttonRestingY - menuHeight + menuOverlap;
               final double endBottom = navBarHeight; // On top of nav bar
               final double travelDistance = endBottom - startBottom;
 
               return Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
-                   // Quick Actions Menu (Z=0, Hidden behind Nav Bar when closed)
+                  // Quick Actions Menu (Z=0, Hidden behind Nav Bar when closed)
                   Positioned(
-                    bottom: startBottom + (_menuAnimation.value * travelDistance), 
+                    bottom:
+                        startBottom + (_menuAnimation.value * travelDistance),
                     left: 0,
                     right: 0,
                     child: _buildActionMenuContent(),
                   ),
-                  
+
                   // Bottom Navigation Bar (Z=1, Fixed)
                   Positioned(
                     bottom: 0,
@@ -810,8 +1070,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                   // Floating Logo Button (Z=2, Rides the menu)
                   Positioned(
-                    bottom: buttonRestingY + (_menuAnimation.value * travelDistance),
-                    child: _buildFloatingButton(), 
+                    bottom:
+                        buttonRestingY +
+                        (_menuAnimation.value * travelDistance),
+                    child: _buildFloatingButton(),
                   ),
                 ],
               );
@@ -821,7 +1083,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
   }
-
 
   // Helper methods to check if ritual/partnership is completed today
   bool _isCompletedToday(Ritual ritual) {
@@ -833,14 +1094,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildActionMenuContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 500,
       decoration: BoxDecoration(
-        color: AppTheme.darkSurface,
+        color: isDark ? AppTheme.darkSurface : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withOpacity(isDark ? 0.5 : 0.15),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -862,18 +1124,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: isDark ? Colors.white24 : Colors.black26,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Quick Actions',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 32),
@@ -933,15 +1195,22 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     Color color,
     VoidCallback onTap,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.grey.withOpacity(0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.05),
+          ),
         ),
         child: Row(
           children: [
@@ -960,10 +1229,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -971,13 +1240,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.textSecondary,
+                      color: isDark
+                          ? AppTheme.textSecondary
+                          : AppTheme.lightTextSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: AppTheme.textSecondary, size: 14),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: isDark
+                  ? AppTheme.textSecondary
+                  : AppTheme.lightTextSecondary,
+              size: 14,
+            ),
           ],
         ),
       ),
@@ -1021,11 +1298,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildBottomNav(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 90,
       decoration: BoxDecoration(
-        color: AppTheme.darkBackground1,
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        color: isDark ? AppTheme.darkBackground1 : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.05),
+          ),
+        ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -1033,17 +1326,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(Icons.grid_view_rounded, 'Home', true, () {}),
-            _buildNavItem(Icons.people_alt_rounded, 'Social', false, () => context.push('/friends')),
+            _buildNavItem(
+              Icons.people_alt_rounded,
+              'Social',
+              false,
+              () => context.push('/friends'),
+            ),
             const SizedBox(width: 60), // Space for FAB
-            _buildNavItem(Icons.bar_chart_rounded, 'Stats', false, () => context.push('/stats')),
-            _buildNavItem(Icons.person_rounded, 'Profile', false, () => context.push('/profile')),
+            _buildNavItem(
+              Icons.bar_chart_rounded,
+              'Stats',
+              false,
+              () => context.push('/stats'),
+            ),
+            _buildNavItem(
+              Icons.person_rounded,
+              'Profile',
+              false,
+              () => context.push('/profile'),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inactiveColor = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.lightTextSecondary;
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1051,7 +1369,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         children: [
           Icon(
             icon,
-            color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
+            color: isActive ? AppTheme.primaryColor : inactiveColor,
             size: 26,
           ),
           const SizedBox(height: 4),
@@ -1059,7 +1377,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             label,
             style: TextStyle(
               fontSize: 11,
-              color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
+              color: isActive ? AppTheme.primaryColor : inactiveColor,
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -1069,10 +1387,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildStatTile(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: isDark
+            ? Colors.white.withOpacity(0.03)
+            : Colors.black.withOpacity(0.03),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -1084,17 +1405,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 12,
-                color: AppTheme.textSecondary,
+                color: isDark
+                    ? AppTheme.textSecondary
+                    : AppTheme.lightTextSecondary,
               ),
             ),
           ),
           const SizedBox(width: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             ),
           ),
         ],
@@ -1125,24 +1448,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   String _getXpProgressText(UserProfile? profile) {
     if (profile == null) return '0 / 100 XP';
-    
+
     final currentXp = profile.xp;
     int targetXp = profile.xpForNextLevel;
 
     // Backend calculation logic refinement
     if (currentXp >= targetXp) {
-       final double percent = profile.xpProgressPercent / 100.0;
-       if (percent > 0.01 && percent < 0.99) {
-          final int levelStart = targetXp; 
-          final int currentDelta = currentXp - levelStart;
-          final int totalDelta = (currentDelta / percent).round();
-          targetXp = levelStart + totalDelta;
-       } else if (currentXp >= targetXp) {
-          // If we can't calculate a future target, just show current/base
-          return '$currentXp / $targetXp XP';
-       }
+      final double percent = profile.xpProgressPercent / 100.0;
+      if (percent > 0.01 && percent < 0.99) {
+        final int levelStart = targetXp;
+        final int currentDelta = currentXp - levelStart;
+        final int totalDelta = (currentDelta / percent).round();
+        targetXp = levelStart + totalDelta;
+      } else if (currentXp >= targetXp) {
+        // If we can't calculate a future target, just show current/base
+        return '$currentXp / $targetXp XP';
+      }
     }
-    
+
     return '$currentXp / $targetXp XP';
   }
 }

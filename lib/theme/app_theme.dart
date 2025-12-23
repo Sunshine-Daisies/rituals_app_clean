@@ -5,41 +5,41 @@ class AppTheme {
   static const Color primaryColor = Color(0xFF0095FF); // Bright Blue
   static const Color primaryDark = Color(0xFF007ADF);
   static const Color primaryLight = Color(0xFF00E5FF); // Cyan
-  
+
   static const Color accentColor = Color(0xFFFF6584);
   static const Color accentLight = Color(0xFFFF9FB3);
-  
+
   // Dark Theme Colors (Deep Blue/Black)
   static const Color darkBackground1 = Color(0xFF0A0E12);
   static const Color darkBackground2 = Color(0xFF0A0F14);
   static const Color darkSurface = Color(0xFF141C24);
   static const Color cardBackground = Color(0xFF141C24);
-  
+
   static const Color backgroundColor = darkBackground1;
   static const Color surfaceColor = darkSurface;
   static const Color cardColor = cardBackground;
-  
+
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFF94A3B8); // Slate 400
   static const Color textLight = Color(0xFF64748B); // Slate 500
-  
+
   static const Color successColor = Color(0xFF10B981); // Emerald 500
   static const Color errorColor = Color(0xFFEF4444); // Red 500
   static const Color warningColor = Color(0xFFF59E0B); // Amber 500
-  
+
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [primaryColor, primaryLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const LinearGradient accentGradient = LinearGradient(
     colors: [accentColor, accentLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const LinearGradient backgroundGradient = LinearGradient(
     colors: [darkBackground1, darkBackground2],
     begin: Alignment.topCenter,
@@ -69,7 +69,7 @@ class AppTheme {
       offset: const Offset(0, 4),
     ),
   ];
-  
+
   static List<BoxShadow> mediumShadow = [
     BoxShadow(
       color: primaryColor.withOpacity(0.15),
@@ -77,7 +77,7 @@ class AppTheme {
       offset: const Offset(0, 8),
     ),
   ];
-  
+
   static List<BoxShadow> cardShadow = [
     BoxShadow(
       color: Colors.black.withOpacity(0.3),
@@ -101,7 +101,7 @@ class AppTheme {
       onSurface: textPrimary,
       onError: Colors.white,
     ),
-    
+
     // AppBar Theme
     appBarTheme: AppBarTheme(
       elevation: 0,
@@ -116,7 +116,7 @@ class AppTheme {
       ),
       iconTheme: const IconThemeData(color: textPrimary),
     ),
-    
+
     // Card Theme
     cardTheme: CardThemeData(
       elevation: 0,
@@ -126,7 +126,7 @@ class AppTheme {
       color: cardColor,
       shadowColor: Colors.black.withOpacity(0.3),
     ),
-    
+
     // Elevated Button Theme
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -144,7 +144,7 @@ class AppTheme {
         ),
       ),
     ),
-    
+
     // Bottom Navigation Bar Theme
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: darkBackground1,
@@ -155,47 +155,57 @@ class AppTheme {
     ),
   );
 
+  // Light Theme Colors
+  static const Color lightBackground = Color(
+    0xFFF8F9FA,
+  ); // Light gray background
+  static const Color lightSurface = Colors.white;
+  static const Color lightCardColor = Colors.white;
+  static const Color lightTextPrimary = Color(0xFF1A1A1A); // Almost black
+  static const Color lightTextSecondary = Color(0xFF64748B); // Slate 500
+  static const Color lightTextLight = Color(0xFF94A3B8); // Slate 400
+
   // Light Theme
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    scaffoldBackgroundColor: backgroundColor,
+    scaffoldBackgroundColor: lightBackground,
     colorScheme: ColorScheme.light(
       primary: primaryColor,
       secondary: accentColor,
-      surface: surfaceColor,
+      surface: lightSurface,
       error: errorColor,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      onSurface: textPrimary,
+      onSurface: lightTextPrimary,
       onError: Colors.white,
     ),
-    
+
     // AppBar Theme
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,
       backgroundColor: Colors.transparent,
-      foregroundColor: textPrimary,
-      titleTextStyle: const TextStyle(
+      foregroundColor: lightTextPrimary,
+      titleTextStyle: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0.5,
       ),
-      iconTheme: const IconThemeData(color: textPrimary),
+      iconTheme: IconThemeData(color: lightTextPrimary),
     ),
-    
+
     // Card Theme
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radiusL),
       ),
-      color: cardColor,
+      color: lightCardColor,
       shadowColor: Colors.black.withOpacity(0.05),
     ),
-    
+
     // Elevated Button Theme
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -213,7 +223,16 @@ class AppTheme {
         ),
       ),
     ),
-    
+
+    // Bottom Navigation Bar Theme
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: lightSurface,
+      selectedItemColor: primaryColor,
+      unselectedItemColor: lightTextSecondary,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
+    ),
+
     // Text Button Theme
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
@@ -225,7 +244,7 @@ class AppTheme {
         ),
       ),
     ),
-    
+
     // Outlined Button Theme
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
@@ -242,19 +261,19 @@ class AppTheme {
         ),
       ),
     ),
-    
+
     // Input Decoration Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: surfaceColor,
+      fillColor: lightSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: textLight.withOpacity(0.3)),
+        borderSide: BorderSide(color: lightTextLight.withOpacity(0.3)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: textLight.withOpacity(0.3)),
+        borderSide: BorderSide(color: lightTextLight.withOpacity(0.3)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
@@ -268,117 +287,120 @@ class AppTheme {
         borderRadius: BorderRadius.circular(radiusM),
         borderSide: const BorderSide(color: errorColor, width: 2),
       ),
-      labelStyle: const TextStyle(color: textSecondary),
-      hintStyle: TextStyle(color: textLight),
-      prefixIconColor: textSecondary,
+      labelStyle: TextStyle(color: lightTextSecondary),
+      hintStyle: TextStyle(color: lightTextLight),
+      prefixIconColor: lightTextSecondary,
     ),
-    
+
     // Chip Theme
     chipTheme: ChipThemeData(
-      backgroundColor: surfaceColor,
+      backgroundColor: lightSurface,
       selectedColor: primaryColor,
       secondarySelectedColor: accentColor,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      labelStyle: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: lightTextPrimary,
+      ),
       secondaryLabelStyle: const TextStyle(color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radiusFull),
       ),
     ),
-    
+
     // Text Theme
-    textTheme: const TextTheme(
+    textTheme: TextTheme(
       displayLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.bold,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: -0.5,
       ),
       displayMedium: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.bold,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: -0.5,
       ),
       displaySmall: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: -0.5,
       ),
       headlineLarge: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0,
       ),
       headlineMedium: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0,
       ),
       headlineSmall: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0,
       ),
       titleLarge: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0.15,
       ),
       titleMedium: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0.15,
       ),
       titleSmall: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0.1,
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0.5,
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 0.25,
       ),
       bodySmall: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: textSecondary,
+        color: lightTextSecondary,
         letterSpacing: 0.4,
       ),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: textPrimary,
+        color: lightTextPrimary,
         letterSpacing: 1.25,
       ),
       labelMedium: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: textSecondary,
+        color: lightTextSecondary,
         letterSpacing: 1.5,
       ),
       labelSmall: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w500,
-        color: textLight,
+        color: lightTextLight,
         letterSpacing: 1.5,
       ),
     ),
   );
 }
-

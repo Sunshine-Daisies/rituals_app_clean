@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rituals_app/data/models/ritual.dart';
 import 'package:rituals_app/services/rituals_service.dart';
@@ -7,27 +8,25 @@ import 'package:rituals_app/theme/app_theme.dart';
 import 'package:rituals_app/features/sharing/share_ritual_dialog.dart';
 import 'package:rituals_app/features/ritual_detail/widgets/partner_info_card.dart';
 import 'package:rituals_app/features/ritual_detail/widgets/ritual_steps_card.dart';
+import 'package:rituals_app/providers/theme_provider.dart';
 
-class RitualDetailScreen extends StatefulWidget {
+class RitualDetailScreen extends ConsumerStatefulWidget {
   final String ritualId;
 
-  const RitualDetailScreen({
-    super.key,
-    required this.ritualId,
-  });
+  const RitualDetailScreen({super.key, required this.ritualId});
 
   @override
-  State<RitualDetailScreen> createState() => _RitualDetailScreenState();
+  ConsumerState<RitualDetailScreen> createState() => _RitualDetailScreenState();
 }
 
-class _RitualDetailScreenState extends State<RitualDetailScreen> {
+class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
   late Future<Ritual?> _ritualFuture;
   late TextEditingController _nameController;
   late List<String> _selectedDays;
   late List<String> _steps;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 7, minute: 0);
   bool _isLoading = false;
-  
+
   // Partner (Equal Partnership System)
   PartnershipInfo? _partnershipInfo;
   bool _isLoadingPartner = false;
@@ -45,7 +44,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
   Future<void> _loadPartnerInfo() async {
     setState(() => _isLoadingPartner = true);
     try {
-      final info = await PartnershipService.getPartnershipByRitual(widget.ritualId);
+      final info = await PartnershipService.getPartnershipByRitual(
+        widget.ritualId,
+      );
       if (mounted) {
         setState(() {
           _partnershipInfo = info;
@@ -61,12 +62,15 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
 
   Future<void> _leavePartnership() async {
     if (_partnershipInfo?.partnershipId == null) return;
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.surfaceColor,
-        title: Text('Partnerlıktan Ayrıl', style: TextStyle(color: AppTheme.textPrimary)),
+        title: Text(
+          'Partnerlıktan Ayrıl',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
         content: Text(
           'Partnerlıktan ayrılmak istediğinize emin misiniz?\n\nHer iki taraf da kendi ritüelini koruyacak.',
           style: TextStyle(color: AppTheme.textSecondary),
@@ -74,7 +78,10 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('İptal', style: TextStyle(color: AppTheme.textSecondary)),
+            child: Text(
+              'İptal',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -87,7 +94,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
     if (confirmed != true) return;
 
     try {
-      final result = await PartnershipService.leavePartnership(_partnershipInfo!.partnershipId!);
+      final result = await PartnershipService.leavePartnership(
+        _partnershipInfo!.partnershipId!,
+      );
       if (mounted) {
         if (result.success) {
           setState(() => _partnershipInfo = null);
@@ -95,16 +104,16 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
             const SnackBar(content: Text('Partnerlıktan ayrıldınız')),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Hata: ${result.error}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Hata: ${result.error}')));
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: $e')));
       }
     }
   }
@@ -131,7 +140,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
               onSurface: AppTheme.textPrimary,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: AppTheme.primaryColor),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+              ),
             ),
           ),
           child: child!,
@@ -151,7 +162,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
     return '$hour:$minute';
   }
 
-// _buildPartnerInfoCard is removed as it's now an external widget
+  // _buildPartnerInfoCard is removed as it's now an external widget
 
   @override
   void dispose() {
@@ -206,7 +217,10 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ),
           Container(
             decoration: BoxDecoration(
@@ -222,9 +236,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                   Navigator.pop(context);
                 }
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
               child: const Text('Save'),
             ),
           ),
@@ -263,7 +275,10 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ),
           Container(
             decoration: BoxDecoration(
@@ -279,9 +294,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                   Navigator.pop(context);
                 }
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
               child: const Text('Add'),
             ),
           ),
@@ -389,7 +402,19 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const List<String> allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    const List<String> allDays = [
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+      'Sun',
+    ];
     const dayShort = {
       'Mon': 'Mon',
       'Tue': 'Tue',
@@ -402,8 +427,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -432,15 +458,13 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                         children: [
                           Text(
                             'Edit Ritual',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Update details',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textSecondary,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
@@ -462,7 +486,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                   ],
                 ),
               ),
-              
+
               // Content
               Expanded(
                 child: FutureBuilder<Ritual?>(
@@ -484,7 +508,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(AppTheme.spacingL),
+                                padding: const EdgeInsets.all(
+                                  AppTheme.spacingL,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppTheme.errorColor.withOpacity(0.1),
                                   shape: BoxShape.circle,
@@ -498,9 +524,8 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                               const SizedBox(height: AppTheme.spacingL),
                               Text(
                                 'Ritual not found',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: AppTheme.spacingL),
                               ElevatedButton(
@@ -519,7 +544,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                     // İlk yükleme
                     if (_nameController.text.isEmpty && isEditable) {
                       _nameController.text = ritual.name;
-                      
+
                       // Parse time HH:mm
                       final timeParts = ritual.reminderTime.split(':');
                       if (timeParts.length == 2) {
@@ -528,7 +553,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                           minute: int.tryParse(timeParts[1]) ?? 0,
                         );
                       }
-                      
+
                       _selectedDays = List.from(ritual.reminderDays);
                       _steps = ritual.steps
                           .map((s) => (s['title'] as String?) ?? '')
@@ -537,7 +562,7 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                     } else if (!isEditable) {
                       // Read-only mode, always update from ritual
                       _nameController.text = ritual.name;
-                      
+
                       final timeParts = ritual.reminderTime.split(':');
                       if (timeParts.length == 2) {
                         _selectedTime = TimeOfDay(
@@ -575,25 +600,31 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                               padding: const EdgeInsets.all(AppTheme.spacingL),
                               decoration: BoxDecoration(
                                 color: AppTheme.surfaceColor,
-                                borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusL,
+                                ),
                               ),
                               child: const Center(
                                 child: SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: AppTheme.spacingM),
                           ],
-                          
+
                           // Ritual Name Card
                           Container(
                             padding: const EdgeInsets.all(AppTheme.spacingL),
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusL,
+                              ),
                               boxShadow: AppTheme.cardShadow,
                             ),
                             child: Column(
@@ -605,7 +636,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         gradient: AppTheme.primaryGradient,
-                                        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                                        borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusS,
+                                        ),
                                       ),
                                       child: const Icon(
                                         Icons.drive_file_rename_outline,
@@ -616,10 +649,13 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                     const SizedBox(width: AppTheme.spacingM),
                                     Text(
                                       'Ritual Name',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.textPrimary,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -630,7 +666,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                   style: TextStyle(color: AppTheme.textPrimary),
                                   decoration: InputDecoration(
                                     hintText: 'Enter ritual name',
-                                    hintStyle: TextStyle(color: AppTheme.textSecondary),
+                                    hintStyle: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                    ),
                                     fillColor: AppTheme.darkBackground1,
                                     filled: true,
                                   ),
@@ -645,7 +683,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                             padding: const EdgeInsets.all(AppTheme.spacingL),
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusL,
+                              ),
                               boxShadow: AppTheme.cardShadow,
                             ),
                             child: Column(
@@ -657,7 +697,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         gradient: AppTheme.accentGradient,
-                                        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                                        borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusS,
+                                        ),
                                       ),
                                       child: const Icon(
                                         Icons.access_time,
@@ -668,10 +710,13 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                     const SizedBox(width: AppTheme.spacingM),
                                     Text(
                                       'Reminder Time',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.textPrimary,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -684,17 +729,26 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                     decoration: BoxDecoration(
                                       color: AppTheme.darkBackground1,
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                                      border: Border.all(
+                                        color: AppTheme.primaryColor
+                                            .withOpacity(0.1),
+                                      ),
                                     ),
                                     child: Row(
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(10),
                                           decoration: BoxDecoration(
-                                            color: AppTheme.primaryColor.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(12),
+                                            color: AppTheme.primaryColor
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
-                                          child: const Icon(Icons.schedule, color: AppTheme.primaryColor),
+                                          child: const Icon(
+                                            Icons.schedule,
+                                            color: AppTheme.primaryColor,
+                                          ),
                                         ),
                                         const SizedBox(width: 16),
                                         Expanded(
@@ -729,7 +783,9 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                             padding: const EdgeInsets.all(AppTheme.spacingL),
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusL,
+                              ),
                               boxShadow: AppTheme.cardShadow,
                             ),
                             child: Column(
@@ -741,9 +797,14 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         gradient: const LinearGradient(
-                                          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                                          colors: [
+                                            Color(0xFF667EEA),
+                                            Color(0xFF764BA2),
+                                          ],
                                         ),
-                                        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                                        borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusS,
+                                        ),
                                       ),
                                       child: const Icon(
                                         Icons.calendar_today,
@@ -754,10 +815,13 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                     const SizedBox(width: AppTheme.spacingM),
                                     Text(
                                       'Repeat Days',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.textPrimary,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -766,26 +830,44 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: allDays.map((day) {
-                                    final isSelected = _selectedDays.contains(day);
+                                    final isSelected = _selectedDays.contains(
+                                      day,
+                                    );
                                     return GestureDetector(
-                                      onTap: isEditable ? () => _toggleDay(day) : null,
+                                      onTap: isEditable
+                                          ? () => _toggleDay(day)
+                                          : null,
                                       child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 12,
                                         ),
                                         decoration: BoxDecoration(
-                                          gradient: isSelected ? AppTheme.primaryGradient : null,
-                                          color: isSelected ? null : AppTheme.backgroundColor,
-                                          borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                                          boxShadow: isSelected ? AppTheme.softShadow : null,
+                                          gradient: isSelected
+                                              ? AppTheme.primaryGradient
+                                              : null,
+                                          color: isSelected
+                                              ? null
+                                              : AppTheme.backgroundColor,
+                                          borderRadius: BorderRadius.circular(
+                                            AppTheme.radiusM,
+                                          ),
+                                          boxShadow: isSelected
+                                              ? AppTheme.softShadow
+                                              : null,
                                         ),
                                         child: Text(
                                           dayShort[day] ?? day,
                                           style: TextStyle(
-                                            color: isSelected ? Colors.white : AppTheme.textSecondary,
-                                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : AppTheme.textSecondary,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w500,
                                             fontSize: 14,
                                           ),
                                         ),
@@ -813,35 +895,42 @@ class _RitualDetailScreenState extends State<RitualDetailScreen> {
                             Container(
                               decoration: BoxDecoration(
                                 gradient: AppTheme.primaryGradient,
-                                borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusM,
+                                ),
                                 boxShadow: AppTheme.softShadow,
                               ),
                               child: ElevatedButton(
-                              onPressed: _isLoading ? null : _saveRitual,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                onPressed: _isLoading ? null : _saveRitual,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Save',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Save',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
                             ),
-                          ),
                         ],
                       ),
                     );

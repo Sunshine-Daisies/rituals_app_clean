@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/gamification_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String? _email;
   UserProfile? _profile;
   bool _isLoading = true;
@@ -57,10 +59,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (_isLoading && _profile == null) {
-      return const Scaffold(
-        backgroundColor: AppTheme.darkBackground1,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: isDark
+            ? AppTheme.darkBackground1
+            : AppTheme.lightBackground,
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -79,7 +87,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final earnedBadges = _badges.where((b) => b.earned).toList();
 
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground1,
+      backgroundColor: isDark
+          ? AppTheme.darkBackground1
+          : AppTheme.lightBackground,
       body: Stack(
         children: [
           // Single Scroll View containing Header + Content
@@ -342,16 +352,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildCurrencyCard(int coins, int freezes) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40), // Narrower card
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: AppTheme.cardColor,
+          color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(isDark ? 0.1 : 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -369,7 +381,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               height: 24,
               width: 1,
-              color: Colors.white.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : AppTheme.lightTextSecondary.withOpacity(0.3),
             ),
             _buildBalanceItem(
               icon: Icons.ac_unit,
@@ -384,16 +398,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildFloatingStats(int streak, int habits, int badgeCount) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: AppTheme.cardColor,
+          color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -430,10 +446,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildVerticalDivider() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 40,
       width: 1,
-      color: Colors.white.withOpacity(0.1),
+      color: isDark
+          ? Colors.white.withOpacity(0.1)
+          : AppTheme.lightTextSecondary.withOpacity(0.3),
     );
   }
 
@@ -443,16 +463,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String label,
     Color color,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
           ),
         ),
         Text(
@@ -461,7 +483,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
-            color: Colors.white.withOpacity(0.5),
+            color: isDark
+                ? Colors.white.withOpacity(0.5)
+                : AppTheme.lightTextSecondary,
           ),
         ),
       ],
@@ -469,6 +493,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAchievementsSection(List<Badge> badges) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final earnedCount = badges.where((b) => b.earned).length;
 
     // Filter badges based on tab selection
@@ -486,12 +511,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Achievements',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 ),
               ),
             ],
@@ -502,7 +527,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppTheme.cardColor,
+              color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
               borderRadius: BorderRadius.circular(30),
             ),
             child: Row(
@@ -514,7 +539,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: _badgeTab == 0
-                            ? Colors.white
+                            ? (isDark ? Colors.white : AppTheme.primaryColor)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -526,8 +551,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 text: 'Earned ',
                                 style: TextStyle(
                                   color: _badgeTab == 0
-                                      ? Colors.black
-                                      : Colors.white54,
+                                      ? (isDark ? Colors.black : Colors.white)
+                                      : (isDark
+                                            ? Colors.white54
+                                            : AppTheme.lightTextSecondary),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -535,8 +562,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 text: '$earnedCount',
                                 style: TextStyle(
                                   color: _badgeTab == 0
-                                      ? Colors.orange
-                                      : Colors.white54,
+                                      ? (isDark
+                                            ? Colors.orange
+                                            : Colors.amber.shade700)
+                                      : (isDark
+                                            ? Colors.white54
+                                            : AppTheme.lightTextSecondary),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -554,7 +585,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: _badgeTab == 1
-                            ? Colors.white
+                            ? (isDark ? Colors.white : AppTheme.primaryColor)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -563,8 +594,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           'In Progress',
                           style: TextStyle(
                             color: _badgeTab == 1
-                                ? Colors.black
-                                : Colors.white54,
+                                ? (isDark ? Colors.black : Colors.white)
+                                : (isDark
+                                      ? Colors.white54
+                                      : AppTheme.lightTextSecondary),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -587,7 +620,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _badgeTab == 0
                       ? 'No badges earned yet. Keep going!'
                       : 'You have earned all badges! Amazing!',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  style: TextStyle(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.5)
+                        : AppTheme.lightTextSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -619,16 +656,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildBadgeCard(Badge badge) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLocked = !badge.earned;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isLocked
-              ? Colors.white.withOpacity(0.02)
-              : Colors.white.withOpacity(0.05),
+              ? (isDark
+                    ? Colors.white.withOpacity(0.02)
+                    : Colors.black.withOpacity(0.05))
+              : (isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : AppTheme.primaryColor.withOpacity(0.2)),
         ),
       ),
       child: Column(
@@ -637,13 +679,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.darkBackground1,
+              color: isDark ? AppTheme.darkBackground1 : Colors.grey.shade100,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: isLocked
                       ? Colors.transparent
-                      : Colors.orange.withOpacity(0.1),
+                      : (isDark
+                            ? Colors.orange.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.2)),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -651,9 +695,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             // Show lock icon if locked, or emoji if earned
             child: isLocked
-                ? const Icon(
+                ? Icon(
                     Icons.lock_outline,
-                    color: Colors.white24,
+                    color: isDark ? Colors.white24 : Colors.grey.shade400,
                     size: 32,
                   )
                 : Text(badge.icon, style: const TextStyle(fontSize: 32)),
@@ -663,7 +707,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             badge.name,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isLocked ? Colors.white54 : Colors.white,
+              color: isLocked
+                  ? (isDark ? Colors.white54 : AppTheme.lightTextSecondary)
+                  : (isDark ? Colors.white : AppTheme.lightTextPrimary),
               fontSize: 16,
             ),
             textAlign: TextAlign.center,
@@ -672,7 +718,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             badge.description,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: isDark
+                  ? Colors.white.withOpacity(0.5)
+                  : AppTheme.lightTextSecondary,
               fontSize: 10,
             ),
             textAlign: TextAlign.center,
@@ -707,6 +755,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required Color color,
     required String label,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: [
         Row(
@@ -715,10 +765,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(width: 8),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
               ),
             ),
           ],
@@ -729,7 +779,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontSize: 9,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.5,
-            color: Colors.white.withOpacity(0.5),
+            color: isDark
+                ? Colors.white.withOpacity(0.5)
+                : AppTheme.lightTextSecondary,
           ),
         ),
       ],

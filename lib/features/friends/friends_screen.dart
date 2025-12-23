@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/friends_service.dart';
 import '../../services/gamification_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class FriendsScreen extends StatefulWidget {
+class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
 
   @override
-  State<FriendsScreen> createState() => _FriendsScreenState();
+  ConsumerState<FriendsScreen> createState() => _FriendsScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> {
+class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   final FriendsService _friendsService = FriendsService();
   final GamificationService _gamificationService = GamificationService();
-  
+
   List<Friendship> _friends = [];
   FriendRequestsResult? _requests;
   List<Friendship> _searchResults = [];
-  
+
   bool _isLoading = true;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
@@ -38,13 +40,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final results = await Future.wait([
         _friendsService.getFriends(),
         _friendsService.getFriendRequests(),
       ]);
-      
+
       if (mounted) {
         setState(() {
           _friends = results[0] as List<Friendship>;
@@ -66,7 +68,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
 
     setState(() => _isSearching = true);
-    
+
     try {
       final results = await _gamificationService.searchUsers(query);
       if (mounted) {
@@ -84,15 +86,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Future<void> _sendFriendRequest(String userId) async {
     final result = await _friendsService.sendFriendRequest(userId);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
-          backgroundColor: result.success ? AppTheme.successColor : AppTheme.errorColor,
+          backgroundColor: result.success
+              ? AppTheme.successColor
+              : AppTheme.errorColor,
         ),
       );
-      
+
       if (result.success) {
         _loadData();
         _searchController.clear();
@@ -103,15 +107,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Future<void> _acceptRequest(int friendshipId) async {
     final result = await _friendsService.acceptFriendRequest(friendshipId);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
-          backgroundColor: result.success ? AppTheme.successColor : AppTheme.errorColor,
+          backgroundColor: result.success
+              ? AppTheme.successColor
+              : AppTheme.errorColor,
         ),
       );
-      
+
       if (result.success) {
         _loadData();
       }
@@ -120,15 +126,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Future<void> _rejectRequest(int friendshipId) async {
     final result = await _friendsService.rejectFriendRequest(friendshipId);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
-          backgroundColor: result.success ? AppTheme.successColor : AppTheme.errorColor,
+          backgroundColor: result.success
+              ? AppTheme.successColor
+              : AppTheme.errorColor,
         ),
       );
-      
+
       if (result.success) {
         _loadData();
       }
@@ -136,10 +144,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   Future<void> _removeFriend(int friendshipId, String username) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: isDark
+            ? AppTheme.surfaceColor
+            : AppTheme.lightCardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusL),
         ),
@@ -168,15 +180,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     if (confirmed == true) {
       final result = await _friendsService.removeFriend(friendshipId);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result.message),
-            backgroundColor: result.success ? AppTheme.successColor : AppTheme.errorColor,
+            backgroundColor: result.success
+                ? AppTheme.successColor
+                : AppTheme.errorColor,
           ),
         );
-        
+
         if (result.success) {
           _loadData();
         }
@@ -186,10 +200,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -198,20 +217,25 @@ class _FriendsScreenState extends State<FriendsScreen> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    color: isDark
+                        ? AppTheme.surfaceColor
+                        : AppTheme.lightSurface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                   ),
                   child: CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 20,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSearchBar(),
-                            ],
+                            children: [_buildSearchBar()],
                           ),
                         ),
                       ),
@@ -223,8 +247,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         _buildSectionHeaderSliver('Search Results'),
                         _buildSliverSearchResults(),
                       ] else ...[
-                        if (_requests != null && _requests!.incomingCount > 0) ...[
-                          _buildSectionHeaderSliver('Pending Requests (${_requests!.incomingCount})'),
+                        if (_requests != null &&
+                            _requests!.incomingCount > 0) ...[
+                          _buildSectionHeaderSliver(
+                            'Pending Requests (${_requests!.incomingCount})',
+                          ),
                           _buildSliverRequestsList(),
                           const SliverToBoxAdapter(child: SizedBox(height: 16)),
                         ],
@@ -246,22 +273,29 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+            icon: Icon(
+              Icons.arrow_back,
+              color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+            ),
             onPressed: () => context.pop(),
           ),
-          const Expanded(
+          Expanded(
             child: Center(
               child: Text(
                 'Find Friends',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: isDark
+                      ? AppTheme.textPrimary
+                      : AppTheme.lightTextPrimary,
                 ),
               ),
             ),
@@ -273,20 +307,37 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
+        color: isDark ? AppTheme.backgroundColor : AppTheme.lightCardColor,
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+        border: Border.all(
+          color: isDark
+              ? AppTheme.textLight.withOpacity(0.2)
+              : AppTheme.lightTextSecondary.withOpacity(0.3),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(color: AppTheme.textPrimary),
+        style: TextStyle(
+          color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+        ),
         decoration: InputDecoration(
           hintText: 'Find ritual buddies...',
-          hintStyle: TextStyle(color: AppTheme.textSecondary.withOpacity(0.5)),
-          prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
+          hintStyle: TextStyle(
+            color: isDark
+                ? AppTheme.textSecondary.withOpacity(0.5)
+                : AppTheme.lightTextSecondary,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDark
+                ? AppTheme.textSecondary
+                : AppTheme.lightTextSecondary,
+          ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -323,7 +374,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   color: AppTheme.primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.diamond_outlined, color: AppTheme.primaryColor, size: 20),
+                child: const Icon(
+                  Icons.diamond_outlined,
+                  color: AppTheme.primaryColor,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -354,7 +409,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 TextSpan(text: 'Earn '),
                 TextSpan(
                   text: '50 gems',
-                  style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 TextSpan(text: ' for every friend who joins!'),
               ],
@@ -382,13 +440,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   Widget _buildSectionHeaderSliver(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       sliver: SliverToBoxAdapter(
         child: Text(
           title,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
+          style: TextStyle(
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -402,18 +462,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final request = incoming[index];
-            return _RequestCard(
-              request: request,
-              isIncoming: true,
-              onAccept: () => _acceptRequest(request.friendshipId),
-              onReject: () => _rejectRequest(request.friendshipId),
-            );
-          },
-          childCount: incoming.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final request = incoming[index];
+          return _RequestCard(
+            request: request,
+            isIncoming: true,
+            onAccept: () => _acceptRequest(request.friendshipId),
+            onReject: () => _rejectRequest(request.friendshipId),
+          );
+        }, childCount: incoming.length),
       ),
     );
   }
@@ -425,7 +482,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
           padding: const EdgeInsets.all(40),
           child: Column(
             children: [
-              Icon(Icons.people_outline, size: 64, color: AppTheme.textSecondary.withOpacity(0.3)),
+              Icon(
+                Icons.people_outline,
+                size: 64,
+                color: AppTheme.textSecondary.withOpacity(0.3),
+              ),
               const SizedBox(height: 16),
               const Text(
                 'No friends yet',
@@ -440,16 +501,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final friend = _friends[index];
-            return _FriendCard(
-              friend: friend,
-              onRemove: () => _removeFriend(friend.friendshipId, friend.username),
-            );
-          },
-          childCount: _friends.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final friend = _friends[index];
+          return _FriendCard(
+            friend: friend,
+            onRemove: () => _removeFriend(friend.friendshipId, friend.username),
+          );
+        }, childCount: _friends.length),
       ),
     );
   }
@@ -460,7 +518,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(40),
-            child: Text('No users found', style: TextStyle(color: AppTheme.textSecondary)),
+            child: Text(
+              'No users found',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ),
         ),
       );
@@ -469,46 +530,42 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final user = _searchResults[index];
-            final isFriend = _friends.any((f) => f.userId == user.userId);
-            final isPending = _requests?.outgoing.any((r) => r.userId == user.userId) ?? false;
-            
-            return _SearchResultCard(
-              user: user,
-              isFriend: isFriend,
-              isPending: isPending,
-              onAdd: () => _sendFriendRequest(user.userId),
-            );
-          },
-          childCount: _searchResults.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final user = _searchResults[index];
+          final isFriend = _friends.any((f) => f.userId == user.userId);
+          final isPending =
+              _requests?.outgoing.any((r) => r.userId == user.userId) ?? false;
+
+          return _SearchResultCard(
+            user: user,
+            isFriend: isFriend,
+            isPending: isPending,
+            onAdd: () => _sendFriendRequest(user.userId),
+          );
+        }, childCount: _searchResults.length),
       ),
     );
   }
-
 }
 
 class _FriendCard extends StatelessWidget {
   final Friendship friend;
   final VoidCallback onRemove;
 
-  const _FriendCard({
-    required this.friend,
-    required this.onRemove,
-  });
+  const _FriendCard({required this.friend, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(isDark ? 0.1 : 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -519,17 +576,23 @@ class _FriendCard extends StatelessWidget {
           children: [
             CircleAvatar(
               backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-              backgroundImage: friend.avatarUrl != null ? NetworkImage(friend.avatarUrl!) : null,
-              onBackgroundImageError: friend.avatarUrl != null ? (exception, stackTrace) {} : null,
-              child: friend.avatarUrl == null 
-                ? Text(
-                    friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
+              backgroundImage: friend.avatarUrl != null
+                  ? NetworkImage(friend.avatarUrl!)
+                  : null,
+              onBackgroundImageError: friend.avatarUrl != null
+                  ? (exception, stackTrace) {}
+                  : null,
+              child: friend.avatarUrl == null
+                  ? Text(
+                      friend.username.isNotEmpty
+                          ? friend.username[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
             Positioned(
               right: 0,
@@ -556,7 +619,7 @@ class _FriendCard extends StatelessWidget {
           friend.username,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
           ),
         ),
         subtitle: Row(
@@ -566,19 +629,28 @@ class _FriendCard extends StatelessWidget {
             Text(
               'Level ${friend.level}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
+                color: isDark
+                    ? AppTheme.textSecondary
+                    : AppTheme.lightTextSecondary,
               ),
             ),
           ],
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.more_vert, color: AppTheme.textSecondary),
+          icon: Icon(
+            Icons.more_vert,
+            color: isDark
+                ? AppTheme.textSecondary
+                : AppTheme.lightTextSecondary,
+          ),
           onPressed: () {
             showModalBottomSheet(
               context: context,
               backgroundColor: AppTheme.surfaceColor,
               shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusL)),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppTheme.radiusL),
+                ),
               ),
               builder: (context) => Padding(
                 padding: const EdgeInsets.all(AppTheme.spacingL),
@@ -586,7 +658,10 @@ class _FriendCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.person, color: AppTheme.primaryColor),
+                      leading: const Icon(
+                        Icons.person,
+                        color: AppTheme.primaryColor,
+                      ),
                       title: const Text('View Profile'),
                       onTap: () {
                         Navigator.pop(context);
@@ -594,7 +669,10 @@ class _FriendCard extends StatelessWidget {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.person_remove, color: AppTheme.errorColor),
+                      leading: const Icon(
+                        Icons.person_remove,
+                        color: AppTheme.errorColor,
+                      ),
                       title: const Text('Remove Friend'),
                       onTap: () {
                         Navigator.pop(context);
@@ -631,14 +709,16 @@ class _SearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(isDark ? 0.1 : 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -647,34 +727,45 @@ class _SearchResultCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-          backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-          onBackgroundImageError: user.avatarUrl != null ? (exception, stackTrace) {} : null,
+          backgroundImage: user.avatarUrl != null
+              ? NetworkImage(user.avatarUrl!)
+              : null,
+          onBackgroundImageError: user.avatarUrl != null
+              ? (exception, stackTrace) {}
+              : null,
           child: user.avatarUrl == null
-            ? Text(
-                user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null,
+              ? Text(
+                  user.username.isNotEmpty
+                      ? user.username[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
         ),
         title: Text(
           user.username,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
           ),
         ),
         subtitle: Text(
           'Level ${user.level}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppTheme.textSecondary,
+            color: isDark
+                ? AppTheme.textSecondary
+                : AppTheme.lightTextSecondary,
           ),
         ),
         trailing: isFriend
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.successColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
@@ -689,35 +780,41 @@ class _SearchResultCard extends StatelessWidget {
                 ),
               )
             : isPending
-                ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text(
-                      'Pending',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  )
-                : ElevatedButton.icon(
-                    icon: const Icon(Icons.person_add, size: 16),
-                    label: const Text('Add'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusM),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    ),
-                    onPressed: onAdd,
+            ? Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Text(
+                  'Pending',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
+                ),
+              )
+            : ElevatedButton.icon(
+                icon: const Icon(Icons.person_add, size: 16),
+                label: const Text('Add'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                onPressed: onAdd,
+              ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppTheme.spacingM,
           vertical: AppTheme.spacingXS,
@@ -742,14 +839,16 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingS),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(isDark ? 0.1 : 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -757,32 +856,40 @@ class _RequestCard extends StatelessWidget {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isIncoming 
+          backgroundColor: isIncoming
               ? AppTheme.primaryColor.withOpacity(0.1)
               : Colors.grey.withOpacity(0.1),
-          backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
-          onBackgroundImageError: request.avatarUrl != null ? (exception, stackTrace) {} : null,
+          backgroundImage: request.avatarUrl != null
+              ? NetworkImage(request.avatarUrl!)
+              : null,
+          onBackgroundImageError: request.avatarUrl != null
+              ? (exception, stackTrace) {}
+              : null,
           child: request.avatarUrl == null
-            ? Text(
-                request.username.isNotEmpty ? request.username[0].toUpperCase() : '?',
-                style: TextStyle(
-                  color: isIncoming ? AppTheme.primaryColor : Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null,
+              ? Text(
+                  request.username.isNotEmpty
+                      ? request.username[0].toUpperCase()
+                      : '?',
+                  style: TextStyle(
+                    color: isIncoming ? AppTheme.primaryColor : Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
         ),
         title: Text(
           request.username,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
           ),
         ),
         subtitle: Text(
           isIncoming ? 'Sent you a friend request' : 'Request sent',
           style: TextStyle(
-            color: AppTheme.textSecondary.withOpacity(0.7),
+            color: isDark
+                ? AppTheme.textSecondary.withOpacity(0.7)
+                : AppTheme.lightTextSecondary,
             fontSize: 12,
           ),
         ),
@@ -803,7 +910,10 @@ class _RequestCard extends StatelessWidget {
                 ],
               )
             : Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),

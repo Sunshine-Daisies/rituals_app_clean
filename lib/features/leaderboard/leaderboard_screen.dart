@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
 import '../../services/friends_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class LeaderboardScreen extends StatefulWidget {
+class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
   @override
-  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+  ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState extends State<LeaderboardScreen> {
+class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   final GamificationService _gamificationService = GamificationService();
   final FriendsService _friendsService = FriendsService();
-  
+
   List<LeaderboardEntry> _leaderboard = [];
   List<FriendRequest> _incomingRequests = [];
   int? _myRank;
@@ -46,19 +48,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Future<void> _loadLeaderboard() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final futures = [
         _gamificationService.getLeaderboard(type: _selectedType),
         if (_selectedType == 'friends') _friendsService.getFriendRequests(),
       ];
-      
+
       final results = await Future.wait(futures);
       final leaderboardResult = results[0] as LeaderboardResult?;
-      final requestsResult = _selectedType == 'friends' && results.length > 1 
-          ? results[1] as FriendRequestsResult? 
+      final requestsResult = _selectedType == 'friends' && results.length > 1
+          ? results[1] as FriendRequestsResult?
           : null;
-      
+
       if (mounted) {
         setState(() {
           if (leaderboardResult != null) {
@@ -116,10 +118,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -141,7 +148,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppTheme.textPrimary,
+                          size: 20,
+                        ),
                         onPressed: () => context.pop(),
                         tooltip: 'Back',
                       ),
@@ -150,16 +161,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     Expanded(
                       child: Text(
                         'Leaderboard',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
                       ),
                     ),
                     // My Rank Badge
                     if (_myRank != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           gradient: AppTheme.primaryGradient,
                           borderRadius: BorderRadius.circular(16),
@@ -167,7 +182,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.emoji_events, color: Colors.white, size: 16),
+                            const Icon(
+                              Icons.emoji_events,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '#$_myRank',
@@ -183,10 +202,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   ],
                 ),
               ),
-              
+
               // Type Selector
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceColor,
@@ -217,75 +238,91 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: AppTheme.spacingM),
-              
+
               Expanded(
                 child: Stack(
                   children: [
                     _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _leaderboard.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.leaderboard_outlined,
-                                      size: 80,
-                                      color: AppTheme.textSecondary.withOpacity(0.5),
-                                    ),
-                                    const SizedBox(height: AppTheme.spacingM),
-                                    Text(
-                                      'No rankings yet',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: _loadLeaderboard,
-                                child: ListView.builder(
-                                  padding: EdgeInsets.only(
-                                    left: AppTheme.spacingL,
-                                    right: AppTheme.spacingL,
-                                    bottom: (_myRank != null && _myRank! > 10 && !_isLoading) ? 100 : AppTheme.spacingL,
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.leaderboard_outlined,
+                                  size: 80,
+                                  color: AppTheme.textSecondary.withOpacity(
+                                    0.5,
                                   ),
-                                  itemCount: _leaderboard.length > 3 
-                                      ? (math.min(_leaderboard.length, 10) - 3) + 2 
-                                      : 2, 
-                                  itemBuilder: (context, index) {
-                                    if (index == 0) return _buildPodium();
-                                    if (index == 1) return _buildFriendRequestsSection();
-
-                                    final entryIndex = index - 2 + 3;
-                                    if (entryIndex >= _leaderboard.length) return const SizedBox.shrink();
-                                    
-                                    final entry = _leaderboard[entryIndex];
-                                    return _LeaderboardCard(
-                                      entry: entry,
-                                      isGlobal: _selectedType == 'global',
-                                      currentUserId: _currentUserId,
-                                      onSendFriendRequest: (userId) async {
-                                        final result = await _friendsService.sendFriendRequest(userId);
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(result.message),
-                                              backgroundColor: result.success ? Colors.green : Colors.red,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    );
-                                  },
                                 ),
+                                const SizedBox(height: AppTheme.spacingM),
+                                Text(
+                                  'No rankings yet',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(color: AppTheme.textSecondary),
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadLeaderboard,
+                            child: ListView.builder(
+                              padding: EdgeInsets.only(
+                                left: AppTheme.spacingL,
+                                right: AppTheme.spacingL,
+                                bottom:
+                                    (_myRank != null &&
+                                        _myRank! > 10 &&
+                                        !_isLoading)
+                                    ? 100
+                                    : AppTheme.spacingL,
                               ),
-                    
+                              itemCount: _leaderboard.length > 3
+                                  ? (math.min(_leaderboard.length, 10) - 3) + 2
+                                  : 2,
+                              itemBuilder: (context, index) {
+                                if (index == 0) return _buildPodium();
+                                if (index == 1)
+                                  return _buildFriendRequestsSection();
+
+                                final entryIndex = index - 2 + 3;
+                                if (entryIndex >= _leaderboard.length)
+                                  return const SizedBox.shrink();
+
+                                final entry = _leaderboard[entryIndex];
+                                return _LeaderboardCard(
+                                  entry: entry,
+                                  isGlobal: _selectedType == 'global',
+                                  currentUserId: _currentUserId,
+                                  onSendFriendRequest: (userId) async {
+                                    final result = await _friendsService
+                                        .sendFriendRequest(userId);
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(result.message),
+                                          backgroundColor: result.success
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+
                     // Sticky Bottom Card - Shown ONLY if user is NOT in the top 10
-                    if (!_isLoading && _myRank != null && _myRank! > 10 && _leaderboard.isNotEmpty)
+                    if (!_isLoading &&
+                        _myRank != null &&
+                        _myRank! > 10 &&
+                        _leaderboard.isNotEmpty)
                       _buildStickyUserCard(),
                   ],
                 ),
@@ -299,9 +336,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Widget _buildStickyUserCard() {
     if (_leaderboard.isEmpty || _myRank == null) return const SizedBox.shrink();
-    
+
     // Find current user entry if possible
-    final myEntry = _leaderboard.firstWhere((e) => e.userId == _currentUserId, orElse: () => _leaderboard.first);
+    final myEntry = _leaderboard.firstWhere(
+      (e) => e.userId == _currentUserId,
+      orElse: () => _leaderboard.first,
+    );
 
     return Positioned(
       bottom: 20,
@@ -334,8 +374,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             const SizedBox(width: 16),
             CircleAvatar(
               radius: 20,
-              backgroundImage: myEntry.avatarUrl != null ? NetworkImage(myEntry.avatarUrl!) : null,
-              onBackgroundImageError: myEntry.avatarUrl != null ? (exception, stackTrace) {} : null,
+              backgroundImage: myEntry.avatarUrl != null
+                  ? NetworkImage(myEntry.avatarUrl!)
+                  : null,
+              onBackgroundImageError: myEntry.avatarUrl != null
+                  ? (exception, stackTrace) {}
+                  : null,
               child: myEntry.avatarUrl == null ? const Text('You') : null,
             ),
             const SizedBox(width: 12),
@@ -346,7 +390,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 children: [
                   const Text(
                     'You',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     _myRank! <= 20 ? 'Almost there! 🚀' : 'Keep pushing! 🔥',
@@ -361,11 +408,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               children: [
                 Text(
                   '${myEntry.xp}',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
                 const Text(
                   'XP POINTS',
-                  style: TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -375,11 +430,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-
-
   Widget _buildPodium() {
     if (_leaderboard.isEmpty) return const SizedBox.shrink();
-    
+
     final topThree = _leaderboard.take(3).toList();
     if (topThree.isEmpty) return const SizedBox.shrink();
 
@@ -417,12 +470,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Widget _buildPodiumUser(LeaderboardEntry entry, int rank, double size) {
     final isFirst = rank == 1;
-    final color = rank == 1 ? const Color(0xFFFFD700) : (rank == 2 ? const Color(0xFFC0C0C0) : const Color(0xFFCD7F32));
-    
+    final color = rank == 1
+        ? const Color(0xFFFFD700)
+        : (rank == 2 ? const Color(0xFFC0C0C0) : const Color(0xFFCD7F32));
+
     return Column(
       children: [
-        if (isFirst)
-          const Icon(Icons.star, color: Color(0xFFFFD700), size: 24),
+        if (isFirst) const Icon(Icons.star, color: Color(0xFFFFD700), size: 24),
         const SizedBox(height: 4),
         Stack(
           alignment: Alignment.bottomCenter,
@@ -445,13 +499,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               child: ClipOval(
                 child: entry.avatarUrl != null
                     ? Image.network(
-                        entry.avatarUrl!, 
+                        entry.avatarUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: AppTheme.surfaceColor,
                           child: Center(
                             child: Text(
-                              entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
+                              entry.username.isNotEmpty
+                                  ? entry.username[0].toUpperCase()
+                                  : '?',
                               style: TextStyle(
                                 color: color,
                                 fontWeight: FontWeight.bold,
@@ -465,7 +521,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         color: AppTheme.surfaceColor,
                         child: Center(
                           child: Text(
-                            entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
+                            entry.username.isNotEmpty
+                                ? entry.username[0].toUpperCase()
+                                : '?',
                             style: TextStyle(
                               color: color,
                               fontWeight: FontWeight.bold,
@@ -526,7 +584,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.local_fire_department, color: Colors.orange, size: 12),
+              const Icon(
+                Icons.local_fire_department,
+                color: Colors.orange,
+                size: 12,
+              ),
               const SizedBox(width: 2),
               Text(
                 '${entry.longestStreak}',
@@ -539,7 +601,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildFriendRequestsSection() {
-    if (_selectedType != 'friends' || _incomingRequests.isEmpty) return const SizedBox.shrink();
+    if (_selectedType != 'friends' || _incomingRequests.isEmpty)
+      return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,7 +629,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 ),
                 child: Text(
                   '${_incomingRequests.length}',
-                  style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -591,8 +658,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundImage: request.avatarUrl != null ? NetworkImage(request.avatarUrl!) : null,
-            onBackgroundImageError: request.avatarUrl != null ? (exception, stackTrace) {} : null,
+            backgroundImage: request.avatarUrl != null
+                ? NetworkImage(request.avatarUrl!)
+                : null,
+            onBackgroundImageError: request.avatarUrl != null
+                ? (exception, stackTrace) {}
+                : null,
             child: request.avatarUrl == null ? Text(request.username[0]) : null,
           ),
           const SizedBox(width: 12),
@@ -602,7 +673,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               children: [
                 Text(
                   request.username,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Text(
                   'Wants to join your circle',
@@ -655,7 +729,9 @@ class _TypeButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingM),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+            color: isSelected
+                ? AppTheme.primaryColor.withOpacity(0.1)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppTheme.radiusM),
           ),
           child: Column(
@@ -663,7 +739,9 @@ class _TypeButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 20,
-                color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+                color: isSelected
+                    ? AppTheme.primaryColor
+                    : AppTheme.textSecondary,
               ),
               const SizedBox(height: 4),
               Text(
@@ -671,7 +749,9 @@ class _TypeButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : AppTheme.textSecondary,
                 ),
               ),
             ],
@@ -698,7 +778,7 @@ class _LeaderboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMe = currentUserId != null && entry.userId == currentUserId;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -715,15 +795,24 @@ class _LeaderboardCard extends StatelessWidget {
                 width: 30,
                 child: Text(
                   '${entry.rank}',
-                  style: const TextStyle(color: Colors.white38, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white38,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               CircleAvatar(
                 radius: 22,
                 backgroundColor: Colors.white.withOpacity(0.05),
-                backgroundImage: entry.avatarUrl != null ? NetworkImage(entry.avatarUrl!) : null,
-                onBackgroundImageError: entry.avatarUrl != null ? (exception, stackTrace) {} : null,
-                child: entry.avatarUrl == null ? Text(entry.username[0].toUpperCase()) : null,
+                backgroundImage: entry.avatarUrl != null
+                    ? NetworkImage(entry.avatarUrl!)
+                    : null,
+                onBackgroundImageError: entry.avatarUrl != null
+                    ? (exception, stackTrace) {}
+                    : null,
+                child: entry.avatarUrl == null
+                    ? Text(entry.username[0].toUpperCase())
+                    : null,
               ),
             ],
           ),
@@ -733,12 +822,20 @@ class _LeaderboardCard extends StatelessWidget {
           children: [
             Text(
               entry.username,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
             ),
             if (entry.longestStreak > 0)
               Row(
                 children: [
-                  const Icon(Icons.local_fire_department, color: Colors.orange, size: 14),
+                  const Icon(
+                    Icons.local_fire_department,
+                    color: Colors.orange,
+                    size: 14,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '${entry.longestStreak} Day Streak',
@@ -753,11 +850,19 @@ class _LeaderboardCard extends StatelessWidget {
           children: [
             Text(
               '${entry.xp.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
             if (isGlobal && !isMe)
               IconButton(
-                icon: const Icon(Icons.person_add_outlined, color: Colors.cyanAccent, size: 20),
+                icon: const Icon(
+                  Icons.person_add_outlined,
+                  color: Colors.cyanAccent,
+                  size: 20,
+                ),
                 onPressed: () => onSendFriendRequest(entry.userId),
                 tooltip: 'Add Friend',
               ),

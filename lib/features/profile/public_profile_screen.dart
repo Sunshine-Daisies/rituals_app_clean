@@ -1,20 +1,22 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class PublicProfileScreen extends StatefulWidget {
+class PublicProfileScreen extends ConsumerStatefulWidget {
   final String userId;
 
   const PublicProfileScreen({super.key, required this.userId});
 
   @override
-  State<PublicProfileScreen> createState() => _PublicProfileScreenState();
+  ConsumerState<PublicProfileScreen> createState() =>
+      _PublicProfileScreenState();
 }
 
-class _PublicProfileScreenState extends State<PublicProfileScreen> {
+class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
   UserProfile? _profile;
   bool _isLoading = true;
   String? _errorMessage;
@@ -34,7 +36,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
     try {
       final profile = await _gamificationService.getUserProfile(widget.userId);
-      
+
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -42,7 +44,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         });
 
         if (profile == null) {
-          setState(() => _errorMessage = 'User not found or connection failed.');
+          setState(
+            () => _errorMessage = 'User not found or connection failed.',
+          );
         }
       }
     } catch (e) {
@@ -63,10 +67,15 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -76,10 +85,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                     child: _buildContent(),
                   ),
                 ),
@@ -101,7 +114,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, color: AppTheme.errorColor.withOpacity(0.8), size: 48),
+            Icon(
+              Icons.error_outline,
+              color: AppTheme.errorColor.withOpacity(0.8),
+              size: 48,
+            ),
             const SizedBox(height: 16),
             Text(
               _errorMessage ?? 'Profile not found',
@@ -205,26 +222,29 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 child: CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.white,
-                  backgroundImage: _profile?.avatarUrl != null 
-                    ? NetworkImage(_profile!.avatarUrl!) 
-                    : null,
-                  onBackgroundImageError: _profile?.avatarUrl != null 
-                    ? (exception, stackTrace) {} 
-                    : null,
-                  child: _profile?.avatarUrl == null 
-                    ? const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryColor,
-                        size: 48,
-                      )
-                    : null,
+                  backgroundImage: _profile?.avatarUrl != null
+                      ? NetworkImage(_profile!.avatarUrl!)
+                      : null,
+                  onBackgroundImageError: _profile?.avatarUrl != null
+                      ? (exception, stackTrace) {}
+                      : null,
+                  child: _profile?.avatarUrl == null
+                      ? const Icon(
+                          Icons.person,
+                          color: AppTheme.primaryColor,
+                          size: 48,
+                        )
+                      : null,
                 ),
               ),
               // Level Badge
               Transform.translate(
                 offset: const Offset(30, 0),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.amber,
                     borderRadius: BorderRadius.circular(12),
@@ -250,7 +270,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Username
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -267,7 +287,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               if (_profile!.isPremium) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.amber,
                     borderRadius: BorderRadius.circular(8),
@@ -292,7 +315,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               ],
             ],
           ),
-          
+
           const SizedBox(height: 24),
 
           // XP Progress Bar
@@ -339,11 +362,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   Widget _buildStatsRow() {
     if (_profile == null) return const SizedBox.shrink();
-    
+
     final friendCount = _profile?.friendsCount ?? 0;
     final ritualsCount = _profile?.ritualsCount ?? 0;
     final streak = _profile?.longestStreak ?? 0;
-    
+
     return Row(
       children: [
         Expanded(
@@ -380,91 +403,95 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   Widget _buildBadgesPreview() {
-     final badges = _profile?.badges ?? [];
+    final badges = _profile?.badges ?? [];
 
-     if (badges.isEmpty) {
-       return Container(
-         width: double.infinity,
-         padding: const EdgeInsets.all(24),
-         decoration: BoxDecoration(
-           color: AppTheme.cardColor,
-           borderRadius: BorderRadius.circular(24),
-         ),
-         child: Column(
-           children: [
-              Icon(Icons.emoji_events_outlined, size: 48, color: AppTheme.textSecondary.withOpacity(0.5)),
-              const SizedBox(height: 12),
+    if (badges.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.emoji_events_outlined,
+              size: 48,
+              color: AppTheme.textSecondary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No badges earned yet',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.emoji_events, color: Colors.amber),
+              const SizedBox(width: 8),
               Text(
-                'No badges earned yet',
-                style: TextStyle(color: AppTheme.textSecondary),
+                'Badges (${badges.length})',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-           ],
-         ),
-       );
-     }
-     
-     return Container(
-       padding: const EdgeInsets.all(20),
-       decoration: BoxDecoration(
-         color: AppTheme.cardColor,
-         borderRadius: BorderRadius.circular(24),
-       ),
-       child: Column(
-         crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-            Row(
-              children: [
-                const Icon(Icons.emoji_events, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text(
-                  'Badges (${badges.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: badges.map((badge) {
+              return Tooltip(
+                message: badge.name,
+                triggerMode: TooltipTriggerMode.tap,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.amber.withOpacity(0.5),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      badge.icon,
+                      style: const TextStyle(fontSize: 28),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: badges.map((badge) {
-                return Tooltip(
-                  message: badge.name,
-                  triggerMode: TooltipTriggerMode.tap,
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.amber.withOpacity(0.5), 
-                        width: 1
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.amber.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        badge.icon,
-                        style: const TextStyle(fontSize: 28),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-         ],
-       ),
-     );
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAppInfo() {
@@ -531,10 +558,7 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppTheme.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
           ],
         ),

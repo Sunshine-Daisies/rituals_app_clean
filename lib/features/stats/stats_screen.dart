@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../theme/app_theme.dart';
 import '../../services/gamification_service.dart';
 import '../../data/models/user_stats.dart';
 import '../../data/models/user_profile.dart';
+import '../../providers/theme_provider.dart';
 
-class StatsScreen extends StatefulWidget {
+class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
 
   @override
-  State<StatsScreen> createState() => _StatsScreenState();
+  ConsumerState<StatsScreen> createState() => _StatsScreenState();
 }
 
-class _StatsScreenState extends State<StatsScreen> {
+class _StatsScreenState extends ConsumerState<StatsScreen> {
   bool _isLoading = true;
   UserStats? _stats;
   UserProfile? _profile;
@@ -32,7 +34,7 @@ class _StatsScreenState extends State<StatsScreen> {
         _gamificationService.getUserStats(),
         _gamificationService.getMyProfile(),
       ]);
-      
+
       if (mounted) {
         setState(() {
           _stats = results[0] as UserStats?;
@@ -52,50 +54,71 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground1,
+      backgroundColor: isDark
+          ? AppTheme.darkBackground1
+          : AppTheme.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            size: 20,
+          ),
           onPressed: () => context.pop(),
         ),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Ritual Velocity',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.emoji_events_outlined, color: Colors.white70),
+            icon: Icon(
+              Icons.emoji_events_outlined,
+              color: isDark ? Colors.white70 : AppTheme.lightTextSecondary,
+            ),
             onPressed: () => context.push('/leaderboard'),
             tooltip: 'Leaderboard',
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.cyan))
+          ? Center(
+              child: CircularProgressIndicator(
+                color: isDark ? Colors.cyan : AppTheme.primaryColor,
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  
+
                   // Consistency Section
                   _buildConsistencyHeader(),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Line Chart
                   _buildLineChart(),
-                  
+
                   const SizedBox(height: 40),
-                  
+
                   // Metric Cards Row
                   _buildMetricCards(),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),
@@ -103,23 +126,27 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-
   Widget _buildConsistencyHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final rate = _calculateLifetimeRate();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Ritual Consistency",
-          style: TextStyle(color: Colors.white60, fontSize: 13),
+          style: TextStyle(
+            color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+            fontSize: 13,
+          ),
         ),
         const SizedBox(height: 10),
         Row(
           children: [
             Text(
               rate,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
               ),
@@ -128,16 +155,22 @@ class _StatsScreenState extends State<StatsScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           "Your overall consistency across all rituals!",
-          style: TextStyle(color: Colors.white38, fontSize: 13),
+          style: TextStyle(
+            color: isDark ? Colors.white38 : AppTheme.lightTextSecondary,
+            fontSize: 13,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildLineChart() {
-    if (_stats?.weeklyActivity.isEmpty ?? true) return const SizedBox(height: 200);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (_stats?.weeklyActivity.isEmpty ?? true)
+      return const SizedBox(height: 200);
 
     return SizedBox(
       height: 220,
@@ -151,21 +184,34 @@ class _StatsScreenState extends State<StatsScreen> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  if (index < 0 || index >= (_stats?.weeklyActivity.length ?? 0)) return const Text('');
+                  if (index < 0 ||
+                      index >= (_stats?.weeklyActivity.length ?? 0))
+                    return const Text('');
                   return Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Text(
                       _stats!.weeklyActivity[index].day,
-                      style: const TextStyle(color: Colors.white60, fontSize: 11),
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white60
+                            : AppTheme.lightTextSecondary,
+                        fontSize: 11,
+                      ),
                     ),
                   );
                 },
                 interval: 1,
               ),
             ),
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [
@@ -174,7 +220,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 return FlSpot(e.key.toDouble(), e.value.count.toDouble());
               }).toList(),
               isCurved: true,
-              color: Colors.cyan,
+              color: isDark ? Colors.cyan : AppTheme.primaryColor,
               barWidth: 4,
               isStrokeCapRound: true,
               dotData: FlDotData(
@@ -184,9 +230,9 @@ class _StatsScreenState extends State<StatsScreen> {
                   if (index == _stats!.weeklyActivity.length - 1) {
                     return FlDotCirclePainter(
                       radius: 6,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : AppTheme.primaryColor,
                       strokeWidth: 3,
-                      strokeColor: Colors.cyan,
+                      strokeColor: isDark ? Colors.cyan : AppTheme.primaryColor,
                     );
                   }
                   return FlDotCirclePainter(radius: 0);
@@ -196,8 +242,12 @@ class _StatsScreenState extends State<StatsScreen> {
                 show: true,
                 gradient: LinearGradient(
                   colors: [
-                    Colors.cyan.withValues(alpha: 0.2),
-                    Colors.cyan.withValues(alpha: 0.0),
+                    (isDark ? Colors.cyan : AppTheme.primaryColor).withOpacity(
+                      0.2,
+                    ),
+                    (isDark ? Colors.cyan : AppTheme.primaryColor).withOpacity(
+                      0.0,
+                    ),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -207,12 +257,16 @@ class _StatsScreenState extends State<StatsScreen> {
           ],
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (spot) => AppTheme.cardColor,
+              getTooltipColor: (spot) =>
+                  isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
                     '${spot.y.toInt()}',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    TextStyle(
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   );
                 }).toList();
               },
@@ -227,23 +281,47 @@ class _StatsScreenState extends State<StatsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: _buildCircularMetricCard('Rate', _calculateCompletionRate(), Colors.cyan)),
+        Expanded(
+          child: _buildCircularMetricCard(
+            'Rate',
+            _calculateCompletionRate(),
+            Colors.cyan,
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildCircularMetricCard('Streak', '${_stats?.currentBestStreak ?? 0}', Colors.orange)),
+        Expanded(
+          child: _buildCircularMetricCard(
+            'Streak',
+            '${_stats?.currentBestStreak ?? 0}',
+            Colors.orange,
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildCircularMetricCard('Total', '${_stats?.totalCompletions ?? 0}', Colors.blueAccent)),
+        Expanded(
+          child: _buildCircularMetricCard(
+            'Total',
+            '${_stats?.totalCompletions ?? 0}',
+            Colors.blueAccent,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildCircularMetricCard(String label, String value, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 160, // Increased height to prevent overflow
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.black.withOpacity(0.05),
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -255,11 +333,14 @@ class _StatsScreenState extends State<StatsScreen> {
                 width: 50,
                 height: 50,
                 child: CircularProgressIndicator(
-                  value: label == 'Rate' 
+                  value: label == 'Rate'
                       ? (_calculateRateValue() / 100)
-                      : (label == 'Streak' 
-                          ? (_stats != null && _stats!.longestStreak > 0 ? _stats!.currentBestStreak / _stats!.longestStreak : 0.0)
-                          : 1.0), 
+                      : (label == 'Streak'
+                            ? (_stats != null && _stats!.longestStreak > 0
+                                  ? _stats!.currentBestStreak /
+                                        _stats!.longestStreak
+                                  : 0.0)
+                            : 1.0),
                   strokeWidth: 4,
                   backgroundColor: color.withValues(alpha: 0.1),
                   valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -272,19 +353,30 @@ class _StatsScreenState extends State<StatsScreen> {
               else
                 Text(
                   value,
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 12),
           if (label != 'Rate')
-             Text(
+            Text(
               value,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           Text(
             label,
-            style: const TextStyle(color: Colors.white38, fontSize: 12),
+            style: TextStyle(
+              color: isDark ? Colors.white38 : AppTheme.lightTextSecondary,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -292,13 +384,16 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   String _calculateLifetimeRate() {
-    if (_stats == null || _profile == null || _stats!.totalRituals == 0) return '0%';
-    
-    final daysSinceRegistration = DateTime.now().difference(_profile!.createdAt).inDays + 1;
-    final totalExpectedCompletions = daysSinceRegistration * _stats!.totalRituals;
-    
+    if (_stats == null || _profile == null || _stats!.totalRituals == 0)
+      return '0%';
+
+    final daysSinceRegistration =
+        DateTime.now().difference(_profile!.createdAt).inDays + 1;
+    final totalExpectedCompletions =
+        daysSinceRegistration * _stats!.totalRituals;
+
     if (totalExpectedCompletions == 0) return '0%';
-    
+
     final rate = (_stats!.totalCompletions / totalExpectedCompletions) * 100;
     // Cap at 100% just in case of weird data
     final cappedRate = rate > 100 ? 100.0 : rate;

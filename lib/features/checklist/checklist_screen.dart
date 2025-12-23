@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class ChecklistScreen extends StatefulWidget {
+class ChecklistScreen extends ConsumerStatefulWidget {
   final String runId;
-  
-  const ChecklistScreen({
-    super.key,
-    required this.runId,
-  });
+
+  const ChecklistScreen({super.key, required this.runId});
 
   @override
-  State<ChecklistScreen> createState() => _ChecklistScreenState();
+  ConsumerState<ChecklistScreen> createState() => _ChecklistScreenState();
 }
 
-class _ChecklistScreenState extends State<ChecklistScreen> {
+class _ChecklistScreenState extends ConsumerState<ChecklistScreen> {
   // Example data - in real app, this will come from the API
   final List<Map<String, dynamic>> _checklistItems = [
     {'title': 'Meditate', 'completed': true},
@@ -25,19 +24,27 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   void _toggleItem(int index) {
     setState(() {
-      _checklistItems[index]['completed'] = !_checklistItems[index]['completed'];
+      _checklistItems[index]['completed'] =
+          !_checklistItems[index]['completed'];
     });
   }
 
-  int get _completedCount => _checklistItems.where((item) => item['completed'] == true).length;
-  double get _progress => _checklistItems.isEmpty ? 0 : _completedCount / _checklistItems.length;
+  int get _completedCount =>
+      _checklistItems.where((item) => item['completed'] == true).length;
+  double get _progress =>
+      _checklistItems.isEmpty ? 0 : _completedCount / _checklistItems.length;
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -66,15 +73,13 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                         children: [
                           Text(
                             'Ritual Checklist',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Run ID: ${widget.runId}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textSecondary,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
@@ -82,10 +87,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                   ],
                 ),
               ),
-              
+
               // Progress Card
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                ),
                 child: Container(
                   padding: const EdgeInsets.all(AppTheme.spacingL),
                   decoration: BoxDecoration(
@@ -138,11 +145,15 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                       ),
                       const SizedBox(height: AppTheme.spacingM),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusFull,
+                        ),
                         child: LinearProgressIndicator(
                           value: _progress,
                           backgroundColor: Colors.white.withOpacity(0.3),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                           minHeight: 8,
                         ),
                       ),
@@ -150,18 +161,20 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: AppTheme.spacingL),
-              
+
               // Checklist Items
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingL,
+                  ),
                   itemCount: _checklistItems.length,
                   itemBuilder: (context, index) {
                     final item = _checklistItems[index];
                     final isCompleted = item['completed'] as bool;
-                    
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
                       decoration: BoxDecoration(
@@ -184,12 +197,16 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                   width: 28,
                                   height: 28,
                                   decoration: BoxDecoration(
-                                    gradient: isCompleted ? AppTheme.primaryGradient : null,
-                                    color: isCompleted ? null : AppTheme.backgroundColor,
+                                    gradient: isCompleted
+                                        ? AppTheme.primaryGradient
+                                        : null,
+                                    color: isCompleted
+                                        ? null
+                                        : AppTheme.backgroundColor,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: isCompleted 
-                                          ? Colors.transparent 
+                                      color: isCompleted
+                                          ? Colors.transparent
                                           : AppTheme.textLight,
                                       width: 2,
                                     ),
@@ -203,7 +220,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                       : null,
                                 ),
                                 const SizedBox(width: AppTheme.spacingM),
-                                
+
                                 // Title
                                 Expanded(
                                   child: Text(
@@ -211,16 +228,16 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
-                                      color: isCompleted 
-                                          ? AppTheme.textSecondary 
+                                      color: isCompleted
+                                          ? AppTheme.textSecondary
                                           : AppTheme.textPrimary,
-                                      decoration: isCompleted 
-                                          ? TextDecoration.lineThrough 
+                                      decoration: isCompleted
+                                          ? TextDecoration.lineThrough
                                           : null,
                                     ),
                                   ),
                                 ),
-                                
+
                                 // Step Number
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -228,18 +245,20 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: isCompleted 
+                                    color: isCompleted
                                         ? AppTheme.successColor.withOpacity(0.1)
                                         : AppTheme.backgroundColor,
-                                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                                    borderRadius: BorderRadius.circular(
+                                      AppTheme.radiusFull,
+                                    ),
                                   ),
                                   child: Text(
                                     '${index + 1}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: isCompleted 
-                                          ? AppTheme.successColor 
+                                      color: isCompleted
+                                          ? AppTheme.successColor
                                           : AppTheme.textSecondary,
                                     ),
                                   ),
@@ -253,7 +272,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                   },
                 ),
               ),
-              
+
               // Complete Button
               if (_progress == 1.0)
                 Padding(
@@ -276,13 +295,19 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               children: [
                                 Icon(Icons.celebration, color: Colors.white),
                                 SizedBox(width: 12),
-                                Expanded(child: Text('Congratulations! Ritual completed! 🎉')),
+                                Expanded(
+                                  child: Text(
+                                    'Congratulations! Ritual completed! 🎉',
+                                  ),
+                                ),
                               ],
                             ),
                             backgroundColor: AppTheme.successColor,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusM,
+                              ),
                             ),
                           ),
                         );

@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/rituals_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class RitualCreateScreen extends StatefulWidget {
+class RitualCreateScreen extends ConsumerStatefulWidget {
   const RitualCreateScreen({super.key});
 
   @override
-  State<RitualCreateScreen> createState() => _RitualCreateScreenState();
+  ConsumerState<RitualCreateScreen> createState() => _RitualCreateScreenState();
 }
 
-class _RitualCreateScreenState extends State<RitualCreateScreen> {
+class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   final _nameController = TextEditingController();
   final List<TextEditingController> _stepControllers = [];
-  
+
   TimeOfDay _selectedTime = const TimeOfDay(hour: 7, minute: 0);
   String _repeatMode = 'Weekly'; // Daily, Weekly, Monthly
   List<String> _selectedDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -75,7 +77,9 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
               onSurface: AppTheme.textPrimary,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: AppTheme.primaryColor),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+              ),
             ),
           ),
           child: child!,
@@ -142,16 +146,19 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
       // Prepare steps
       final steps = _stepControllers
           .where((controller) => controller.text.trim().isNotEmpty)
-          .map((controller) => {
-                'title': controller.text.trim(),
-                'completed': false,
-              })
+          .map(
+            (controller) => {
+              'title': controller.text.trim(),
+              'completed': false,
+            },
+          )
           .toList();
 
       // Create ritual
       await RitualsService.createRitual(
         name: _nameController.text.trim(),
-        reminderTime: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+        reminderTime:
+            '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
         reminderDays: _selectedDays,
         steps: steps,
       );
@@ -203,6 +210,10 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     const dayLabels = {
       'Mon': 'M',
       'Tue': 'T',
@@ -216,8 +227,9 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -227,10 +239,14 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
                     child: Column(
                       children: [
                         Expanded(
@@ -243,7 +259,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                                 const SizedBox(height: 16),
                                 _buildNameInput(),
                                 const SizedBox(height: 24),
-                                
+
                                 _buildSectionTitle('Reminder'),
                                 const SizedBox(height: 16),
                                 _buildTimeSelector(),
@@ -260,7 +276,9 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                                 _buildStepsList(),
                                 const SizedBox(height: 16),
                                 _buildAddStepButton(),
-                                const SizedBox(height: 80), // Space for bottom bar
+                                const SizedBox(
+                                  height: 80,
+                                ), // Space for bottom bar
                               ],
                             ),
                           ),
@@ -334,7 +352,10 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
           hintStyle: TextStyle(color: AppTheme.textSecondary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
-          prefixIcon: const Icon(Icons.psychology, color: AppTheme.primaryColor),
+          prefixIcon: const Icon(
+            Icons.psychology,
+            color: AppTheme.primaryColor,
+          ),
         ),
       ),
     );
@@ -421,7 +442,10 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
     );
   }
 
-  Widget _buildDaysSelector(List<String> daysOrder, Map<String, String> dayLabels) {
+  Widget _buildDaysSelector(
+    List<String> daysOrder,
+    Map<String, String> dayLabels,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -447,14 +471,18 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                   gradient: isSelected ? AppTheme.primaryGradient : null,
                   color: isSelected ? null : AppTheme.backgroundColor,
                   shape: BoxShape.circle,
-                  boxShadow: isSelected ? [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ] : null,
-                  border: isSelected ? null : Border.all(color: Colors.grey.withOpacity(0.2)),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                  border: isSelected
+                      ? null
+                      : Border.all(color: Colors.grey.withOpacity(0.2)),
                 ),
                 child: Center(
                   child: Text(
@@ -486,7 +514,9 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                   decoration: BoxDecoration(
                     color: AppTheme.backgroundColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withOpacity(0.1),
+                    ),
                   ),
                   child: TextField(
                     controller: _stepControllers[index],
@@ -495,11 +525,14 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                       hintText: index == 0
                           ? 'Step 1: Drink a glass of water'
                           : index == 1
-                              ? 'Step 2: Meditate for 10 minutes'
-                              : 'New Step',
+                          ? 'Step 2: Meditate for 10 minutes'
+                          : 'New Step',
                       hintStyle: TextStyle(color: AppTheme.textSecondary),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -532,9 +565,7 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
         side: const BorderSide(color: AppTheme.primaryColor),
         foregroundColor: AppTheme.primaryColor,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         minimumSize: const Size(double.infinity, 50),
       ),
     );
@@ -600,7 +631,9 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text(
@@ -619,4 +652,3 @@ class _RitualCreateScreenState extends State<RitualCreateScreen> {
     );
   }
 }
-

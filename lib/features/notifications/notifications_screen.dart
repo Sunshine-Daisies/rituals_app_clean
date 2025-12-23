@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
 import '../../services/sharing_service.dart';
 import '../../services/friends_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final GamificationService _gamificationService = GamificationService();
   final SharingService _sharingService = SharingService();
   final FriendsService _friendsService = FriendsService();
-  
+
   List<AppNotification> _notifications = [];
   int _unreadCount = 0;
   bool _isLoading = true;
@@ -31,10 +34,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final result = await _gamificationService.getNotifications();
-      
+
       if (mounted && result != null) {
         setState(() {
           _notifications = result.notifications;
@@ -52,7 +55,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _markAsRead(int notificationId) async {
-    final success = await _gamificationService.markNotificationRead(notificationId);
+    final success = await _gamificationService.markNotificationRead(
+      notificationId,
+    );
     if (success && mounted) {
       setState(() {
         final index = _notifications.indexWhere((n) => n.id == notificationId);
@@ -78,7 +83,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _deleteNotification(int notificationId) async {
-    final success = await _gamificationService.deleteNotification(notificationId);
+    final success = await _gamificationService.deleteNotification(
+      notificationId,
+    );
     if (success && mounted) {
       _loadNotifications();
     }
@@ -91,11 +98,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: AppTheme.cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete All?', style: TextStyle(color: Colors.white)),
-        content: const Text('All your notifications will be deleted. This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+        content: const Text(
+          'All your notifications will be deleted. This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -120,7 +133,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future<void> _acceptPartnerRequest(int notificationId, String partnerId) async {
+  Future<void> _acceptPartnerRequest(
+    int notificationId,
+    String partnerId,
+  ) async {
     try {
       await _sharingService.acceptPartner(partnerId);
       if (mounted) {
@@ -145,7 +161,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future<void> _rejectPartnerRequest(int notificationId, String partnerId) async {
+  Future<void> _rejectPartnerRequest(
+    int notificationId,
+    String partnerId,
+  ) async {
     try {
       await _sharingService.rejectPartner(partnerId);
       if (mounted) {
@@ -170,7 +189,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future<void> _acceptFriendRequest(int notificationId, int friendshipId) async {
+  Future<void> _acceptFriendRequest(
+    int notificationId,
+    int friendshipId,
+  ) async {
     try {
       final result = await _friendsService.acceptFriendRequest(friendshipId);
       if (mounted) {
@@ -204,7 +226,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future<void> _rejectFriendRequest(int notificationId, int friendshipId) async {
+  Future<void> _rejectFriendRequest(
+    int notificationId,
+    int friendshipId,
+  ) async {
     try {
       final result = await _friendsService.rejectFriendRequest(friendshipId);
       if (mounted) {
@@ -240,39 +265,66 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   IconData _getNotificationIcon(String type) {
     switch (type) {
-      case 'friend_request': return Icons.person_add;
-      case 'friend_accepted': return Icons.people;
-      case 'badge_earned': return Icons.emoji_events;
-      case 'level_up': return Icons.upgrade;
-      case 'streak_milestone': return Icons.local_fire_department;
-      case 'partner_completed': return Icons.check_circle;
-      case 'both_completed': return Icons.celebration;
-      case 'partner_streak_record': return Icons.emoji_events;
-      case 'partner_missed': return Icons.warning;
-      case 'freeze_used': return Icons.ac_unit;
-      case 'ritual_invite': return Icons.group_add;
-      case 'partner_accepted': return Icons.handshake;
-      case 'partner_left': return Icons.person_remove;
-      default: return Icons.notifications;
+      case 'friend_request':
+        return Icons.person_add;
+      case 'friend_accepted':
+        return Icons.people;
+      case 'badge_earned':
+        return Icons.emoji_events;
+      case 'level_up':
+        return Icons.upgrade;
+      case 'streak_milestone':
+        return Icons.local_fire_department;
+      case 'partner_completed':
+        return Icons.check_circle;
+      case 'both_completed':
+        return Icons.celebration;
+      case 'partner_streak_record':
+        return Icons.emoji_events;
+      case 'partner_missed':
+        return Icons.warning;
+      case 'freeze_used':
+        return Icons.ac_unit;
+      case 'ritual_invite':
+        return Icons.group_add;
+      case 'partner_accepted':
+        return Icons.handshake;
+      case 'partner_left':
+        return Icons.person_remove;
+      default:
+        return Icons.notifications;
     }
   }
 
   Color _getNotificationColor(String type) {
     switch (type) {
       case 'friend_request':
-      case 'friend_accepted': return Colors.blue;
-      case 'badge_earned': return Colors.amber;
-      case 'level_up': return Colors.purple;
-      case 'streak_milestone': return Colors.orange;
-      case 'partner_completed': return Colors.teal;
-      case 'both_completed': return Colors.deepOrange;
-      case 'partner_streak_record': return Colors.amber;
-      case 'partner_missed': return AppTheme.errorColor;
-      case 'freeze_used': return Colors.cyan;
-      case 'ritual_invite': return Colors.teal;
-      case 'partner_accepted': return Colors.teal;
-      case 'partner_left': return Colors.grey;
-      default: return Colors.blueGrey;
+      case 'friend_accepted':
+        return Colors.blue;
+      case 'badge_earned':
+        return Colors.amber;
+      case 'level_up':
+        return Colors.purple;
+      case 'streak_milestone':
+        return Colors.orange;
+      case 'partner_completed':
+        return Colors.teal;
+      case 'both_completed':
+        return Colors.deepOrange;
+      case 'partner_streak_record':
+        return Colors.amber;
+      case 'partner_missed':
+        return AppTheme.errorColor;
+      case 'freeze_used':
+        return Colors.cyan;
+      case 'ritual_invite':
+        return Colors.teal;
+      case 'partner_accepted':
+        return Colors.teal;
+      case 'partner_left':
+        return Colors.grey;
+      default:
+        return Colors.blueGrey;
     }
   }
 
@@ -285,19 +337,33 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground1,
+      backgroundColor: isDark
+          ? AppTheme.darkBackground1
+          : AppTheme.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () => context.pop(),
         ),
         centerTitle: true,
         title: const Text(
           'Notifications',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         actions: [
           if (_unreadCount > 0)
@@ -308,7 +374,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           if (_notifications.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor, size: 22),
+              icon: const Icon(
+                Icons.delete_outline,
+                color: AppTheme.errorColor,
+                size: 22,
+              ),
               onPressed: _deleteAllNotifications,
               tooltip: 'Temizle',
             ),
@@ -318,7 +388,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: Column(
         children: [
           const SizedBox(height: 10),
-          
+
           // Filter Tabs
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -337,57 +407,71 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Notifications List
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.cyan))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.cyan),
+                  )
                 : _filteredNotifications.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadNotifications,
-                        color: Colors.cyan,
-                        backgroundColor: AppTheme.cardColor,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                          itemCount: _filteredNotifications.length,
-                          itemBuilder: (context, index) {
-                            final notification = _filteredNotifications[index];
-                            
-                            VoidCallback? onAccept;
-                            VoidCallback? onReject;
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _loadNotifications,
+                    color: Colors.cyan,
+                    backgroundColor: AppTheme.cardColor,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                      itemCount: _filteredNotifications.length,
+                      itemBuilder: (context, index) {
+                        final notification = _filteredNotifications[index];
 
-                            if (notification.type == 'ritual_invite') {
-                              final partnerId = notification.data?['partner_id']?.toString();
-                              if (partnerId != null) {
-                                onAccept = () => _acceptPartnerRequest(notification.id, partnerId);
-                                onReject = () => _rejectPartnerRequest(notification.id, partnerId);
-                              }
-                            } else if (notification.type == 'friend_request') {
-                              final friendshipId = notification.data?['friendshipId'];
-                              if (friendshipId != null) {
-                                final id = friendshipId is int ? friendshipId : int.tryParse(friendshipId.toString());
-                                if (id != null) {
-                                  onAccept = () => _acceptFriendRequest(notification.id, id);
-                                  onReject = () => _rejectFriendRequest(notification.id, id);
-                                }
-                              }
-                            }
+                        VoidCallback? onAccept;
+                        VoidCallback? onReject;
 
-                            return _NotificationCard(
-                              notification: notification,
-                              icon: _getNotificationIcon(notification.type),
-                              iconColor: _getNotificationColor(notification.type),
-                              onTap: () => _markAsRead(notification.id),
-                              onDismiss: () => _deleteNotification(notification.id),
-                              onAccept: onAccept,
-                              onReject: onReject,
+                        if (notification.type == 'ritual_invite') {
+                          final partnerId = notification.data?['partner_id']
+                              ?.toString();
+                          if (partnerId != null) {
+                            onAccept = () => _acceptPartnerRequest(
+                              notification.id,
+                              partnerId,
                             );
-                          },
-                        ),
-                      ),
+                            onReject = () => _rejectPartnerRequest(
+                              notification.id,
+                              partnerId,
+                            );
+                          }
+                        } else if (notification.type == 'friend_request') {
+                          final friendshipId =
+                              notification.data?['friendshipId'];
+                          if (friendshipId != null) {
+                            final id = friendshipId is int
+                                ? friendshipId
+                                : int.tryParse(friendshipId.toString());
+                            if (id != null) {
+                              onAccept = () =>
+                                  _acceptFriendRequest(notification.id, id);
+                              onReject = () =>
+                                  _rejectFriendRequest(notification.id, id);
+                            }
+                          }
+                        }
+
+                        return _NotificationCard(
+                          notification: notification,
+                          icon: _getNotificationIcon(notification.type),
+                          iconColor: _getNotificationColor(notification.type),
+                          onTap: () => _markAsRead(notification.id),
+                          onDismiss: () => _deleteNotification(notification.id),
+                          onAccept: onAccept,
+                          onReject: onReject,
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -419,14 +503,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               if (count > 0 && !isSelected) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.cyan.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '$count',
-                    style: const TextStyle(color: Colors.cyan, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.cyan,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -450,19 +541,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Icon(
-              _filter == 'unread' ? Icons.mark_email_read_outlined : Icons.notifications_none_rounded,
+              _filter == 'unread'
+                  ? Icons.mark_email_read_outlined
+                  : Icons.notifications_none_rounded,
               size: 50,
               color: Colors.white24,
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            _filter == 'unread' ? "You've read all notifications!" : 'No notifications yet',
-            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            _filter == 'unread'
+                ? "You've read all notifications!"
+                : 'No notifications yet',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            _filter == 'unread' ? "You're doing great." : 'New updates will appear here.',
+            _filter == 'unread'
+                ? "You're doing great."
+                : 'New updates will appear here.',
             style: const TextStyle(color: Colors.white54, fontSize: 14),
           ),
         ],
@@ -532,7 +633,9 @@ class _NotificationCard extends StatelessWidget {
             color: AppTheme.cardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: notification.isRead ? Colors.white.withValues(alpha: 0.05) : Colors.cyan.withValues(alpha: 0.3),
+              color: notification.isRead
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.cyan.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -550,7 +653,7 @@ class _NotificationCard extends StatelessWidget {
                 child: Icon(icon, color: iconColor, size: 24),
               ),
               const SizedBox(width: 16),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -564,14 +667,19 @@ class _NotificationCard extends StatelessWidget {
                             notification.title,
                             style: TextStyle(
                               color: Colors.white,
-                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
+                              fontWeight: notification.isRead
+                                  ? FontWeight.w600
+                                  : FontWeight.bold,
                               fontSize: 15,
                             ),
                           ),
                         ),
                         Text(
                           _formatTimeAgo(notification.createdAt),
-                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -586,25 +694,28 @@ class _NotificationCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     // Action buttons (Ritual Invite or Friend Request)
-                    if (!notification.isRead && onAccept != null && onReject != null && 
-                       (notification.type == 'ritual_invite' || notification.type == 'friend_request')) ...[
+                    if (!notification.isRead &&
+                        onAccept != null &&
+                        onReject != null &&
+                        (notification.type == 'ritual_invite' ||
+                            notification.type == 'friend_request')) ...[
                       const SizedBox(height: 12),
                       Row(
                         children: [
                           _buildActionButton(
-                            'Reject', 
-                            onReject!, 
-                            isPrimary: false, 
-                            color: AppTheme.errorColor
+                            'Reject',
+                            onReject!,
+                            isPrimary: false,
+                            color: AppTheme.errorColor,
                           ),
                           const SizedBox(width: 12),
                           _buildActionButton(
-                            'Accept', 
-                            onAccept!, 
-                            isPrimary: true, 
-                            color: Colors.teal
+                            'Accept',
+                            onAccept!,
+                            isPrimary: true,
+                            color: Colors.teal,
                           ),
                         ],
                       ),
@@ -619,7 +730,12 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(String label, VoidCallback onPressed, {required bool isPrimary, required Color color}) {
+  Widget _buildActionButton(
+    String label,
+    VoidCallback onPressed, {
+    required bool isPrimary,
+    required Color color,
+  }) {
     return Expanded(
       child: GestureDetector(
         onTap: onPressed,
@@ -628,7 +744,9 @@ class _NotificationCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: isPrimary ? color : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
-            border: isPrimary ? null : Border.all(color: color.withValues(alpha: 0.5)),
+            border: isPrimary
+                ? null
+                : Border.all(color: color.withValues(alpha: 0.5)),
           ),
           child: Center(
             child: Text(

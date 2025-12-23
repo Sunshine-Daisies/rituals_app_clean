@@ -2,27 +2,29 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rituals_app/theme/app_theme.dart';
 import 'package:rituals_app/services/gamification_service.dart';
 import 'package:rituals_app/data/models/user_profile.dart';
+import 'package:rituals_app/providers/theme_provider.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
-  
+
   final GamificationService _gamificationService = GamificationService();
   final ImagePicker _picker = ImagePicker();
-  
+
   UserProfile? _profile;
   bool _isLoading = true;
   String? _newAvatarBase64;
@@ -53,15 +55,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery, 
-      maxWidth: 512, 
+      source: ImageSource.gallery,
+      maxWidth: 512,
       maxHeight: 512,
       imageQuality: 70, // Convert to JPEG and compress
     );
     if (image != null) {
       final bytes = await File(image.path).readAsBytes();
       final base64String = base64Encode(bytes);
-      
+
       setState(() {
         _newAvatarFile = File(image.path);
         _newAvatarBase64 = base64String;
@@ -71,9 +73,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       bool success = true;
       String message = 'Profile updated!';
@@ -82,11 +84,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // 1. Update text fields
       final newName = _nameController.text.trim();
       final newUsername = _usernameController.text.trim();
-      
-      if (newName != (_profile?.name ?? '') || newUsername != (_profile?.username ?? '')) {
+
+      if (newName != (_profile?.name ?? '') ||
+          newUsername != (_profile?.username ?? '')) {
         final textSuccess = await _gamificationService.updateProfile(
           name: newName != (_profile?.name ?? '') ? newName : null,
-          username: newUsername != (_profile?.username ?? '') ? newUsername : null,
+          username: newUsername != (_profile?.username ?? '')
+              ? newUsername
+              : null,
         );
         if (!textSuccess) {
           success = false;
@@ -96,7 +101,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // 2. Upload Avatar
       if (_newAvatarBase64 != null) {
-        final avatarUrl = await _gamificationService.uploadProfilePicture(_newAvatarBase64!);
+        final avatarUrl = await _gamificationService.uploadProfilePicture(
+          _newAvatarBase64!,
+        );
         if (avatarUrl == null) {
           success = false;
           message = 'Info updated, but avatar failed.';
@@ -116,9 +123,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -127,20 +134,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (_isLoading && _profile == null) {
       return Scaffold(
-        backgroundColor: AppTheme.darkBackground1,
+        backgroundColor: isDark
+            ? AppTheme.darkBackground1
+            : AppTheme.lightBackground,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: const BackButton(color: Colors.white),
+          leading: BackButton(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
         ),
-        body: const Center(child: CircularProgressIndicator(color: Colors.cyan)),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: isDark ? Colors.cyan : AppTheme.primaryColor,
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground1,
+      backgroundColor: isDark
+          ? AppTheme.darkBackground1
+          : AppTheme.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -149,13 +170,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           onPressed: () => context.pop(),
         ),
         centerTitle: true,
-        title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _saveProfile,
-            child: _isLoading 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.cyan, strokeWidth: 2))
-                : const Text('Save', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+            child: _isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      color: Colors.cyan,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'Save',
+                    style: TextStyle(
+                      color: Colors.cyanAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -180,14 +218,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.grey[800],
-                          backgroundImage: _newAvatarFile != null 
+                          backgroundImage: _newAvatarFile != null
                               ? FileImage(_newAvatarFile!) as ImageProvider
-                              : (_profile?.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null),
-                          onBackgroundImageError: (_newAvatarFile != null || _profile?.avatarUrl != null) 
-                              ? (exception, stackTrace) {} 
+                              : (_profile?.avatarUrl != null
+                                    ? NetworkImage(_profile!.avatarUrl!)
+                                    : null),
+                          onBackgroundImageError:
+                              (_newAvatarFile != null ||
+                                  _profile?.avatarUrl != null)
+                              ? (exception, stackTrace) {}
                               : null,
-                          child: (_newAvatarFile == null && _profile?.avatarUrl == null)
-                              ? const Icon(Icons.person, size: 50, color: Colors.white)
+                          child:
+                              (_newAvatarFile == null &&
+                                  _profile?.avatarUrl == null)
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.white,
+                                )
                               : null,
                         ),
                       ),
@@ -197,7 +245,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           color: Colors.blueAccent,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                       ),
                     ],
                   ),
@@ -214,7 +266,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   label: 'Username',
                   icon: Icons.alternate_email,
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Username required';
+                    if (value == null || value.isEmpty)
+                      return 'Username required';
                     if (value.length < 3) return 'Too short';
                     return null;
                   },

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/user_profile.dart';
 import '../../services/gamification_service.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/theme_provider.dart';
 
-class BadgesScreen extends StatefulWidget {
+class BadgesScreen extends ConsumerStatefulWidget {
   const BadgesScreen({super.key});
 
   @override
-  State<BadgesScreen> createState() => _BadgesScreenState();
+  ConsumerState<BadgesScreen> createState() => _BadgesScreenState();
 }
 
-class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderStateMixin {
+class _BadgesScreenState extends ConsumerState<BadgesScreen>
+    with SingleTickerProviderStateMixin {
   final GamificationService _gamificationService = GamificationService();
-  
+
   List<Badge> _allBadges = [];
   List<BadgeProgress> _badgeProgress = [];
   bool _isLoading = true;
@@ -40,11 +43,11 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final badges = await _gamificationService.getAllBadges();
       final progressResult = await _gamificationService.getBadgeProgress();
-      
+
       if (mounted) {
         setState(() {
           _allBadges = badges;
@@ -65,10 +68,15 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider to rebuild on theme changes
+    ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -90,7 +98,11 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppTheme.textPrimary,
+                          size: 20,
+                        ),
                         onPressed: () => context.pop(),
                         tooltip: 'Back',
                       ),
@@ -99,19 +111,22 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                     Expanded(
                       child: Text(
                         'Badges',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               // Tab Bar
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: AppTheme.spacingL),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingL,
+                ),
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceColor,
@@ -135,7 +150,10 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                   dividerColor: Colors.transparent,
                   labelColor: Colors.white,
                   unselectedLabelColor: AppTheme.textSecondary,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   overlayColor: MaterialStateProperty.all(Colors.transparent),
                   tabs: const [
                     Tab(
@@ -163,19 +181,16 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: AppTheme.spacingM),
-              
+
               // Tab Bar View
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : TabBarView(
                         controller: _tabController,
-                        children: [
-                          _buildAllBadgesTab(),
-                          _buildProgressTab(),
-                        ],
+                        children: [_buildAllBadgesTab(), _buildProgressTab()],
                       ),
               ),
             ],
@@ -203,9 +218,8 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                       const SizedBox(height: AppTheme.spacingM),
                       Text(
                         'No badges in this category',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: AppTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -214,12 +228,13 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                   onRefresh: _loadData,
                   child: GridView.builder(
                     padding: const EdgeInsets.all(AppTheme.spacingL),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: AppTheme.spacingM,
-                      mainAxisSpacing: AppTheme.spacingM,
-                      childAspectRatio: 0.75,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: AppTheme.spacingM,
+                          mainAxisSpacing: AppTheme.spacingM,
+                          childAspectRatio: 0.75,
+                        ),
                     itemCount: _filteredBadges.length,
                     itemBuilder: (context, index) {
                       final badge = _filteredBadges[index];
@@ -236,11 +251,9 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   }
 
   Widget _buildProgressTab() {
-    final inProgressBadges = _badgeProgress
-        .where((b) => !b.earned)
-        .toList()
+    final inProgressBadges = _badgeProgress.where((b) => !b.earned).toList()
       ..sort((a, b) => b.percentage.compareTo(a.percentage));
-    
+
     final earnedBadges = _badgeProgress.where((b) => b.earned).toList();
 
     return RefreshIndicator(
@@ -257,9 +270,11 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
               ),
             ),
             const SizedBox(height: AppTheme.spacingM),
-            ...inProgressBadges.map((badge) => _BadgeProgressCard(badge: badge)),
+            ...inProgressBadges.map(
+              (badge) => _BadgeProgressCard(badge: badge),
+            ),
           ],
-          
+
           if (earnedBadges.isNotEmpty) ...[
             const SizedBox(height: AppTheme.spacingL),
             Text(
@@ -270,9 +285,11 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
               ),
             ),
             const SizedBox(height: AppTheme.spacingM),
-            ...earnedBadges.map((badge) => _BadgeProgressCard(badge: badge, showEarned: true)),
+            ...earnedBadges.map(
+              (badge) => _BadgeProgressCard(badge: badge, showEarned: true),
+            ),
           ],
-          
+
           if (inProgressBadges.isEmpty && earnedBadges.isEmpty)
             Center(
               child: Padding(
@@ -306,7 +323,9 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
       context: context,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusL)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusL),
+        ),
       ),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(AppTheme.spacingL),
@@ -318,8 +337,8 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: badge.earned 
-                    ? AppTheme.primaryColor.withOpacity(0.1) 
+                color: badge.earned
+                    ? AppTheme.primaryColor.withOpacity(0.1)
                     : Colors.grey.withOpacity(0.1),
                 shape: BoxShape.circle,
                 border: badge.earned
@@ -336,32 +355,34 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                 ),
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.spacingM),
-            
+
             // Badge Name
             Text(
               badge.name,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: badge.earned ? AppTheme.textPrimary : AppTheme.textSecondary,
+                color: badge.earned
+                    ? AppTheme.textPrimary
+                    : AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingS),
-            
+
             // Badge Description
             Text(
               badge.description,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingM),
-            
+
             // Rewards
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -379,9 +400,9 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                 ),
               ],
             ),
-            
+
             const SizedBox(height: AppTheme.spacingM),
-            
+
             // Earned Status
             if (badge.earned && badge.earnedAt != null) ...[
               Container(
@@ -396,7 +417,11 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle, color: AppTheme.successColor, size: 18),
+                    const Icon(
+                      Icons.check_circle,
+                      color: AppTheme.successColor,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Earned: ${_formatDate(badge.earnedAt!)}',
@@ -434,7 +459,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                 ),
               ),
             ],
-            
+
             const SizedBox(height: AppTheme.spacingL),
           ],
         ),
@@ -448,7 +473,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
 
   String _getRequirementText(Badge badge) {
     if (badge.requirementType == null) return 'Not earned yet';
-    
+
     switch (badge.requirementType) {
       case 'completions':
         return 'Complete ${badge.requirementValue} rituals';
@@ -472,10 +497,7 @@ class _BadgeCard extends StatelessWidget {
   final Badge badge;
   final VoidCallback onTap;
 
-  const _BadgeCard({
-    required this.badge,
-    required this.onTap,
-  });
+  const _BadgeCard({required this.badge, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +509,10 @@ class _BadgeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusM),
           boxShadow: AppTheme.cardShadow,
           border: badge.earned
-              ? Border.all(color: AppTheme.primaryColor.withOpacity(0.5), width: 2)
+              ? Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.5),
+                  width: 2,
+                )
               : null,
         ),
         child: Column(
@@ -498,8 +523,8 @@ class _BadgeCard extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: badge.earned 
-                    ? AppTheme.primaryColor.withOpacity(0.1) 
+                color: badge.earned
+                    ? AppTheme.primaryColor.withOpacity(0.1)
                     : Colors.grey.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
@@ -513,9 +538,9 @@ class _BadgeCard extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.spacingS),
-            
+
             // Badge Name
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -523,14 +548,16 @@ class _BadgeCard extends StatelessWidget {
                 badge.name,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: badge.earned ? AppTheme.textPrimary : AppTheme.textSecondary,
+                  color: badge.earned
+                      ? AppTheme.textPrimary
+                      : AppTheme.textSecondary,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            
+
             // Earned indicator
             if (badge.earned)
               Padding(
@@ -590,10 +617,7 @@ class _BadgeProgressCard extends StatelessWidget {
   final BadgeProgress badge;
   final bool showEarned;
 
-  const _BadgeProgressCard({
-    required this.badge,
-    this.showEarned = false,
-  });
+  const _BadgeProgressCard({required this.badge, this.showEarned = false});
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +629,10 @@ class _BadgeProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         boxShadow: AppTheme.cardShadow,
         border: badge.earned
-            ? Border.all(color: AppTheme.successColor.withOpacity(0.5), width: 2)
+            ? Border.all(
+                color: AppTheme.successColor.withOpacity(0.5),
+                width: 2,
+              )
             : null,
       ),
       child: Row(
@@ -614,21 +641,18 @@ class _BadgeProgressCard extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: badge.earned 
-                  ? AppTheme.successColor.withOpacity(0.1) 
+              color: badge.earned
+                  ? AppTheme.successColor.withOpacity(0.1)
                   : AppTheme.primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                badge.icon,
-                style: const TextStyle(fontSize: 28),
-              ),
+              child: Text(badge.icon, style: const TextStyle(fontSize: 28)),
             ),
           ),
-          
+
           const SizedBox(width: AppTheme.spacingM),
-          
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -645,7 +669,11 @@ class _BadgeProgressCard extends StatelessWidget {
                       ),
                     ),
                     if (badge.earned)
-                      const Icon(Icons.check_circle, color: AppTheme.successColor, size: 18),
+                      const Icon(
+                        Icons.check_circle,
+                        color: AppTheme.successColor,
+                        size: 18,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -658,7 +686,7 @@ class _BadgeProgressCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                
+
                 if (!badge.earned) ...[
                   Row(
                     children: [
@@ -669,11 +697,11 @@ class _BadgeProgressCard extends StatelessWidget {
                             value: badge.percentage / 100,
                             backgroundColor: Colors.grey[200],
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              badge.percentage >= 80 
-                                  ? AppTheme.successColor 
-                                  : badge.percentage >= 50 
-                                      ? Colors.orange 
-                                      : AppTheme.primaryColor,
+                              badge.percentage >= 80
+                                  ? AppTheme.successColor
+                                  : badge.percentage >= 50
+                                  ? Colors.orange
+                                  : AppTheme.primaryColor,
                             ),
                             minHeight: 8,
                           ),
