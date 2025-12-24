@@ -16,14 +16,14 @@ class EmptyTodayCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Opacity(
-        opacity: 0.6, // Dim the entire card
+        opacity: 0.4,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.2), // Darker, more "curtain" like
+            color: AppTheme.getCardColor(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusM),
             border: Border.all(
-              color: Colors.white.withOpacity(0.03),
+              color: AppTheme.getBorderColor(context),
               width: 1,
             ),
           ),
@@ -32,13 +32,13 @@ class EmptyTodayCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
+                  color: AppTheme.getSurfaceColor(context),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.check_circle_outline,
                   size: 20,
-                  color: Colors.white.withOpacity(0.4),
+                  color: AppTheme.successColor,
                 ),
               ),
               const SizedBox(width: 16),
@@ -50,7 +50,7 @@ class EmptyTodayCard extends StatelessWidget {
                     Text(
                       "You're all caught up!",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: AppTheme.getTextPrimary(context),
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -59,7 +59,7 @@ class EmptyTodayCard extends StatelessWidget {
                     Text(
                       'All rituals for today are completed.',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.3),
+                        color: AppTheme.getTextSecondary(context),
                         fontSize: 12,
                       ),
                     ),
