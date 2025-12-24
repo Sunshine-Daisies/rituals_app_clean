@@ -67,24 +67,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: AppTheme.darkTheme.copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              surface: AppTheme.surfaceColor,
-              onSurface: AppTheme.textPrimary,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppTheme.primaryColor,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
+
     );
     if (picked != null && picked != _selectedTime) {
       setState(() {

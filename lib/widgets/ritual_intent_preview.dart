@@ -53,16 +53,7 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
+
     );
     if (picked != null && picked != _selectedTime) {
       setState(() {

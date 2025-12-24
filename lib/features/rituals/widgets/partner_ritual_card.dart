@@ -42,7 +42,7 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusL),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
@@ -106,7 +106,7 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                             ritual.ritualTitle,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: AppTheme.getTextPrimary(context),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -157,7 +157,7 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                       decoration: BoxDecoration(
                         color: ritual.partnerStreak > 0 
                             ? Colors.orange.withOpacity(0.1)
-                            : AppTheme.backgroundColor,
+                            : AppTheme.getBackgroundColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -166,14 +166,14 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                           Icon(
                             Icons.local_fire_department,
                             size: 16,
-                            color: ritual.partnerStreak > 0 ? Colors.orange : AppTheme.textSecondary,
+                            color: ritual.partnerStreak > 0 ? Colors.orange : AppTheme.getTextSecondary(context),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${ritual.partnerStreak}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: ritual.partnerStreak > 0 ? Colors.orange : AppTheme.textSecondary,
+                              color: ritual.partnerStreak > 0 ? Colors.orange : AppTheme.getTextSecondary(context),
                             ),
                           ),
                         ],
@@ -193,7 +193,7 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                           vertical: AppTheme.spacingS,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.backgroundColor,
+                          color: AppTheme.getBackgroundColor(context),
                           borderRadius: BorderRadius.circular(AppTheme.radiusS),
                         ),
                         child: Row(
@@ -202,13 +202,13 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                             Icon(
                               Icons.access_time,
                               size: 14,
-                              color: AppTheme.textSecondary,
+                              color: AppTheme.getTextSecondary(context),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               ritual.time!,
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondary,
+                                color: AppTheme.getTextSecondary(context),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -224,7 +224,7 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                           vertical: AppTheme.spacingS,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.backgroundColor,
+                          color: AppTheme.getBackgroundColor(context),
                           borderRadius: BorderRadius.circular(AppTheme.radiusS),
                         ),
                         child: Row(
@@ -263,7 +263,7 @@ class _PartnerRitualCardState extends State<PartnerRitualCard> {
                       Text(
                         'Longest streak: ${ritual.longestStreak} days',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.getTextSecondary(context),
                         ),
                       ),
                     ],

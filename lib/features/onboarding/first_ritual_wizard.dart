@@ -357,17 +357,7 @@ class _FirstRitualWizardState extends State<FirstRitualWizard> {
               final time = await showTimePicker(
                 context: context,
                 initialTime: _selectedTime,
-                builder: (context, child) {
-                  return Theme(
-                    data: AppTheme.darkTheme.copyWith(
-                      colorScheme: const ColorScheme.dark(
-                        primary: AppTheme.primaryColor,
-                        surface: AppTheme.surfaceColor,
-                      ),
-                    ),
-                    child: child!,
-                  );
-                },
+
               );
               if (time != null) {
                 setState(() => _selectedTime = time);

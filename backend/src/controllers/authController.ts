@@ -17,35 +17,35 @@ function generateUsername(email: string): string {
 async function generateUniqueUsername(baseName: string): Promise<string> {
   // İsmi temizle (sadece küçük harf, rakam ve alt çizgi)
   const cleanName = baseName.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-  
+
   // Önce düz ismi dene
   const existingCheck = await pool.query(
     'SELECT id FROM user_profiles WHERE username = $1',
     [cleanName]
   );
-  
+
   if (existingCheck.rows.length === 0) {
     // İsim müsait, doğrudan kullan
     return cleanName;
   }
-  
+
   // İsim alınmış, sayı ekleyerek dene
   let attempts = 0;
   while (attempts < 100) {
     const random = Math.floor(Math.random() * 1000);
     const candidateUsername = `${cleanName}_${random}`;
-    
+
     const checkResult = await pool.query(
       'SELECT id FROM user_profiles WHERE username = $1',
       [candidateUsername]
     );
-    
+
     if (checkResult.rows.length === 0) {
       return candidateUsername;
     }
     attempts++;
   }
-  
+
   // 100 denemeden sonra hala bulunamadıysa, timestamp ekle
   return `${cleanName}_${Date.now()}`;
 }
@@ -111,7 +111,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     return res.status(400).send('Invalid request');
   }
 
-  const logoUrl = `${process.env.BACKEND_URL}/public/logo.png`;
+  const logoUrl = `${process.env.BACKEND_URL}/public/img/logo.png`;
 
   try {
     const result = await pool.query(
@@ -252,7 +252,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const resetPasswordPage = async (req: Request, res: Response) => {
   const { token } = req.query;
 
-  const logoUrl = `${process.env.BACKEND_URL}/public/logo.png`;
+  const logoUrl = `${process.env.BACKEND_URL}/public/img/logo.png`;
 
   res.send(`
     <html>

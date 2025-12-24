@@ -44,7 +44,7 @@ class _RitualCardState extends State<RitualCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusL),
         boxShadow: AppTheme.cardShadow,
         border: ritual.hasPartner 
@@ -110,7 +110,7 @@ class _RitualCardState extends State<RitualCard> {
                             ritual.name,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: AppTheme.getTextPrimary(context),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -121,13 +121,13 @@ class _RitualCardState extends State<RitualCard> {
                               Icon(
                                 Icons.access_time,
                                 size: 14,
-                                color: AppTheme.textSecondary,
+                                color: AppTheme.getTextSecondary(context),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 ritual.reminderTime,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
+                                  color: AppTheme.getTextSecondary(context),
                                 ),
                               ),
                             ],
@@ -238,7 +238,7 @@ class _RitualCardState extends State<RitualCard> {
                               Text(
                                 'Lv.${ritual.partner!.level} • Longest streak: ${ritual.partner!.longestStreak} days',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
+                                  color: AppTheme.getTextSecondary(context),
                                   fontSize: 11,
                                 ),
                               ),
@@ -259,7 +259,7 @@ class _RitualCardState extends State<RitualCard> {
                     vertical: AppTheme.spacingS,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor,
+                    color: AppTheme.getBackgroundColor(context),
                     borderRadius: BorderRadius.circular(AppTheme.radiusS),
                   ),
                   child: Row(
@@ -292,13 +292,13 @@ class _RitualCardState extends State<RitualCard> {
                       Icon(
                         Icons.list_alt,
                         size: 16,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.getTextSecondary(context),
                       ),
                       const SizedBox(width: 6),
                       Text(
                           '${ritual.steps.length} steps',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.getTextSecondary(context),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -340,7 +340,7 @@ class _RitualCardState extends State<RitualCard> {
                     Text(
                       '+${ritual.steps.length - 3} more',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textLight,
+                        color: AppTheme.getTextLight(context),
                         fontStyle: FontStyle.italic,
                       ),
                     ),

@@ -128,7 +128,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: AppTheme.getSurfaceColor(context),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           border: Border(
             top: BorderSide(
@@ -144,7 +144,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.textSecondary.withOpacity(0.3),
+                color: AppTheme.getTextSecondary(context).withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -153,13 +153,13 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
               'Create New Ritual',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'How would you like to proceed?',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.getTextSecondary(context)),
             ),
             const SizedBox(height: 32),
 
@@ -236,7 +236,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.backgroundColor,
+                  color: AppTheme.getCardColor(context),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: AppTheme.primaryColor.withOpacity(0.3),
@@ -263,7 +263,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                           const Text(
                             'Create Manually',
                             style: TextStyle(
-                              color: AppTheme.textPrimary,
+                              color: AppTheme.getTextPrimary(context),
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -272,7 +272,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                           Text(
                             'Write your own ritual step by step yourself',
                             style: TextStyle(
-                              color: AppTheme.textSecondary,
+                              color: AppTheme.getTextSecondary(context),
                               fontSize: 12,
                             ),
                           ),
@@ -281,7 +281,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                     ),
                     const Icon(
                       Icons.arrow_forward_ios,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.getTextSecondary(context),
                       size: 16,
                     ),
                   ],
@@ -326,7 +326,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceColor,
+                            color: AppTheme.getCardColor(context),
                             borderRadius: BorderRadius.circular(
                               AppTheme.radiusM,
                             ),
@@ -335,7 +335,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                           child: IconButton(
                             icon: const Icon(Icons.arrow_back),
                             onPressed: () => context.go('/home'),
-                            color: AppTheme.textPrimary,
+                            color: AppTheme.getTextPrimary(context),
                           ),
                         ),
                         const SizedBox(width: AppTheme.spacingM),
@@ -461,7 +461,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
               child: Container(
                 padding: const EdgeInsets.all(AppTheme.spacingL),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor.withOpacity(0.5),
+                  color: AppTheme.getSurfaceColor(context).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(AppTheme.radiusM),
                   border: Border.all(
                     color: AppTheme.primaryColor.withOpacity(0.2),
@@ -540,7 +540,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
               child: Container(
                 padding: const EdgeInsets.all(AppTheme.spacingL),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor.withOpacity(0.5),
+                  color: AppTheme.getSurfaceColor(context).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(AppTheme.radiusM),
                   border: Border.all(color: Colors.orange.withOpacity(0.2)),
                 ),

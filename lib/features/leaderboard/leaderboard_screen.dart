@@ -254,18 +254,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                 Icon(
                                   Icons.leaderboard_outlined,
                                   size: 80,
-                                  color: isDark 
-                                      ? AppTheme.textSecondary.withOpacity(0.5)
-                                      : AppTheme.lightTextSecondary.withOpacity(0.5),
+                                  color: AppTheme.getTextSecondary(context).withOpacity(0.5),
                                 ),
                                 const SizedBox(height: AppTheme.spacingM),
                                 Text(
                                   'No rankings yet',
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(
-                                        color: isDark 
-                                            ? AppTheme.textSecondary 
-                                            : AppTheme.lightTextSecondary,
+                                        color: AppTheme.getTextSecondary(context),
                                       ),
                                 ),
                               ],
@@ -654,7 +650,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor.withOpacity(0.5),
+        color: AppTheme.getCardColor(context).withOpacity(0.5),
         borderRadius: BorderRadius.circular(AppTheme.radiusXL),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
@@ -677,14 +673,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               children: [
                 Text(
                   request.username,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Text(
                   'Wants to join your circle',
-                  style: TextStyle(color: Colors.white38, fontSize: 11),
+                  style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 11),
                 ),
               ],
             ),
@@ -747,7 +743,7 @@ class _TypeButton extends StatelessWidget {
                 size: 20,
                 color: isSelected
                     ? AppTheme.primaryColor
-                    : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
+                    : AppTheme.getTextSecondary(context),
               ),
               const SizedBox(height: 4),
               Text(
@@ -757,7 +753,7 @@ class _TypeButton extends StatelessWidget {
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
                       ? AppTheme.primaryColor
-                      : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
+                      : AppTheme.getTextSecondary(context),
                 ),
               ),
             ],

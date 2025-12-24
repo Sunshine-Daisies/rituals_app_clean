@@ -104,7 +104,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _buildCurvedBackground(),
                     Padding(
                       padding: const EdgeInsets.only(
-                        top: 110,
+                        top: 140,
                         bottom: 140,
                       ), // Increased top and bottom spacing
                       child: _buildProfileHeaderInfo(

@@ -513,7 +513,7 @@ class _BadgeCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(AppTheme.radiusM),
           boxShadow: AppTheme.cardShadow,
           border: badge.earned
@@ -557,8 +557,8 @@ class _BadgeCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: badge.earned
-                      ? AppTheme.textPrimary
-                      : AppTheme.textSecondary,
+                      ? AppTheme.getTextPrimary(context)
+                      : AppTheme.getTextSecondary(context),
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -633,7 +633,7 @@ class _BadgeProgressCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
       padding: const EdgeInsets.all(AppTheme.spacingM),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         boxShadow: AppTheme.cardShadow,
         border: badge.earned
@@ -672,7 +672,7 @@ class _BadgeProgressCard extends StatelessWidget {
                         badge.name,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.getTextPrimary(context),
                         ),
                       ),
                     ),
@@ -688,7 +688,7 @@ class _BadgeProgressCard extends StatelessWidget {
                 Text(
                   badge.description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.getTextSecondary(context),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -720,7 +720,7 @@ class _BadgeProgressCard extends StatelessWidget {
                         '${badge.progress}/${badge.target}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.getTextSecondary(context),
                         ),
                       ),
                     ],

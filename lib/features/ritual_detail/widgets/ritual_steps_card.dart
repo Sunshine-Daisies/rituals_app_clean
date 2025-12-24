@@ -22,7 +22,7 @@ class RitualStepsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingL),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusL),
         boxShadow: AppTheme.cardShadow,
       ),
@@ -50,14 +50,14 @@ class RitualStepsCard extends StatelessWidget {
                 'Steps',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.getTextPrimary(context),
                 ),
               ),
               const Spacer(),
               Text(
                 '${steps.length} steps',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.getTextSecondary(context),
                 ),
               ),
             ],
@@ -72,13 +72,13 @@ class RitualStepsCard extends StatelessWidget {
                     Icon(
                       Icons.playlist_add,
                       size: 48,
-                      color: AppTheme.textLight,
+                      color: AppTheme.getTextSecondary(context),
                     ),
                     const SizedBox(height: AppTheme.spacingS),
                     Text(
                       'No steps yet',
                       style: TextStyle(
-                        color: AppTheme.textLight,
+                        color: AppTheme.getTextSecondary(context),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -95,7 +95,7 @@ class RitualStepsCard extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(AppTheme.spacingM),
                   decoration: BoxDecoration(
-                    color: AppTheme.darkBackground1,
+                    color: AppTheme.getBackgroundColor(context),
                     borderRadius: BorderRadius.circular(AppTheme.radiusM),
                   ),
                   child: Row(
@@ -124,7 +124,7 @@ class RitualStepsCard extends StatelessWidget {
                           step,
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppTheme.textPrimary,
+                            color: AppTheme.getTextPrimary(context),
                           ),
                         ),
                       ),

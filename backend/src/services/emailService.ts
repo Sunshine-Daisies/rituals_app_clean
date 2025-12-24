@@ -19,7 +19,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <img src="${BACKEND_URL}/public/logo.png" alt="Rituals Logo" style="width: 60px; height: 60px;">
+          <img src="${BACKEND_URL}/public/img/logo.png" alt="Rituals Logo" style="width: 60px; height: 60px;">
         </div>
         <h2 style="color: #6C63FF; text-align: center; margin-bottom: 24px;">Welcome to Rituals</h2>
         <p style="font-size: 16px; line-height: 1.5; color: #555; text-align: center;">There's one small step left. Please verify your email to get started.</p>
@@ -91,7 +91,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <img src="${BACKEND_URL}/public/logo.png" alt="Rituals Logo" style="width: 60px; height: 60px;">
+          <img src="${BACKEND_URL}/public/img/logo.png" alt="Rituals Logo" style="width: 60px; height: 60px;">
         </div>
         <h2 style="color: #6C63FF; text-align: center; margin-bottom: 24px;">Reset Password</h2>
         <p style="font-size: 16px; line-height: 1.5; color: #555; text-align: center;">Forgot your password? No problem. Click the button below to reset it.</p>
