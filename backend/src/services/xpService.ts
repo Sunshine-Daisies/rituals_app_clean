@@ -219,7 +219,7 @@ export async function updateUsername(userId: string, newUsername: string) {
   );
 
   if (existing.rows.length > 0) {
-    throw new Error('Bu kullanıcı adı zaten kullanılıyor');
+    throw new Error('This username is already taken');
   }
 
   const result = await pool.query(
