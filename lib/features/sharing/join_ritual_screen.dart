@@ -70,10 +70,12 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.backgroundGradient : null,
+          color: isDark ? null : AppTheme.lightBackground,
         ),
         child: SafeArea(
           child: Column(
@@ -85,12 +87,12 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
+                        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                         borderRadius: BorderRadius.circular(AppTheme.radiusM),
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
+                        icon: Icon(Icons.arrow_back, color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary, size: 20),
                         onPressed: () => context.go('/home'),
                         tooltip: 'Back',
                       ),
@@ -101,7 +103,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                         'Join Ritual',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                          color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                         ),
                       ),
                     ),
@@ -136,6 +138,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
               'Become Partner',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                   ),
             ),
             const SizedBox(height: 8),
@@ -143,7 +146,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
               'Enter the invitation code to join\nyour friend\'s ritual',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
+                    color: isDark ? Colors.grey[600] : AppTheme.lightTextSecondary,
                   ),
             ),
             const SizedBox(height: 32),
@@ -185,11 +188,11 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                       controller: _codeController,
                       textCapitalization: TextCapitalization.characters,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 8,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                       ),
                       maxLength: 6,
                       inputFormatters: [
@@ -199,7 +202,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                       decoration: InputDecoration(
                         hintText: 'ABC123',
                         hintStyle: TextStyle(
-                          color: Colors.grey[400],
+                          color: isDark ? Colors.grey[400] : AppTheme.lightTextLight,
                           letterSpacing: 8,
                         ),
                         counterText: '',
@@ -208,17 +211,17 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(color: isDark ? Colors.grey[700]! : AppTheme.lightTextLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: isDark ? Theme.of(context).colorScheme.primary : AppTheme.lightAccent,
                             width: 2,
                           ),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -281,6 +284,7 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
   }
 
   Widget _buildSuccessCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -306,13 +310,15 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
           const SizedBox(height: 8),
           Text(
             _joinResult!.ritualName ?? 'Ritual',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
             'by ${_joinResult!.ownerUsername ?? 'Partner'}',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: isDark ? Colors.grey[600] : AppTheme.lightTextSecondary),
           ),
           const SizedBox(height: 16),
           Container(
@@ -350,10 +356,11 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
   }
 
   Widget _buildInfoSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.05),
+        color: isDark ? Colors.blue.withOpacity(0.05) : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -381,10 +388,11 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
   }
 
   Widget _buildInfoItem(IconData icon, String title, String description) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
+        Icon(icon, size: 24, color: isDark ? Theme.of(context).colorScheme.primary : AppTheme.lightAccent),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -392,12 +400,18 @@ class _JoinRitualScreenState extends State<JoinRitualScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 description,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                style: TextStyle(
+                  color: isDark ? Colors.grey[600] : AppTheme.lightTextSecondary,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),

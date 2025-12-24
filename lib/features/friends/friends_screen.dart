@@ -349,6 +349,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   }
 
   Widget _buildInviteFriendsBanner() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -393,10 +395,10 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Invite Friends',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -404,7 +406,10 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
           const SizedBox(height: 8),
           RichText(
             text: TextSpan(
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+              style: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary, 
+                fontSize: 15,
+              ),
               children: const [
                 TextSpan(text: 'Earn '),
                 TextSpan(
@@ -476,6 +481,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   }
 
   Widget _buildSliverFriendsList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     if (_friends.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
@@ -485,12 +492,16 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
               Icon(
                 Icons.people_outline,
                 size: 64,
-                color: AppTheme.textSecondary.withOpacity(0.3),
+                color: isDark 
+                    ? AppTheme.textSecondary.withOpacity(0.3)
+                    : AppTheme.lightTextSecondary.withOpacity(0.3),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'No friends yet',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(
+                  color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                ),
               ),
             ],
           ),
@@ -513,14 +524,18 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   }
 
   Widget _buildSliverSearchResults() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     if (_searchResults.isEmpty && !_isSearching) {
-      return const SliverToBoxAdapter(
+      return SliverToBoxAdapter(
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(40),
             child: Text(
               'No users found',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
           ),
         ),
@@ -644,9 +659,10 @@ class _FriendCard extends StatelessWidget {
                 : AppTheme.lightTextSecondary,
           ),
           onPressed: () {
+            final sheetIsDark = Theme.of(context).brightness == Brightness.dark;
             showModalBottomSheet(
               context: context,
-              backgroundColor: AppTheme.surfaceColor,
+              backgroundColor: sheetIsDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(AppTheme.radiusL),

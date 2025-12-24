@@ -166,30 +166,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: isDark ? Colors.white : AppTheme.lightTextPrimary),
           onPressed: () => context.pop(),
         ),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Edit Profile',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: isDark ? Colors.white : AppTheme.lightTextPrimary),
         ),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _saveProfile,
             child: _isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
-                      color: Colors.cyan,
+                      color: isDark ? Colors.cyan : AppTheme.primaryColor,
                       strokeWidth: 2,
                     ),
                   )
-                : const Text(
+                : Text(
                     'Save',
                     style: TextStyle(
-                      color: Colors.cyanAccent,
+                      color: isDark ? Colors.cyanAccent : AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -211,13 +211,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.cyanAccent,
+                          color: isDark ? Colors.cyanAccent : AppTheme.primaryColor,
                         ),
                         child: CircleAvatar(
                           radius: 50,
-                          backgroundColor: Colors.grey[800],
+                          backgroundColor: isDark ? Colors.grey[800] : Colors.grey[300],
                           backgroundImage: _newAvatarFile != null
                               ? FileImage(_newAvatarFile!) as ImageProvider
                               : (_profile?.avatarUrl != null
@@ -231,10 +231,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           child:
                               (_newAvatarFile == null &&
                                   _profile?.avatarUrl == null)
-                              ? const Icon(
+                              ? Icon(
                                   Icons.person,
                                   size: 50,
-                                  color: Colors.white,
+                                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                                 )
                               : null,
                         ),
@@ -286,16 +286,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     required IconData icon,
     String? Function(String?)? validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       validator: validator,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: isDark ? Colors.white : AppTheme.lightTextPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-        prefixIcon: Icon(icon, color: Colors.cyanAccent),
+        labelStyle: TextStyle(color: isDark ? Colors.white.withOpacity(0.6) : AppTheme.lightTextSecondary),
+        prefixIcon: Icon(icon, color: isDark ? Colors.cyanAccent : AppTheme.primaryColor),
         filled: true,
-        fillColor: AppTheme.cardColor,
+        fillColor: isDark ? AppTheme.cardColor : AppTheme.lightSurface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -306,7 +307,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.cyanAccent),
+          borderSide: BorderSide(color: isDark ? Colors.cyanAccent : AppTheme.primaryColor),
         ),
       ),
     );

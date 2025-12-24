@@ -469,21 +469,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                               decoration: BoxDecoration(
                                                 color: isDark
                                                     ? AppTheme.darkSurface
-                                                    : Colors.white,
+                                                    : AppTheme.lightCardColor,
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 border: Border.all(
                                                   color: isDark
                                                       ? Colors.white24
-                                                      : AppTheme.primaryColor
-                                                            .withOpacity(0.3),
+                                                      : AppTheme.lightTextLight
+                                                            .withOpacity(0.5),
                                                   width: 1,
                                                 ),
                                                 boxShadow: isDark
                                                     ? null
                                                     : [
                                                         BoxShadow(
-                                                          color: Colors.black
+                                                          color: const Color(0xFF213448)
                                                               .withOpacity(0.1),
                                                           blurRadius: 4,
                                                           offset: const Offset(
@@ -500,7 +500,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                                   fontWeight: FontWeight.bold,
                                                   color: isDark
                                                       ? Colors.white
-                                                      : AppTheme.primaryColor,
+                                                      : AppTheme.lightPrimary,
                                                 ),
                                               ),
                                             ),
@@ -641,20 +641,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? Colors.white.withOpacity(0.04)
-                                    : Colors.white,
+                                    : AppTheme.lightCardColor,
                                 borderRadius: BorderRadius.circular(
                                   AppTheme.radiusXL,
                                 ),
                                 border: Border.all(
                                   color: isDark
                                       ? Colors.white.withOpacity(0.05)
-                                      : Colors.black.withOpacity(0.05),
+                                      : AppTheme.lightTextLight.withOpacity(0.3),
                                 ),
                                 boxShadow: isDark
                                     ? null
                                     : [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
+                                          color: const Color(0xFF213448).withOpacity(0.08),
                                           blurRadius: 10,
                                           offset: const Offset(0, 2),
                                         ),
@@ -673,11 +673,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                           strokeWidth: 8,
                                           backgroundColor: isDark
                                               ? Colors.white10
-                                              : Colors.black.withOpacity(0.1),
+                                              : AppTheme.lightTextLight.withOpacity(0.3),
                                           valueColor:
-                                              const AlwaysStoppedAnimation<
+                                              AlwaysStoppedAnimation<
                                                 Color
-                                              >(AppTheme.primaryColor),
+                                              >(isDark ? AppTheme.primaryColor : AppTheme.lightPrimary),
                                         ),
                                       ),
                                       Text(
@@ -1302,19 +1302,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Container(
       height: 90,
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkBackground1 : Colors.white,
+        color: isDark ? AppTheme.darkBackground1 : AppTheme.lightSurface,
         border: Border(
           top: BorderSide(
             color: isDark
                 ? Colors.white.withOpacity(0.05)
-                : Colors.black.withOpacity(0.05),
+                : AppTheme.lightTextLight.withOpacity(0.2),
           ),
         ),
         boxShadow: isDark
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: const Color(0xFF213448).withOpacity(0.08),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),

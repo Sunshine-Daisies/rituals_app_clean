@@ -679,7 +679,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkBackground1 : Colors.grey.shade100,
+              color: isDark ? AppTheme.darkBackground1 : AppTheme.lightBackground,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -697,7 +697,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: isLocked
                 ? Icon(
                     Icons.lock_outline,
-                    color: isDark ? Colors.white24 : Colors.grey.shade400,
+                    color: isDark ? Colors.white24 : AppTheme.lightTextLight,
                     size: 32,
                   )
                 : Text(badge.icon, style: const TextStyle(fontSize: 32)),
@@ -789,19 +789,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showShopDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F24),
+        backgroundColor: isDark ? const Color(0xFF1A1F24) : AppTheme.lightSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.shopping_bag_outlined, color: Colors.orange),
-            SizedBox(width: 12),
+            const Icon(Icons.shopping_bag_outlined, color: Colors.orange),
+            const SizedBox(width: 12),
             Text(
               'Shop',
               style: TextStyle(
-                color: Colors.white,
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -832,7 +833,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close', style: TextStyle(color: Colors.white54)),
+            child: Text('Close', style: TextStyle(color: isDark ? Colors.white54 : AppTheme.lightTextSecondary)),
           ),
         ],
       ),
@@ -847,13 +848,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1)),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -873,15 +875,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     description,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: isDark ? Colors.white.withOpacity(0.5) : AppTheme.lightTextSecondary,
                       fontSize: 11,
                     ),
                   ),

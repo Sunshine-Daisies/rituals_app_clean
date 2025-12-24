@@ -27,6 +27,82 @@ class AppTheme {
   static const Color errorColor = Color(0xFFEF4444); // Red 500
   static const Color warningColor = Color(0xFFF59E0B); // Amber 500
 
+  // ============================================
+  // THEME-AWARE COLOR HELPERS
+  // ============================================
+  
+  /// Get background color based on theme
+  static Color getBackgroundColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? darkBackground1 : lightBackground;
+  }
+
+  /// Get surface color based on theme
+  static Color getSurfaceColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? darkSurface : lightSurface;
+  }
+
+  /// Get card color based on theme
+  static Color getCardColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? cardBackground : lightCardColor;
+  }
+
+  /// Get primary text color based on theme
+  static Color getTextPrimary(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white : lightTextPrimary;
+  }
+
+  /// Get secondary text color based on theme
+  static Color getTextSecondary(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? textSecondary : lightTextSecondary;
+  }
+
+  /// Get tertiary/light text color based on theme
+  static Color getTextLight(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? textLight : lightTextLight;
+  }
+
+  /// Get primary action color based on theme
+  static Color getPrimaryColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? primaryColor : lightPrimary;
+  }
+
+  /// Get accent color based on theme
+  static Color getAccentColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? accentColor : lightAccent;
+  }
+
+  /// Get border color based on theme
+  static Color getBorderColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white.withOpacity(0.1) : lightTextLight.withOpacity(0.3);
+  }
+
+  /// Get divider color based on theme
+  static Color getDividerColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white.withOpacity(0.05) : lightTextLight.withOpacity(0.2);
+  }
+
+  /// Get icon color based on theme
+  static Color getIconColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white : lightTextPrimary;
+  }
+
+  /// Get secondary icon color based on theme
+  static Color getIconSecondary(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white70 : lightTextSecondary;
+  }
+
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [primaryColor, primaryLight],
@@ -45,6 +121,18 @@ class AppTheme {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
+
+  /// Get background gradient based on theme
+  static LinearGradient getBackgroundGradient(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark
+        ? backgroundGradient
+        : const LinearGradient(
+            colors: [lightBackground, Color(0xFFF5EBD9)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          );
+  }
 
   // Spacing
   static const double spacingXS = 4.0;
@@ -155,15 +243,15 @@ class AppTheme {
     ),
   );
 
-  // Light Theme Colors
-  static const Color lightBackground = Color(
-    0xFFF8F9FA,
-  ); // Light gray background
-  static const Color lightSurface = Colors.white;
-  static const Color lightCardColor = Colors.white;
-  static const Color lightTextPrimary = Color(0xFF1A1A1A); // Almost black
-  static const Color lightTextSecondary = Color(0xFF64748B); // Slate 500
-  static const Color lightTextLight = Color(0xFF94A3B8); // Slate 400
+  // Light Theme Colors (New Palette)
+  static const Color lightBackground = Color(0xFFEAE0CF); // Cream/beige background
+  static const Color lightSurface = Color(0xFFFFF8F0); // Lighter cream for surfaces
+  static const Color lightCardColor = Color(0xFFFFFBF5); // Even lighter for cards
+  static const Color lightTextPrimary = Color(0xFF213448); // Dark blue - primary text
+  static const Color lightTextSecondary = Color(0xFF547792); // Medium blue - secondary text
+  static const Color lightTextLight = Color(0xFF94B4C1); // Light blue - tertiary text
+  static const Color lightAccent = Color(0xFF547792); // Medium blue - accent
+  static const Color lightPrimary = Color(0xFF213448); // Dark blue - primary actions
 
   // Light Theme
   static ThemeData lightTheme = ThemeData(
@@ -171,8 +259,8 @@ class AppTheme {
     brightness: Brightness.light,
     scaffoldBackgroundColor: lightBackground,
     colorScheme: ColorScheme.light(
-      primary: primaryColor,
-      secondary: accentColor,
+      primary: lightPrimary,
+      secondary: lightAccent,
       surface: lightSurface,
       error: errorColor,
       onPrimary: Colors.white,
@@ -198,12 +286,12 @@ class AppTheme {
 
     // Card Theme
     cardTheme: CardThemeData(
-      elevation: 0,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radiusL),
       ),
       color: lightCardColor,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Color(0xFF213448).withOpacity(0.1),
     ),
 
     // Elevated Button Theme
@@ -214,7 +302,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusM),
         ),
-        backgroundColor: primaryColor,
+        backgroundColor: lightPrimary,
         foregroundColor: Colors.white,
         textStyle: const TextStyle(
           fontSize: 16,
@@ -227,7 +315,7 @@ class AppTheme {
     // Bottom Navigation Bar Theme
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: lightSurface,
-      selectedItemColor: primaryColor,
+      selectedItemColor: lightPrimary,
       unselectedItemColor: lightTextSecondary,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
@@ -236,7 +324,7 @@ class AppTheme {
     // Text Button Theme
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: primaryColor,
+        foregroundColor: lightPrimary,
         textStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -249,11 +337,11 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        side: const BorderSide(color: primaryColor, width: 1.5),
+        side: const BorderSide(color: lightPrimary, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusM),
         ),
-        foregroundColor: primaryColor,
+        foregroundColor: lightPrimary,
         textStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -269,15 +357,15 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: lightTextLight.withOpacity(0.3)),
+        borderSide: BorderSide(color: lightTextLight.withOpacity(0.5)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: lightTextLight.withOpacity(0.3)),
+        borderSide: BorderSide(color: lightTextLight.withOpacity(0.5)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: const BorderSide(color: primaryColor, width: 2),
+        borderSide: const BorderSide(color: lightPrimary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
@@ -295,8 +383,8 @@ class AppTheme {
     // Chip Theme
     chipTheme: ChipThemeData(
       backgroundColor: lightSurface,
-      selectedColor: primaryColor,
-      secondarySelectedColor: accentColor,
+      selectedColor: lightPrimary,
+      secondarySelectedColor: lightAccent,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       labelStyle: TextStyle(
         fontSize: 14,

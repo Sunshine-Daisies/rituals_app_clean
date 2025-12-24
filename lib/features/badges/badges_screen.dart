@@ -98,9 +98,9 @@ class _BadgesScreenState extends ConsumerState<BadgesScreen>
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back,
-                          color: AppTheme.textPrimary,
+                          color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                           size: 20,
                         ),
                         onPressed: () => context.pop(),
@@ -114,7 +114,7 @@ class _BadgesScreenState extends ConsumerState<BadgesScreen>
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                             ),
                       ),
                     ),
@@ -129,18 +129,26 @@ class _BadgesScreenState extends ConsumerState<BadgesScreen>
                 ),
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor,
+                  color: isDark ? AppTheme.surfaceColor : AppTheme.lightCardColor,
                   borderRadius: BorderRadius.circular(25),
-                  boxShadow: AppTheme.cardShadow,
+                  boxShadow: isDark ? AppTheme.cardShadow : [
+                    BoxShadow(
+                      color: const Color(0xFF213448).withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: TabBar(
                   controller: _tabController,
                   indicator: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
+                    gradient: isDark ? AppTheme.primaryGradient : const LinearGradient(
+                      colors: [Color(0xFF213448), Color(0xFF547792)],
+                    ),
                     borderRadius: BorderRadius.circular(21),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        color: (isDark ? AppTheme.primaryColor : const Color(0xFF213448)).withOpacity(0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -149,12 +157,12 @@ class _BadgesScreenState extends ConsumerState<BadgesScreen>
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
                   labelColor: Colors.white,
-                  unselectedLabelColor: AppTheme.textSecondary,
+                  unselectedLabelColor: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
                   labelStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
-                  overlayColor: MaterialStateProperty.all(Colors.transparent),
+                  overlayColor: WidgetStateProperty.all(Colors.transparent),
                   tabs: const [
                     Tab(
                       height: 40,

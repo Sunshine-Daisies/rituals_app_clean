@@ -209,7 +209,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
+                    color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(30),
                     ),
@@ -235,38 +235,44 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
       padding: const EdgeInsets.all(AppTheme.spacingL),
       child: Row(
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: isDark 
+                  ? Colors.white.withOpacity(0.1)
+                  : AppTheme.lightTextSecondary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
-              color: Colors.white,
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             ),
           ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'AI Assistant',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 ),
               ),
               Text(
                 'Your ritual planner',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
+                  color: isDark 
+                      ? Colors.white.withOpacity(0.7)
+                      : AppTheme.lightTextSecondary,
                 ),
               ),
             ],
@@ -275,10 +281,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: isDark 
+                  ? Colors.white.withOpacity(0.1)
+                  : AppTheme.lightTextSecondary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.auto_awesome, color: Colors.white),
+            child: Icon(
+              Icons.auto_awesome, 
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            ),
           ),
         ],
       ),
@@ -286,6 +297,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildMessageList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     if (_messages.isEmpty) {
       return Center(
         child: Column(
@@ -309,14 +322,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+                color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'To create a new ritual,\ntell me about your goals.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 16, 
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
           ],
         ),
@@ -337,6 +353,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = message.isUser;
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -347,7 +364,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isUser ? AppTheme.primaryColor : AppTheme.backgroundColor,
+          color: isUser 
+              ? AppTheme.primaryColor 
+              : (isDark ? AppTheme.backgroundColor : AppTheme.lightCardColor),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
             topRight: const Radius.circular(20),
@@ -356,7 +375,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: isDark 
+                  ? Colors.black.withOpacity(0.05)
+                  : const Color(0xFF213448).withOpacity(0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -365,7 +386,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Text(
           message.text,
           style: TextStyle(
-            color: isUser ? Colors.white : AppTheme.textPrimary,
+            color: isUser 
+                ? Colors.white 
+                : (isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary),
             fontSize: 16,
             height: 1.4,
           ),
@@ -375,13 +398,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildLoadingIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
+          color: isDark ? AppTheme.backgroundColor : AppTheme.lightCardColor,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
@@ -403,7 +428,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             const SizedBox(width: 8),
             Text(
               'Typing...',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              style: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary, 
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -412,13 +440,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildInputArea() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDark 
+                ? Colors.black.withOpacity(0.05)
+                : const Color(0xFF213448).withOpacity(0.08),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -429,17 +461,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
+                color: isDark ? AppTheme.backgroundColor : AppTheme.lightCardColor,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: isDark 
+                      ? AppTheme.primaryColor.withOpacity(0.1)
+                      : AppTheme.lightTextSecondary.withOpacity(0.2),
                 ),
               ),
               child: TextField(
                 controller: _messageController,
+                style: TextStyle(
+                  color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Type your message...',
-                  hintStyle: TextStyle(color: AppTheme.textSecondary),
+                  hintStyle: TextStyle(
+                    color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,

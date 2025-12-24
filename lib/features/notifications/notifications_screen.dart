@@ -92,22 +92,33 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Future<void> _deleteAllNotifications() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardColor,
+        backgroundColor: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete All?', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text(
+          'Delete All?', 
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
+        ),
+        content: Text(
           'All your notifications will be deleted. This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(
+            color: isDark ? Colors.white70 : AppTheme.lightTextSecondary,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white54),
+              style: TextStyle(
+                color: isDark ? Colors.white54 : AppTheme.lightTextSecondary,
+              ),
             ),
           ),
           TextButton(
@@ -349,18 +360,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.white,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             size: 20,
           ),
           onPressed: () => context.pop(),
         ),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Notifications',
           style: TextStyle(
-            color: Colors.white,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -395,9 +406,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: AppTheme.cardColor,
+                color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
                 borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                border: Border.all(
+                  color: isDark 
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : AppTheme.lightTextSecondary.withOpacity(0.1),
+                ),
               ),
               child: Row(
                 children: [
@@ -421,7 +436,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 : RefreshIndicator(
                     onRefresh: _loadNotifications,
                     color: Colors.cyan,
-                    backgroundColor: AppTheme.cardColor,
+                    backgroundColor: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
                       itemCount: _filteredNotifications.length,
@@ -479,6 +494,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _buildFilterTab(String title, String type, {int count = 0}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _filter == type;
     return Expanded(
       child: GestureDetector(
@@ -495,7 +511,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               Text(
                 title,
                 style: TextStyle(
-                  color: isSelected ? Colors.black : Colors.white60,
+                  color: isSelected 
+                      ? Colors.black 
+                      : (isDark ? Colors.white60 : AppTheme.lightTextSecondary),
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -529,6 +547,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -536,16 +556,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppTheme.cardColor,
+              color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : AppTheme.lightTextSecondary.withOpacity(0.1),
+              ),
             ),
             child: Icon(
               _filter == 'unread'
                   ? Icons.mark_email_read_outlined
                   : Icons.notifications_none_rounded,
               size: 50,
-              color: Colors.white24,
+              color: isDark ? Colors.white24 : AppTheme.lightTextSecondary.withOpacity(0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -553,8 +577,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             _filter == 'unread'
                 ? "You've read all notifications!"
                 : 'No notifications yet',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -564,7 +588,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             _filter == 'unread'
                 ? "You're doing great."
                 : 'New updates will appear here.',
-            style: const TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(
+              color: isDark ? Colors.white54 : AppTheme.lightTextSecondary, 
+              fontSize: 14,
+            ),
           ),
         ],
       ),
@@ -610,6 +637,8 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Dismissible(
       key: Key('notification_${notification.id}'),
       direction: DismissDirection.endToStart,
@@ -630,11 +659,13 @@ class _NotificationCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.cardColor,
+            color: isDark ? AppTheme.cardColor : AppTheme.lightCardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: notification.isRead
-                  ? Colors.white.withValues(alpha: 0.05)
+                  ? (isDark 
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : AppTheme.lightTextSecondary.withOpacity(0.1))
                   : Colors.cyan.withValues(alpha: 0.3),
               width: 1,
             ),
@@ -666,7 +697,7 @@ class _NotificationCard extends StatelessWidget {
                           child: Text(
                             notification.title,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                               fontWeight: notification.isRead
                                   ? FontWeight.w600
                                   : FontWeight.bold,
@@ -676,8 +707,8 @@ class _NotificationCard extends StatelessWidget {
                         ),
                         Text(
                           _formatTimeAgo(notification.createdAt),
-                          style: const TextStyle(
-                            color: Colors.white38,
+                          style: TextStyle(
+                            color: isDark ? Colors.white38 : AppTheme.lightTextSecondary,
                             fontSize: 11,
                           ),
                         ),
@@ -687,7 +718,9 @@ class _NotificationCard extends StatelessWidget {
                     Text(
                       notification.body,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: isDark 
+                            ? Colors.white.withValues(alpha: 0.6)
+                            : AppTheme.lightTextSecondary,
                         fontSize: 13,
                         height: 1.4,
                       ),

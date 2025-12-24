@@ -63,24 +63,32 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
   Future<void> _leavePartnership() async {
     if (_partnershipInfo?.partnershipId == null) return;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
         title: Text(
           'Partnerlıktan Ayrıl',
-          style: TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+          ),
         ),
         content: Text(
           'Partnerlıktan ayrılmak istediğinize emin misiniz?\n\nHer iki taraf da kendi ritüelini koruyacak.',
-          style: TextStyle(color: AppTheme.textSecondary),
+          style: TextStyle(
+            color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'İptal',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
           ),
           TextButton(
@@ -188,11 +196,12 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
   }
 
   void _editStep(int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final controller = TextEditingController(text: _steps[index]);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusL),
         ),
@@ -200,18 +209,27 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
           children: [
             Icon(Icons.edit, color: AppTheme.primaryColor),
             SizedBox(width: 12),
-            Text('Edit Step', style: TextStyle(color: AppTheme.textPrimary)),
+            Text(
+              'Edit Step', 
+              style: TextStyle(
+                color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+              ),
+            ),
           ],
         ),
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+          ),
           decoration: InputDecoration(
             hintText: 'Step',
-            hintStyle: TextStyle(color: AppTheme.textSecondary),
+            hintStyle: TextStyle(
+              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+            ),
             filled: true,
-            fillColor: AppTheme.darkBackground1,
+            fillColor: isDark ? AppTheme.darkBackground1 : AppTheme.lightCardColor,
           ),
         ),
         actions: [
@@ -219,7 +237,9 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
           ),
           Container(
@@ -246,11 +266,12 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
   }
 
   void _addStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusL),
         ),
@@ -258,18 +279,27 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
           children: [
             Icon(Icons.add_circle, color: AppTheme.primaryColor),
             SizedBox(width: 12),
-            Text('Add New Step', style: TextStyle(color: AppTheme.textPrimary)),
+            Text(
+              'Add New Step', 
+              style: TextStyle(
+                color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+              ),
+            ),
           ],
         ),
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(
+            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+          ),
           decoration: InputDecoration(
             hintText: 'Step',
-            hintStyle: TextStyle(color: AppTheme.textSecondary),
+            hintStyle: TextStyle(
+              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+            ),
             filled: true,
-            fillColor: AppTheme.darkBackground1,
+            fillColor: isDark ? AppTheme.darkBackground1 : AppTheme.lightCardColor,
           ),
         ),
         actions: [
@@ -277,7 +307,9 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
           ),
           Container(
@@ -441,14 +473,14 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
+                        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                         borderRadius: BorderRadius.circular(AppTheme.radiusM),
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () => context.pop(),
-                        color: AppTheme.textPrimary,
+                        color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                       ),
                     ),
                     const SizedBox(width: AppTheme.spacingM),
@@ -459,12 +491,17 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
                           Text(
                             'Edit Ritual',
                             style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                                ),
                           ),
                           Text(
                             'Update details',
                             style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppTheme.textSecondary),
+                                ?.copyWith(
+                                  color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                                ),
                           ),
                         ],
                       ),
@@ -472,7 +509,7 @@ class _RitualDetailScreenState extends ConsumerState<RitualDetailScreen> {
                     // Share Button
                     Container(
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
+                        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                         borderRadius: BorderRadius.circular(AppTheme.radiusM),
                         boxShadow: AppTheme.cardShadow,
                       ),

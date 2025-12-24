@@ -284,14 +284,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           color: isSelected
               ? (isDark
                     ? Colors.cyanAccent.withOpacity(0.1)
-                    : AppTheme.primaryColor.withOpacity(0.1))
+                    : AppTheme.lightPrimary.withOpacity(0.1))
               : (isDark
                     ? Colors.white.withOpacity(0.05)
-                    : Colors.grey.withOpacity(0.1)),
+                    : AppTheme.lightTextLight.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? (isDark ? Colors.cyanAccent : AppTheme.primaryColor)
+                ? (isDark ? Colors.cyanAccent : AppTheme.lightPrimary)
                 : Colors.transparent,
             width: 2,
           ),
@@ -301,7 +301,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Icon(
               icon,
               color: isSelected
-                  ? (isDark ? Colors.cyanAccent : AppTheme.primaryColor)
+                  ? (isDark ? Colors.cyanAccent : AppTheme.lightPrimary)
                   : (isDark
                         ? Colors.white.withOpacity(0.6)
                         : AppTheme.lightTextSecondary),
@@ -336,7 +336,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: isDark ? Colors.cyanAccent : AppTheme.primaryColor,
+                color: isDark ? Colors.cyanAccent : AppTheme.lightPrimary,
                 size: 24,
               ),
           ],
@@ -485,11 +485,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: const Text(
                   'Log Out',
                   style: TextStyle(
-                    inherit: false,
                     color: Colors.redAccent,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'Roboto',
                   ),
                 ),
               ),

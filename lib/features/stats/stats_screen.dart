@@ -320,8 +320,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         border: Border.all(
           color: isDark
               ? Colors.white.withOpacity(0.05)
-              : Colors.black.withOpacity(0.05),
+              : AppTheme.lightTextLight.withOpacity(0.3),
         ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: const Color(0xFF213448).withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

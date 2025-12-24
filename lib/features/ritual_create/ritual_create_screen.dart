@@ -238,7 +238,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
+                    color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(30),
                     ),
@@ -297,28 +297,31 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(AppTheme.spacingL),
       child: Row(
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : AppTheme.lightSurface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
-              color: Colors.white,
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
+          Text(
             'Create Ritual',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             ),
           ),
         ],
@@ -327,29 +330,31 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: AppTheme.textPrimary,
+        color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
       ),
     );
   }
 
   Widget _buildNameInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
+        color: isDark ? AppTheme.backgroundColor : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
       ),
       child: TextField(
         controller: _nameController,
-        style: const TextStyle(color: AppTheme.textPrimary),
+        style: TextStyle(color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary),
         decoration: InputDecoration(
           hintText: 'e.g., Morning Meditation',
-          hintStyle: TextStyle(color: AppTheme.textSecondary),
+          hintStyle: TextStyle(color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
           prefixIcon: const Icon(
@@ -362,12 +367,13 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   }
 
   Widget _buildTimeSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: _selectTime,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
+          color: isDark ? AppTheme.backgroundColor : AppTheme.lightSurface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
         ),
@@ -388,7 +394,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: AppTheme.textPrimary,
+                  color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                 ),
               ),
             ),
@@ -407,10 +413,11 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   }
 
   Widget _buildRepeatModeSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
+        color: isDark ? AppTheme.backgroundColor : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -431,7 +438,9 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
                   ),
                 ),
               ),
@@ -446,6 +455,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
     List<String> daysOrder,
     Map<String, String> dayLabels,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -454,7 +464,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppTheme.textSecondary,
+            color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -469,7 +479,9 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
                 height: 40,
                 decoration: BoxDecoration(
                   gradient: isSelected ? AppTheme.primaryGradient : null,
-                  color: isSelected ? null : AppTheme.backgroundColor,
+                  color: isSelected
+                      ? null
+                      : (isDark ? AppTheme.backgroundColor : AppTheme.lightSurface),
                   shape: BoxShape.circle,
                   boxShadow: isSelected
                       ? [
@@ -490,7 +502,9 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
                     ),
                   ),
                 ),
@@ -503,6 +517,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   }
 
   Widget _buildStepsList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: List.generate(_stepControllers.length, (index) {
         return Padding(
@@ -512,7 +527,7 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor,
+                    color: isDark ? AppTheme.backgroundColor : AppTheme.lightSurface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: AppTheme.primaryColor.withOpacity(0.1),
@@ -520,14 +535,14 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
                   ),
                   child: TextField(
                     controller: _stepControllers[index],
-                    style: const TextStyle(color: AppTheme.textPrimary),
+                    style: TextStyle(color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary),
                     decoration: InputDecoration(
                       hintText: index == 0
                           ? 'Step 1: Drink a glass of water'
                           : index == 1
                           ? 'Step 2: Meditate for 10 minutes'
                           : 'New Step',
-                      hintStyle: TextStyle(color: AppTheme.textSecondary),
+                      hintStyle: TextStyle(color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -572,10 +587,11 @@ class _RitualCreateScreenState extends ConsumerState<RitualCreateScreen> {
   }
 
   Widget _buildBottomBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

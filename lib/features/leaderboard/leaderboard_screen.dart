@@ -143,14 +143,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
+                        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                         borderRadius: BorderRadius.circular(AppTheme.radiusM),
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back,
-                          color: AppTheme.textPrimary,
+                          color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                           size: 20,
                         ),
                         onPressed: () => context.pop(),
@@ -164,7 +164,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                             ),
                       ),
                     ),
@@ -210,7 +210,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
+                    color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurface,
                     borderRadius: BorderRadius.circular(AppTheme.radiusM),
                     boxShadow: AppTheme.cardShadow,
                   ),
@@ -254,15 +254,19 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                 Icon(
                                   Icons.leaderboard_outlined,
                                   size: 80,
-                                  color: AppTheme.textSecondary.withOpacity(
-                                    0.5,
-                                  ),
+                                  color: isDark 
+                                      ? AppTheme.textSecondary.withOpacity(0.5)
+                                      : AppTheme.lightTextSecondary.withOpacity(0.5),
                                 ),
                                 const SizedBox(height: AppTheme.spacingM),
                                 Text(
                                   'No rankings yet',
                                   style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(color: AppTheme.textSecondary),
+                                      ?.copyWith(
+                                        color: isDark 
+                                            ? AppTheme.textSecondary 
+                                            : AppTheme.lightTextSecondary,
+                                      ),
                                 ),
                               ],
                             ),
@@ -723,6 +727,8 @@ class _TypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -741,7 +747,7 @@ class _TypeButton extends StatelessWidget {
                 size: 20,
                 color: isSelected
                     ? AppTheme.primaryColor
-                    : AppTheme.textSecondary,
+                    : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
               ),
               const SizedBox(height: 4),
               Text(
@@ -751,7 +757,7 @@ class _TypeButton extends StatelessWidget {
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
                       ? AppTheme.primaryColor
-                      : AppTheme.textSecondary,
+                      : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
                 ),
               ),
             ],
@@ -777,6 +783,7 @@ class _LeaderboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isMe = currentUserId != null && entry.userId == currentUserId;
 
     return Container(
@@ -795,15 +802,17 @@ class _LeaderboardCard extends StatelessWidget {
                 width: 30,
                 child: Text(
                   '${entry.rank}',
-                  style: const TextStyle(
-                    color: Colors.white38,
+                  style: TextStyle(
+                    color: isDark ? Colors.white38 : AppTheme.lightTextSecondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               CircleAvatar(
                 radius: 22,
-                backgroundColor: Colors.white.withOpacity(0.05),
+                backgroundColor: isDark 
+                    ? Colors.white.withOpacity(0.05)
+                    : AppTheme.lightTextSecondary.withOpacity(0.1),
                 backgroundImage: entry.avatarUrl != null
                     ? NetworkImage(entry.avatarUrl!)
                     : null,
@@ -822,8 +831,8 @@ class _LeaderboardCard extends StatelessWidget {
           children: [
             Text(
               entry.username,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -839,7 +848,10 @@ class _LeaderboardCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '${entry.longestStreak} Day Streak',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
+                    style: TextStyle(
+                      color: isDark ? Colors.white38 : AppTheme.lightTextSecondary, 
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -850,8 +862,8 @@ class _LeaderboardCard extends StatelessWidget {
           children: [
             Text(
               '${entry.xp.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
