@@ -16,7 +16,7 @@ class EmptyTodayCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Opacity(
-        opacity: 0.4,
+        opacity: 0.2,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           decoration: BoxDecoration(
