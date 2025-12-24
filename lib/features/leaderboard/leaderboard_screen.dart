@@ -374,13 +374,15 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             const SizedBox(width: 16),
             CircleAvatar(
               radius: 20,
-              backgroundImage: myEntry.avatarUrl != null
+              backgroundImage: myEntry.avatarUrl != null && myEntry.avatarUrl!.isNotEmpty
                   ? NetworkImage(myEntry.avatarUrl!)
                   : null,
-              onBackgroundImageError: myEntry.avatarUrl != null
+              onBackgroundImageError: myEntry.avatarUrl != null && myEntry.avatarUrl!.isNotEmpty
                   ? (exception, stackTrace) {}
                   : null,
-              child: myEntry.avatarUrl == null ? const Text('You') : null,
+              child: myEntry.avatarUrl == null || myEntry.avatarUrl!.isEmpty
+                  ? Text(myEntry.username.isNotEmpty ? myEntry.username[0].toUpperCase() : '?')
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -497,7 +499,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 ],
               ),
               child: ClipOval(
-                child: entry.avatarUrl != null
+                child: entry.avatarUrl != null && entry.avatarUrl!.isNotEmpty
                     ? Image.network(
                         entry.avatarUrl!,
                         fit: BoxFit.cover,
@@ -809,14 +811,20 @@ class _LeaderboardCard extends StatelessWidget {
                 backgroundColor: isDark 
                     ? Colors.white.withOpacity(0.05)
                     : AppTheme.lightTextSecondary.withOpacity(0.1),
-                backgroundImage: entry.avatarUrl != null
+                backgroundImage: entry.avatarUrl != null && entry.avatarUrl!.isNotEmpty
                     ? NetworkImage(entry.avatarUrl!)
                     : null,
-                onBackgroundImageError: entry.avatarUrl != null
+                onBackgroundImageError: entry.avatarUrl != null && entry.avatarUrl!.isNotEmpty
                     ? (exception, stackTrace) {}
                     : null,
-                child: entry.avatarUrl == null
-                    ? Text(entry.username[0].toUpperCase())
+                child: entry.avatarUrl == null || entry.avatarUrl!.isEmpty
+                    ? Text(
+                        entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
+                        style: TextStyle(
+                           color: isDark ? Colors.white70 : AppTheme.lightTextSecondary,
+                           fontWeight: FontWeight.bold,
+                        ),
+                      )
                     : null,
               ),
             ],

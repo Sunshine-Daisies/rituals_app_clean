@@ -126,6 +126,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
+  Widget _buildConsistencyHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final rate = _calculateLifetimeRate();
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,7 +179,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final initials = (_profile!.username.isNotEmpty 
             ? _profile!.username[0] 
-            : (_profile!.email.isNotEmpty ? _profile!.email[0] : '?'))
+            : ((_profile!.email?.isNotEmpty ?? false) ? _profile!.email![0] : '?'))
         .toUpperCase();
 
     return Container(
@@ -211,6 +215,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             : null,
       ),
     );
+  }
 
   Widget _buildLineChart() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
