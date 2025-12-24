@@ -13,6 +13,43 @@ function generateUsername(email: string): string {
   return `${base}_${random}`;
 }
 
+// Benzersiz username oluştur (önce düz ismi dene, varsa sayı ekle)
+async function generateUniqueUsername(baseName: string): Promise<string> {
+  // İsmi temizle (sadece küçük harf, rakam ve alt çizgi)
+  const cleanName = baseName.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  
+  // Önce düz ismi dene
+  const existingCheck = await pool.query(
+    'SELECT id FROM user_profiles WHERE username = $1',
+    [cleanName]
+  );
+  
+  if (existingCheck.rows.length === 0) {
+    // İsim müsait, doğrudan kullan
+    return cleanName;
+  }
+  
+  // İsim alınmış, sayı ekleyerek dene
+  let attempts = 0;
+  while (attempts < 100) {
+    const random = Math.floor(Math.random() * 1000);
+    const candidateUsername = `${cleanName}_${random}`;
+    
+    const checkResult = await pool.query(
+      'SELECT id FROM user_profiles WHERE username = $1',
+      [candidateUsername]
+    );
+    
+    if (checkResult.rows.length === 0) {
+      return candidateUsername;
+    }
+    attempts++;
+  }
+  
+  // 100 denemeden sonra hala bulunamadıysa, timestamp ekle
+  return `${cleanName}_${Date.now()}`;
+}
+
 // Kayıt Ol
 export const register = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
@@ -43,9 +80,9 @@ export const register = async (req: Request, res: Response) => {
 
     // 5. Gamification profili oluştur
     const userId = userResult.rows[0].id;
-    // Kullanıcı adı varsa onu kullan, yoksa email'den üret
+    // Kullanıcı adı varsa benzersiz şekilde oluştur (önce düz isim dene), yoksa email'den üret
     const username = name
-      ? name.toLowerCase().replace(/[^a-z0-9_]/g, '_') + '_' + Math.floor(Math.random() * 100)
+      ? await generateUniqueUsername(name)
       : generateUsername(email);
 
     await xpService.createUserProfile(userId, username);
