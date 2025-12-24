@@ -166,7 +166,11 @@ export async function getUserProfile(userId: string) {
       u.email,
       (SELECT COUNT(*) FROM friendships WHERE (requester_id = $1 OR addressee_id = $1) AND status = 'accepted') as friends_count,
       (SELECT COUNT(*) FROM rituals WHERE user_id = $1) as rituals_count,
-      (SELECT COUNT(*) FROM ritual_logs WHERE user_id = $1) as completions_count
+      (SELECT COUNT(*) FROM ritual_logs WHERE user_id = $1) as completions_count,
+      GREATEST(
+        up.longest_streak,
+        COALESCE((SELECT MAX(current_streak) FROM rituals WHERE user_id = $1), 0)
+      ) as calculated_longest_streak
     FROM user_profiles up
     JOIN users u ON u.id = up.user_id
     WHERE up.user_id = $1`,
@@ -183,6 +187,8 @@ export async function getUserProfile(userId: string) {
 
   return {
     ...profile,
+    // Use calculated_longest_streak which takes the max of user_profiles.longest_streak and rituals.max(current_streak)
+    longest_streak: parseInt(profile.calculated_longest_streak || '0'),
     level_title: levelInfo.title,
     xp_for_next_level: xpProgress.needed,
     xp_progress_percent: xpProgress.progress,

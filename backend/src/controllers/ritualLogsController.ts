@@ -216,6 +216,34 @@ async function updatePersonalRitualStreak(ritualId: string) {
     [newStreak, newLongest, ritualId]
   );
 
+  // user_profiles tablosundaki longest_streak'i de güncelle
+  // (Tüm ritüeller arasındaki en yüksek streak'i al)
+  const ritualOwner = await pool.query(
+    'SELECT user_id FROM rituals WHERE id = $1',
+    [ritualId]
+  );
+  
+  if (ritualOwner.rows.length > 0) {
+    const ownerId = ritualOwner.rows[0].user_id;
+    
+    // Kullanıcının tüm ritüellerindeki en yüksek current_streak'i bul
+    const maxStreakResult = await pool.query(
+      'SELECT COALESCE(MAX(current_streak), 0) as max_streak FROM rituals WHERE user_id = $1',
+      [ownerId]
+    );
+    const maxCurrentStreak = parseInt(maxStreakResult.rows[0].max_streak || '0');
+    
+    // user_profiles'daki longest_streak'i güncelle (sadece daha yüksekse)
+    await pool.query(
+      `UPDATE user_profiles 
+       SET longest_streak = GREATEST(longest_streak, $1)
+       WHERE user_id = $2`,
+      [maxCurrentStreak, ownerId]
+    );
+    
+    console.log(`📊 User profile longest_streak updated to at least: ${maxCurrentStreak}`);
+  }
+
   console.log(`🔥 Personal ritual streak updated: ${newStreak} (Longest: ${newLongest})`);
 }
 
