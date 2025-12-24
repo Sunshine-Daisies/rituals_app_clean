@@ -260,7 +260,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Create Manually',
                             style: TextStyle(
                               color: AppTheme.getTextPrimary(context),
@@ -279,7 +279,7 @@ class _RitualsListScreenState extends ConsumerState<RitualsListScreen> {
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios,
                       color: AppTheme.getTextSecondary(context),
                       size: 16,

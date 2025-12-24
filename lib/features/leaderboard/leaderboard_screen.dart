@@ -678,7 +678,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Text(
+                Text(
                   'Wants to join your circle',
                   style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 11),
                 ),
