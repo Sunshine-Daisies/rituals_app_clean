@@ -53,6 +53,19 @@ export const cacheService = {
         }
     },
 
+    async delByPattern(pattern: string): Promise<void> {
+        if (!isConnected) return;
+        try {
+            const keys = await client.keys(pattern);
+            if (keys.length > 0) {
+                await client.del(keys);
+                console.log(`Deleted ${keys.length} keys matching pattern: ${pattern}`);
+            }
+        } catch (err) {
+            console.error(`Redis DEL by pattern error for ${pattern}:`, err);
+        }
+    },
+
     /**
      * Try to acquire a lock. Returns true if lock was acquired, false if already locked.
      * @param key Lock key

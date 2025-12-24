@@ -133,6 +133,7 @@ export const updateUsername = async (req: Request, res: Response) => {
     // Invalidate Cache
     await cacheService.del(`profile:${userId}`);
     await cacheService.del(`public_profile:${userId}`);
+    await cacheService.delByPattern('leaderboard:*');
 
     res.json(updated);
   } catch (error: any) {
@@ -188,6 +189,7 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     // Invalidate Cache
     await cacheService.del(`profile:${userId}`);
     await cacheService.del(`public_profile:${userId}`);
+    await cacheService.delByPattern('leaderboard:*');
 
     res.json({ avatar_url: avatarUrl });
 
@@ -222,6 +224,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     // Invalidate Cache
     await cacheService.del(`profile:${userId}`);
+    await cacheService.delByPattern('leaderboard:*');
 
     res.json({ message: 'Profile updated', name });
 
