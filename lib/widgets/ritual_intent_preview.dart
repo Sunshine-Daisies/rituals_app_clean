@@ -265,11 +265,16 @@ class _RitualIntentPreviewState extends State<RitualIntentPreview> {
                                 horizontal: 12,
                                 vertical: 8,
                               ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.surfaceColor,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(step),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.getCardColor(context),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  step,
+                                  style: TextStyle(
+                                    color: AppTheme.getTextPrimary(context),
+                                  ),
+                                ),
                             ),
                           ),
                           const SizedBox(width: 8),
