@@ -126,45 +126,91 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildConsistencyHeader() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final rate = _calculateLifetimeRate();
-
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Ritual Consistency",
-          style: TextStyle(
-            color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              rate,
+              "Ritual Consistency",
               style: TextStyle(
-                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+                fontSize: 13,
               ),
             ),
-            const SizedBox(width: 15),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Text(
+                  rate,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 15),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Your overall consistency across all rituals!",
+              style: TextStyle(
+                color: isDark ? Colors.white38 : AppTheme.lightTextSecondary,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          "Your overall consistency across all rituals!",
-          style: TextStyle(
-            color: isDark ? Colors.white38 : AppTheme.lightTextSecondary,
-            fontSize: 13,
-          ),
-        ),
+        _buildUserAvatar(),
       ],
     );
   }
+
+  Widget _buildUserAvatar() {
+    if (_profile == null) return const SizedBox();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final initials = (_profile!.username.isNotEmpty 
+            ? _profile!.username[0] 
+            : (_profile!.email.isNotEmpty ? _profile!.email[0] : '?'))
+        .toUpperCase();
+
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isDark ? Colors.cyan.withOpacity(0.5) : AppTheme.primaryColor.withOpacity(0.5),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? Colors.cyan : AppTheme.primaryColor).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: CircleAvatar(
+        radius: 24,
+        backgroundColor: isDark ? AppTheme.cardColor : Colors.white,
+        backgroundImage: _profile!.avatarUrl != null && _profile!.avatarUrl!.isNotEmpty
+            ? NetworkImage(_profile!.avatarUrl!)
+            : null,
+        child: _profile!.avatarUrl == null || _profile!.avatarUrl!.isEmpty
+            ? Text(
+                initials,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.cyan : AppTheme.primaryColor,
+                ),
+              )
+            : null,
+      ),
+    );
 
   Widget _buildLineChart() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
