@@ -10,10 +10,84 @@ export default function ApiDocs() {
 
   return (
     <Layout title="API Reference" description="Rituals App API Documentation">
-      <div className="container margin-vert--lg" style={{ maxWidth: '98%' }}>
-        <div className="row">
+      <style>{`
+        .api-container {
+          max-width: 98%;
+          margin: 0 auto;
+          padding: 1rem;
+        }
+        .api-row {
+          display: flex;
+          flex-direction: row;
+          gap: 1rem;
+        }
+        .api-sidebar {
+          flex: 0 0 200px;
+          min-width: 180px;
+        }
+        .api-main {
+          flex: 1;
+        }
+        .swagger-frame {
+          height: 88vh;
+          width: 100%;
+          border-radius: 10px;
+          overflow: hidden;
+          border: 1px solid var(--ifm-color-emphasis-200);
+          background: white;
+        }
+        .swagger-frame iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+        
+        /* Mobile responsive */
+        @media screen and (max-width: 996px) {
+          .api-sidebar {
+            flex: 0 0 160px;
+            min-width: 140px;
+          }
+          .swagger-frame {
+            height: 75vh;
+          }
+        }
+        
+        @media screen and (max-width: 768px) {
+          .api-row {
+            flex-direction: column;
+          }
+          .api-sidebar {
+            flex: 1;
+            width: 100%;
+            min-width: unset;
+          }
+          .swagger-frame {
+            height: 70vh;
+          }
+        }
+        
+        @media screen and (max-width: 576px) {
+          .api-container {
+            padding: 0.5rem;
+          }
+          .swagger-frame {
+            height: 60vh;
+            border-radius: 8px;
+          }
+          .card__body {
+            padding: 0.75rem !important;
+          }
+          .card__body p {
+            margin-bottom: 0.5rem !important;
+          }
+        }
+      `}</style>
+
+      <div className="api-container margin-vert--lg">
+        <div className="api-row">
           {/* Sol Taraf: Bilgilendirme */}
-          <div className="col col--2">
+          <div className="api-sidebar">
             <div className="card shadow--md">
               <div className="card__header">
                 <h3>🔑 Quick Start</h3>
@@ -60,18 +134,10 @@ export default function ApiDocs() {
           </div>
 
           {/* Sağ Taraf: Swagger Iframe */}
-          <div className="col col--10">
-            <div style={{
-              height: '88vh',
-              width: '100%',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              border: '1px solid var(--ifm-color-emphasis-200)',
-              background: 'white' // Swagger is usually light theme
-            }}>
+          <div className="api-main">
+            <div className="swagger-frame">
               <iframe
                 src={SWAGGER_URL}
-                style={{ width: '100%', height: '100%', border: 'none' }}
                 title="Swagger UI"
               />
             </div>
@@ -81,3 +147,4 @@ export default function ApiDocs() {
     </Layout>
   );
 }
+

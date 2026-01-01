@@ -84,7 +84,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
+                    color: AppTheme.getSurfaceColor(context),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(30),
                     ),
@@ -114,22 +114,22 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              color: AppTheme.errorColor.withOpacity(0.8),
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage ?? 'Profile not found',
-              style: TextStyle(color: AppTheme.textPrimary.withOpacity(0.7)),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadProfile,
-              child: const Text('Try Again'),
-            ),
+              Icon(
+                Icons.error_outline,
+                color: AppTheme.errorColor.withOpacity(0.8),
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage ?? 'Profile not found',
+                style: TextStyle(color: AppTheme.getTextPrimary(context).withOpacity(0.7)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadProfile,
+                child: const Text('Try Again'),
+              ),
           ],
         ),
       );
@@ -164,22 +164,22 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppTheme.getSurfaceColor(context).withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
-              color: Colors.white,
+              color: AppTheme.getIconColor(context),
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
+          Text(
             'User Profile',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppTheme.getTextPrimary(context),
             ),
           ),
         ],
@@ -410,7 +410,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppTheme.cardColor,
+          color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Column(
@@ -418,12 +418,12 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
             Icon(
               Icons.emoji_events_outlined,
               size: 48,
-              color: AppTheme.textSecondary.withOpacity(0.5),
+              color: AppTheme.getTextSecondary(context).withOpacity(0.5),
             ),
             const SizedBox(height: 12),
             Text(
               'No badges earned yet',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.getTextSecondary(context)),
             ),
           ],
         ),
@@ -433,7 +433,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -445,10 +445,10 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
               const SizedBox(width: 8),
               Text(
                 'Badges (${badges.length})',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppTheme.getTextPrimary(context),
                 ),
               ),
             ],
@@ -465,7 +465,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
+                    color: AppTheme.getSurfaceColor(context),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: Colors.amber.withOpacity(0.5),
@@ -502,7 +502,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary.withOpacity(0.3),
+            color: AppTheme.getTextPrimary(context).withOpacity(0.3),
           ),
         ),
       ],
@@ -532,7 +532,7 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.cardColor,
+          color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(20),
           boxShadow: AppTheme.cardShadow,
         ),
@@ -549,16 +549,16 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppTheme.getTextSecondary(context)),
             ),
           ],
         ),

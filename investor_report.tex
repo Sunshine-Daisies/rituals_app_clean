@@ -86,7 +86,7 @@ The backend serves as the robust central nervous system of our platform, archite
 \subsection{AI \& Gamification Engine}
 Engagement is engineered into the core.
 \begin{itemize}[label=\textbullet, leftmargin=*]
-    \item \textbf{AI Integration}: Native integration with \textbf{OpenAI} enables personalized coaching, dynamic content generation, and smart recommendations.
+    \item \textbf{AI Integration}: Native integration with \textbf{OpenAI} enables interactive coaching, dynamic content generation, and smart recommendations.
     \item \textbf{Gamification Layer}: A dedicated service handles badges, streaks, and leaderboards, leveraging efficient data structures to drive user retention.
 \end{itemize}
 
@@ -138,7 +138,8 @@ The specific architectural pattern chosen for Rituals App is the \textbf{Clean L
     \item \textbf{API Gateway \& Logic (Express.js)}: The backend acts as a secure gateway. It validates every incoming request, sanitizes inputs, and orchestrates complex business logic before interacting with the database, keeping the client application "thin" and secure.
     \item \textbf{Infrastructure Components}:
     \begin{itemize}
-        \item \textbf{Authentication}: We utilize \textit{Firebase Auth} combined with custom \textit{JWT (JSON Web Tokens)} to manage secure, stateless user sessions across devices.
+        \item \textbf{Authentication}: We utilize a custom \textit{Node.js + JWT} architecture to manage secure, stateless user sessions, ensuring data sovereignty and flexibility.
+        \item \textbf{Notifications}: \textit{Firebase Cloud Messaging (FCM)} is integrated strictly for high-reliability push notifications across iOS and Android.
         \item \textbf{Documentation}: An automated documentation hub, powered by \textit{Docusaurus}, ensures that technical knowledge is never lost and onboarding new developers is effortless.
     \end{itemize}
 \end{enumerate}
@@ -151,6 +152,7 @@ The current architecture is specifically designed to support rapid expansion int
     \item \textbf{B2B Modules}: Secure multi-tenancy for corporate wellness programs.
     \item \textbf{Context-Aware AI}: Advancing the Coach agent to ingest real-time streak and mood data for hyper-personalized advice.
     \item \textbf{Performance Optimization}: Planned implementation of composite B-Tree indexes and LLM caching to support 100k+ users.
+    \item \textbf{Offline Mode}: Full offline-first synchronization layer (SQLite/Drift) for low-connectivity environments.
 \end{itemize}
 
 % New Section: Data Architecture (Expands technical depth)
@@ -170,7 +172,7 @@ The backbone of the application relies on a normalized relational schema hosted 
 
 % New Section: AI & LLM Strategy (Adds innovation context)
 \section{AI \& LLM Integration Strategy}
-Rituals App goes beyond static logic by embedding a context-aware AI engine directly into the user loop.
+Rituals App goes beyond static logic by embedding a persona-driven AI engine directly into the user loop.
 
 \begin{enumerate}
     \item \textbf{Persona-Driven Coaching}: The \textit{"Coach"} leverages a dedicated system prompt optimized to act as an empathetic, non-judgmental habit guide.
@@ -189,7 +191,6 @@ The Flutter client is engineered for long-term scalability using a \textbf{Featu
 \begin{itemize}[label=\textbullet, leftmargin=*]
     \item \textbf{Modular Structure}: The codebase is split into 19+ distinct feature modules (e.g., \texttt{/auth}, \texttt{/gamification}, \texttt{/analytics}), preventing spaghetti code and enabling parallel development by multiple teams.
     \item \textbf{State Management}: We use \textbf{Riverpod 2.0} for compile-time safe dependency injection and state management, ensuring that UI components are purely reactive and easily testable.
-    \item \textbf{Offline Capability}: A local \textit{SQLite} drift layer synchronizes with the backend, allowing users to track habits even without internet connectivity.
 \end{itemize}
 
 \section{Documentation \& References}
