@@ -402,6 +402,11 @@ export const checkBadges = async (req: Request, res: Response) => {
 
     const result = await badgeService.checkAndAwardBadges(userId);
 
+    // Invalidate Cache if new badges earned
+    if (result.newBadges.length > 0) {
+      await cacheService.del(`profile:${userId}`);
+    }
+
     res.json({
       success: true,
       newBadges: result.newBadges,
@@ -447,6 +452,9 @@ export const useFreeze = async (req: Request, res: Response) => {
     if (!result.success) {
       return res.status(400).json({ error: result.message });
     }
+
+    // Invalidate Cache
+    await cacheService.del(`profile:${userId}`);
 
     res.json(result);
   } catch (error) {
@@ -506,6 +514,9 @@ export const buyFreeze = async (req: Request, res: Response) => {
     );
 
     await client.query('COMMIT');
+
+    // Invalidate Cache
+    await cacheService.del(`profile:${userId}`);
 
     res.json({
       success: true,
@@ -699,6 +710,9 @@ export const buyCoins = async (req: Request, res: Response) => {
       'SELECT coins FROM user_profiles WHERE user_id = $1',
       [userId]
     );
+
+    // Invalidate Cache
+    await cacheService.del(`profile:${userId}`);
 
     res.json({
       success: true,
