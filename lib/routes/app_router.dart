@@ -185,6 +185,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/premium',
         pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
           child: const PremiumScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
@@ -193,7 +194,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
         routes: [
            GoRoute(
             path: 'edit-profile',
@@ -205,6 +205,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
         pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
           child: const SettingsScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(

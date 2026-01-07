@@ -347,8 +347,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch theme provider to rebuild on theme changes
-    ref.watch(themeModeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_isLoading && _profile == null) {
