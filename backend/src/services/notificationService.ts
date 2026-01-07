@@ -343,14 +343,14 @@ export const saveNotificationToDb = async (
   userId: string,
   type: string,
   title: string,
-  message: string,
+  body: string,
   data?: Record<string, any>
 ): Promise<void> => {
   try {
     await pool.query(
-      `INSERT INTO notifications (user_id, type, title, message, data, is_read, created_at)
+      `INSERT INTO notifications (user_id, type, title, body, data, is_read, created_at)
        VALUES ($1, $2, $3, $4, $5, false, NOW())`,
-      [userId, type, title, message, data ? JSON.stringify(data) : null]
+      [userId, type, title, body, data ? JSON.stringify(data) : null]
     );
   } catch (error) {
     console.error('Error saving notification to DB:', error);

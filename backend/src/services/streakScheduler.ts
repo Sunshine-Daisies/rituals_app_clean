@@ -1,6 +1,7 @@
 import pool from '../config/db';
 import { checkStreakBreak } from './badgeService';
 import { cacheService } from './cacheService';
+import { sendAndSaveNotification } from './notificationService';
 
 /**
  * Her ritüel için belirlenen saatten sonra streak kontrolü yap
@@ -380,19 +381,20 @@ async function checkPartnershipStreakBreak(
     // Freeze varsa uyarı, yoksa streak kır
     if (freezeCount > 0 && currentStreak > 0) {
       // Her iki partnera da uyarı bildirimi gönder (birinin freeze kullanması yeterli)
-      await client.query(
-        `INSERT INTO notifications (user_id, type, title, body, data) 
-         VALUES 
-         ($1, $2, $3, $4, $5),
-         ($6, $2, $3, $4, $5)`,
-        [
-          userId1,
-          'partnership_streak_warning',
-          'Partnership Streak in Danger! ⚠️',
-          `Your ${currentStreak}-day partnership streak is about to break. One of you needs to use a freeze (${freezeCount} freeze rights remaining).`,
-          JSON.stringify({ partnership_id: partnershipId, streak: currentStreak, freezes_available: freezeCount }),
-          userId2
-        ]
+      await sendAndSaveNotification(
+        userId1,
+        'partnership_streak_warning',
+        'Partnership Streak in Danger! ⚠️',
+        `Your ${currentStreak}-day partnership streak is about to break. One of you needs to use a freeze (${freezeCount} freeze rights remaining).`,
+        { partnership_id: partnershipId.toString(), streak: currentStreak.toString(), freezes_available: freezeCount.toString() }
+      );
+
+      await sendAndSaveNotification(
+        userId2,
+        'partnership_streak_warning',
+        'Partnership Streak in Danger! ⚠️',
+        `Your ${currentStreak}-day partnership streak is about to break. One of you needs to use a freeze (${freezeCount} freeze rights remaining).`,
+        { partnership_id: partnershipId.toString(), streak: currentStreak.toString(), freezes_available: freezeCount.toString() }
       );
 
       await client.query('COMMIT');
@@ -406,19 +408,20 @@ async function checkPartnershipStreakBreak(
         [partnershipId]
       );
 
-      await client.query(
-        `INSERT INTO notifications (user_id, type, title, body, data) 
-         VALUES 
-         ($1, $2, $3, $4, $5),
-         ($6, $2, $3, $4, $5)`,
-        [
-          userId1,
-          'partnership_streak_broken',
-          'Partnership Streak Broken 💔',
-          `Your ${currentStreak}-day partnership streak has ended.`,
-          JSON.stringify({ partnership_id: partnershipId, old_streak: currentStreak }),
-          userId2
-        ]
+      await sendAndSaveNotification(
+        userId1,
+        'partnership_streak_broken',
+        'Partnership Streak Broken 💔',
+        `Your ${currentStreak}-day partnership streak has ended.`,
+        { partnership_id: partnershipId.toString(), old_streak: currentStreak.toString() }
+      );
+
+      await sendAndSaveNotification(
+        userId2,
+        'partnership_streak_broken',
+        'Partnership Streak Broken 💔',
+        `Your ${currentStreak}-day partnership streak has ended.`,
+        { partnership_id: partnershipId.toString(), old_streak: currentStreak.toString() }
       );
     }
 

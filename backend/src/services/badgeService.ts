@@ -1,5 +1,6 @@
 import pool from '../config/db';
 import { addXp } from './xpService';
+import { sendAndSaveNotification } from './notificationService';
 
 // Zen Temalı Badge tanımları ve şartları
 export const BADGE_CONDITIONS = {
@@ -195,16 +196,12 @@ export async function checkAndAwardBadges(userId: string): Promise<{
         }
 
         // Bildirim oluştur
-        await client.query(
-          `INSERT INTO notifications (user_id, type, title, body, data) 
-           VALUES ($1, $2, $3, $4, $5)`,
-          [
-            userId,
-            'badge_earned',
-            'New Badge Earned! 🏆',
-            `${badge.icon} You earned the ${badge.name} badge! +${rewards.xp} XP ${rewards.coins > 0 ? `+${rewards.coins} Coins` : ''}`,
-            JSON.stringify({ badge_id: badge.id, badge_code: badge.badge_key, xp: rewards.xp, coins: rewards.coins }),
-          ]
+        await sendAndSaveNotification(
+          userId,
+          'badge_earned',
+          'New Badge Earned! 🏆',
+          `${badge.icon} You earned the ${badge.name} badge! +${rewards.xp} XP ${rewards.coins > 0 ? `+${rewards.coins} Coins` : ''}`,
+          { badge_id: badge.id.toString(), badge_code: badge.badge_key, xp: rewards.xp.toString(), coins: rewards.coins.toString() }
         );
 
         newBadges.push({
@@ -333,16 +330,12 @@ export async function useFreeze(userId: string, partnershipId?: number): Promise
     );
 
     // Bildirim
-    await client.query(
-      `INSERT INTO notifications (user_id, type, title, body, data) 
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        userId,
-        'freeze_used',
-        'Freeze Used ❄️',
-        'Streak successfully preserved!',
-        JSON.stringify({ freezes_remaining: freeze_count - 1 })
-      ]
+    await sendAndSaveNotification(
+      userId,
+      'freeze_used',
+      'Freeze Used ❄️',
+      'Streak successfully preserved!',
+      { freezes_remaining: (freeze_count - 1).toString() }
     );
 
     await client.query('COMMIT');
@@ -379,16 +372,12 @@ export async function grantWeeklyFreeze(): Promise<{ usersUpdated: number }> {
 
   // Her kullanıcıya bildirim gönder
   for (const row of result.rows) {
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, data) 
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        row.user_id,
-        'freeze_granted',
-        'Weekly Freeze Granted! ❄️',
-        'You earned +1 freeze for this week!',
-        JSON.stringify({ source: 'weekly' }),
-      ]
+    await sendAndSaveNotification(
+      row.user_id,
+      'freeze_granted',
+      'Weekly Freeze Granted! ❄️',
+      'You earned +1 freeze for this week!',
+      { source: 'weekly' }
     );
   }
 
@@ -444,16 +433,12 @@ export async function checkStreakBreak(userId: string): Promise<{
     if (current_streak > 0) {
       // Freeze varsa kullanıcıya hatırlat
       if (freeze_count > 0) {
-        await client.query(
-          `INSERT INTO notifications (user_id, type, title, body, data) 
-           VALUES ($1, $2, $3, $4, $5)`,
-          [
-            userId,
-            'streak_warning',
-            'Streak in Danger! ⚠️',
-            `Your ${current_streak}-day streak is about to break. You have ${freeze_count} freeze(s), would you like to use one?`,
-            JSON.stringify({ streak: current_streak, freezes_available: freeze_count }),
-          ]
+        await sendAndSaveNotification(
+          userId,
+          'streak_warning',
+          'Streak in Danger! ⚠️',
+          `Your ${current_streak}-day streak is about to break. You have ${freeze_count} freeze(s), would you like to use one?`,
+          { streak: current_streak.toString(), freezes_available: freeze_count.toString() }
         );
       } else {
         // Freeze yoksa streak kırıldı bildirimi
@@ -462,16 +447,12 @@ export async function checkStreakBreak(userId: string): Promise<{
           [userId]
         );
 
-        await client.query(
-          `INSERT INTO notifications (user_id, type, title, body, data) 
-           VALUES ($1, $2, $3, $4, $5)`,
-          [
-            userId,
-            'streak_broken',
-            'Streak Broken 💔',
-            `Your ${current_streak}-day streak has ended. Start fresh!`,
-            JSON.stringify({ old_streak: current_streak }),
-          ]
+        await sendAndSaveNotification(
+          userId,
+          'streak_broken',
+          'Streak Broken 💔',
+          `Your ${current_streak}-day streak has ended. Start fresh!`,
+          { old_streak: current_streak.toString() }
         );
       }
     }

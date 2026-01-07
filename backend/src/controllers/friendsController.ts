@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import pool from '../config/db';
 import xpService from '../services/xpService';
 import { cacheService } from '../services/cacheService';
+import { sendAndSaveNotification } from '../services/notificationService';
 
 // ============================================
 // FRIENDSHIP ENDPOINTS
@@ -140,16 +141,13 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
       [userId]
     );
 
-    await pool.query(`
-      INSERT INTO notifications (user_id, type, title, body, data)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [
+    await sendAndSaveNotification(
       addresseeId,
       'friend_request',
       'Friend Request 👋',
       `${senderProfile.rows[0]?.username || 'Someone'} wants to be friends with you`,
-      JSON.stringify({ friendshipId: result.rows[0].id, fromUserId: userId }),
-    ]);
+      { friendshipId: result.rows[0].id.toString(), fromUserId: userId }
+    );
 
     res.status(201).json({
       success: true,
@@ -202,16 +200,13 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
       [userId]
     );
 
-    await client.query(`
-      INSERT INTO notifications (user_id, type, title, body, data)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [
+    await sendAndSaveNotification(
       friendship.requester_id,
       'friend_accepted',
       'Friendship Established 🤝',
       `${accepterProfile.rows[0]?.username || 'Someone'} accepted your friend request`,
-      JSON.stringify({ friendshipId: id, userId: userId }),
-    ]);
+      { friendshipId: id.toString(), userId: userId }
+    );
 
     await client.query('COMMIT');
 

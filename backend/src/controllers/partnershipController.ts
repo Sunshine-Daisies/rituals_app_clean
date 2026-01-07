@@ -4,6 +4,7 @@ import { addXp } from '../services/xpService';
 import { cacheService } from '../services/cacheService';
 import { schedulePartnershipStreakCheck, cancelPartnershipStreakCheck, scheduleRitualStreakCheck, cancelRitualStreakCheck } from '../services/streakScheduler';
 import { PartnershipService } from '../services/partnershipService';
+import { sendAndSaveNotification } from '../services/notificationService';
 
 // XP Rewards
 const XP_REWARDS = {
@@ -110,19 +111,17 @@ export const joinWithCode = async (req: Request, res: Response) => {
     );
     const joinerUsername = joinerProfile.rows[0]?.username || 'Bir kullanıcı';
 
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partnership_request', 'Partner Request 🤝', $2, $3)`,
-      [
-        result.invite.user_id,
-        `${joinerUsername} wants to partner up for "${result.invite.ritual_name}"`,
-        JSON.stringify({
-          request_id: result.request.id,
-          requester_id: userId,
-          requester_ritual_id: result.finalPartnerRitualId,
-          ritual_name: result.invite.ritual_name
-        }),
-      ]
+    await sendAndSaveNotification(
+      result.invite.user_id,
+      'partnership_request',
+      'Partner Request 🤝',
+      `${joinerUsername} wants to partner up for "${result.invite.ritual_name}"`,
+      {
+        request_id: result.request.id.toString(),
+        requester_id: userId,
+        requester_ritual_id: result.finalPartnerRitualId,
+        ritual_name: result.invite.ritual_name
+      }
     );
 
     res.status(201).json({
@@ -233,14 +232,12 @@ export const acceptRequest = async (req: Request, res: Response) => {
     );
     const ownerUsername = ownerProfile.rows[0]?.username || 'Partner';
 
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partnership_accepted', 'Partnership Formed! 🎉', $2, $3)`,
-      [
-        req_data.invitee_user_id,
-        `You have partnered with ${ownerUsername} for "${req_data.ritual_name}"!`,
-        JSON.stringify({ partnership_id: partnership.rows[0].id }),
-      ]
+    await sendAndSaveNotification(
+      req_data.invitee_user_id,
+      'partnership_accepted',
+      'Partnership Formed! 🎉',
+      `You have partnered with ${ownerUsername} for "${req_data.ritual_name}"!`,
+      { partnership_id: partnership.rows[0].id.toString() }
     );
 
     // Cancel solo streak checks for both rituals (they're now partnership rituals)
@@ -533,14 +530,12 @@ export const leavePartnership = async (req: Request, res: Response) => {
     const otherUserId = p.user_id_1 === userId ? p.user_id_2 : p.user_id_1;
     const leaverUsername = p.user_id_1 === userId ? p.username_1 : p.username_2;
 
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, data)
-       VALUES ($1, 'partnership_ended', 'Partnership Ended 👋', $2, $3)`,
-      [
-        otherUserId,
-        `${leaverUsername} left the partnership for "${p.ritual_name}". You can continue your ritual personally!`,
-        JSON.stringify({ partnership_id: partnershipId }),
-      ]
+    await sendAndSaveNotification(
+      otherUserId,
+      'partnership_ended',
+      'Partnership Ended 👋',
+      `${leaverUsername} left the partnership for "${p.ritual_name}". You can continue your ritual personally!`,
+      { partnership_id: partnershipId }
     );
 
     // Invalidate cache for both users
@@ -745,18 +740,20 @@ export const usePartnershipFreeze = async (req: Request, res: Response) => {
     );
     const username = userProfile.rows[0]?.username || 'Partnerin';
 
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, data) 
-       VALUES 
-       ($1, 'partnership_freeze_used', 'Freeze Used! ❄️', $2, $3),
-       ($4, 'partnership_freeze_used', 'Freeze Used! ❄️', $5, $3)`,
-      [
-        userId,
-        `You preserved your ${p.current_streak} day partnership streak!`,
-        JSON.stringify({ partnership_id: partnershipId, streak: p.current_streak }),
-        otherUserId,
-        `${username} used a freeze and your ${p.current_streak} day streak was preserved!`,
-      ]
+    await sendAndSaveNotification(
+      userId,
+      'partnership_freeze_used',
+      'Freeze Used! ❄️',
+      `You preserved your ${p.current_streak} day partnership streak!`,
+      { partnership_id: partnershipId, streak: p.current_streak.toString() }
+    );
+
+    await sendAndSaveNotification(
+      otherUserId,
+      'partnership_freeze_used',
+      'Freeze Used! ❄️',
+      `${username} used a freeze and your ${p.current_streak} day streak was preserved!`,
+      { partnership_id: partnershipId, streak: p.current_streak.toString() }
     );
 
     res.json({
