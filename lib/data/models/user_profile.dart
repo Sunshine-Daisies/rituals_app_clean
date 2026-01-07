@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../config/app_config.dart';
 
 class Badge extends Equatable {
   final int id;
@@ -148,11 +149,36 @@ class UserProfile extends Equatable {
   }
 
   static String? _sanitizeUrl(String? url) {
-    if (url == null) return null;
-    // Remove /public prefix if present as it's redundant in many production setups
+    if (url == null || url.isEmpty) return null;
+
+    // Handle relative paths
+    if (url.startsWith('/uploads/')) {
+      final baseUrl = appConfig.apiBaseUrl.replaceAll('/api', '');
+      return '$baseUrl$url';
+    }
+    
+    if (url.startsWith('/public/uploads/')) {
+      final baseUrl = appConfig.apiBaseUrl.replaceAll('/api', '');
+      return '$baseUrl${url.replaceFirst('/public', '')}';
+    }
+
+    // Handle localhost/wrong host in DB
+    if (url.contains('localhost') || url.contains('127.0.0.1') || url.contains('10.0.2.2')) {
+      final baseUrl = appConfig.apiBaseUrl.replaceAll('/api', '');
+      // Extract path after the host
+      final uri = Uri.tryParse(url);
+      if (uri != null) {
+        String path = uri.path;
+        if (path.startsWith('/public/')) path = path.replaceFirst('/public', '');
+        return '$baseUrl$path';
+      }
+    }
+
+    // Standard public/uploads cleaning
     if (url.contains('/public/uploads/')) {
       return url.replaceFirst('/public/uploads/', '/uploads/');
     }
+
     return url;
   }
 

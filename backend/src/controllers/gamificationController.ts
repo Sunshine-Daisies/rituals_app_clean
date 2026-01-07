@@ -176,8 +176,9 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     fs.writeFileSync(filePath, buffer);
 
     // URL oluştur (Public klasörü statik servis edilmeli)
-    // PROD URL veya Local URL. Environment variable'dan almak en iyisi.
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const baseUrl = process.env.BACKEND_URL || `${protocol}://${host}`;
     const avatarUrl = `${baseUrl}/public/uploads/${fileName}`;
 
     // DB güncelle
