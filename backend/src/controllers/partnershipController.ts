@@ -119,7 +119,7 @@ export const joinWithCode = async (req: Request, res: Response) => {
       {
         request_id: result.request.id.toString(),
         requester_id: userId,
-        requester_ritual_id: result.finalPartnerRitualId,
+        requester_ritual_id: result.finalPartnerRitualId?.toString() || '',
         ritual_name: result.invite.ritual_name
       }
     );
