@@ -15,6 +15,20 @@ export const chat = async (req: AuthRequest, res: Response) => {
         res.json({ response });
     } catch (error: any) {
         console.error('LlmController Chat Error:', error);
+
+        if (error.message.startsWith('COOLDOWN:')) {
+            const seconds = error.message.split(':')[1];
+            return res.status(429).json({ error: `Please wait ${seconds} seconds between messages. ⏳` });
+        }
+
+        if (error.message === 'RATE_LIMIT_REACHED') {
+            return res.status(429).json({ error: 'Free tier limit reached. Please wait a minute or upgrade to Premium! ✨' });
+        }
+
+        if (error.status === 401 || error.status === 402) {
+            return res.status(error.status).json({ error: 'AI Service currently unavailable (Invalid Key or Out of Credits). 💳' });
+        }
+
         res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
 };
@@ -32,6 +46,11 @@ export const inferIntent = async (req: AuthRequest, res: Response) => {
         res.json(intentData);
     } catch (error: any) {
         console.error('LlmController Intent Error:', error);
+
+        if (error.message.startsWith('COOLDOWN:') || error.message === 'RATE_LIMIT_REACHED') {
+            return res.status(429).json({ error: 'Rate limit. Please wait a moment.' });
+        }
+
         res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
 };

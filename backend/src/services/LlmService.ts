@@ -18,7 +18,7 @@ export class LlmService {
     private static openai: OpenAI;
 
     // Model configurations
-    private static readonly CHAT_MODEL = 'gpt-4o';
+    private static readonly CHAT_MODEL = 'gpt-4o-mini';
     private static readonly INTENT_MODEL = 'gpt-4o-mini';
 
     private static initialize() {
@@ -114,12 +114,12 @@ export class LlmService {
 
         // Cooldown check
         if (now - userLimit.lastRequest < COOLDOWN_MS) {
-            throw new Error(`Please wait ${Math.ceil((COOLDOWN_MS - (now - userLimit.lastRequest)) / 1000)} seconds.`);
+            throw new Error(`COOLDOWN:${Math.ceil((COOLDOWN_MS - (now - userLimit.lastRequest)) / 1000)}`);
         }
 
         // Max requests check
         if (userLimit.count >= MAX_REQUESTS_PER_WINDOW) {
-            throw new Error('Free tier limit reached. Please wait or upgrade to Premium! ✨');
+            throw new Error('RATE_LIMIT_REACHED');
         }
 
         // Update limit
