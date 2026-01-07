@@ -1,4 +1,5 @@
 import pool from '../config/db';
+import { cacheService } from './cacheService';
 
 // Level tanımları
 export const LEVELS = [
@@ -142,6 +143,11 @@ export async function addXp(
     }
 
     await client.query('COMMIT');
+
+    // Invalidate cache
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+    await cacheService.delByPattern('leaderboard:*');
 
     return {
       newXp,

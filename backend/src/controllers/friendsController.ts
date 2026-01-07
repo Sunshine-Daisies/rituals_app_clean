@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import xpService from '../services/xpService';
+import { cacheService } from '../services/cacheService';
 
 // ============================================
 // FRIENDSHIP ENDPOINTS
@@ -214,6 +215,12 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
 
     await client.query('COMMIT');
 
+    // Invalidate cache for both users
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+    await cacheService.del(`profile:${friendship.requester_id}`);
+    await cacheService.del(`public_profile:${friendship.requester_id}`);
+
     res.json({
       success: true,
       message: 'Friend request accepted',
@@ -269,6 +276,14 @@ export const removeFriend = async (req: Request, res: Response) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Friendship not found' });
     }
+
+    // Invalidate cache for both users
+    const friendship = result.rows[0];
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+    const otherUserId = friendship.requester_id === userId ? friendship.addressee_id : friendship.requester_id;
+    await cacheService.del(`profile:${otherUserId}`);
+    await cacheService.del(`public_profile:${otherUserId}`);
 
     res.json({
       success: true,

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import { addXp } from '../services/xpService';
+import { cacheService } from '../services/cacheService';
 import { schedulePartnershipStreakCheck, cancelPartnershipStreakCheck, scheduleRitualStreakCheck, cancelRitualStreakCheck } from '../services/streakScheduler';
 import { PartnershipService } from '../services/partnershipService';
 
@@ -269,6 +270,12 @@ export const acceptRequest = async (req: Request, res: Response) => {
       });
     }
 
+    // Invalidate cache for both users
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+    await cacheService.del(`profile:${req_data.invitee_user_id}`);
+    await cacheService.del(`public_profile:${req_data.invitee_user_id}`);
+
     res.json({
       message: 'Partner request accepted!',
       partnershipId: partnership.rows[0].id,
@@ -535,6 +542,12 @@ export const leavePartnership = async (req: Request, res: Response) => {
         JSON.stringify({ partnership_id: partnershipId }),
       ]
     );
+
+    // Invalidate cache for both users
+    await cacheService.del(`profile:${userId}`);
+    await cacheService.del(`public_profile:${userId}`);
+    await cacheService.del(`profile:${otherUserId}`);
+    await cacheService.del(`public_profile:${otherUserId}`);
 
     res.json({
       message: 'You have left the partnership. Your ritual continues personally.',
