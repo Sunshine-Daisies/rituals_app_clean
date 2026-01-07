@@ -60,7 +60,7 @@ class NotificationService {
       // Token refresh listener
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         _fcmToken = newToken;
-        _sendTokenToBackend(newToken);
+        updateTokenToServer(token: newToken);
       });
 
       // Foreground message handler
@@ -139,7 +139,7 @@ class NotificationService {
       print('🔑 FCM Token: $_fcmToken');
       
       if (_fcmToken != null) {
-        await _sendTokenToBackend(_fcmToken!);
+        await updateTokenToServer(token: _fcmToken!);
       }
     } catch (e) {
       print('❌ Error getting FCM token: $e');
@@ -147,8 +147,13 @@ class NotificationService {
   }
 
   // Send FCM token to backend
-  Future<void> _sendTokenToBackend(String token) async {
+  Future<void> updateTokenToServer({String? token}) async {
     try {
+      final finalToken = token ?? await _firebaseMessaging.getToken();
+      if (finalToken == null) return;
+      
+      _fcmToken = finalToken;
+
       final prefs = await SharedPreferences.getInstance();
       final authToken = prefs.getString('auth_token');
       
@@ -159,7 +164,7 @@ class NotificationService {
 
       final response = await ApiService.post(
         '/notifications/fcm-token',
-        {'fcm_token': token},
+        {'fcm_token': finalToken},
         authToken: authToken,
       );
 

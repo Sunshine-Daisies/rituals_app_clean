@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
+import 'notification_service.dart';
 
 class AuthService {
   static const String _tokenKey = 'auth_token';
@@ -47,6 +48,9 @@ class AuthService {
           if (user['email'] != null) await prefs.setString(_emailKey, user['email']);
           await prefs.setBool(_premiumKey, user['isPremium'] ?? false);
         }
+        
+        // Update FCM token after login
+        await NotificationService().updateTokenToServer();
       }
     } catch (e) {
       throw Exception('Login failed: $e');
