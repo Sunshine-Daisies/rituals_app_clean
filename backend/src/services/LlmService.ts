@@ -11,8 +11,8 @@ interface RateLimitData {
 }
 const rateLimits: Record<string, RateLimitData> = {};
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 20; // Increased from 10
-const COOLDOWN_MS = 500; // Reduced from 3000ms to allow intent+chat bursts
+const MAX_REQUESTS_PER_WINDOW = 20;
+// COOLDOWN_MS removed to allow parallel ritual mapping (intent + chat)
 
 export class LlmService {
     private static openai: OpenAI;
@@ -110,11 +110,6 @@ export class LlmService {
         // Reset window if passed
         if (now - userLimit.lastRequest > RATE_LIMIT_WINDOW_MS) {
             userLimit.count = 0;
-        }
-
-        // Cooldown check
-        if (now - userLimit.lastRequest < COOLDOWN_MS) {
-            throw new Error(`COOLDOWN:${Math.ceil((COOLDOWN_MS - (now - userLimit.lastRequest)) / 1000)}`);
         }
 
         // Max requests check

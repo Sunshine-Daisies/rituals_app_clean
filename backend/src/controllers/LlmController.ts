@@ -16,11 +16,6 @@ export const chat = async (req: AuthRequest, res: Response) => {
     } catch (error: any) {
         console.error('LlmController Chat Error:', error);
 
-        if (error.message.startsWith('COOLDOWN:')) {
-            const seconds = error.message.split(':')[1];
-            return res.status(429).json({ error: `Please wait ${seconds} seconds between messages. ⏳` });
-        }
-
         if (error.message === 'RATE_LIMIT_REACHED') {
             return res.status(429).json({ error: 'Free tier limit reached. Please wait a minute or upgrade to Premium! ✨' });
         }
@@ -47,8 +42,8 @@ export const inferIntent = async (req: AuthRequest, res: Response) => {
     } catch (error: any) {
         console.error('LlmController Intent Error:', error);
 
-        if (error.message.startsWith('COOLDOWN:') || error.message === 'RATE_LIMIT_REACHED') {
-            return res.status(429).json({ error: 'Rate limit. Please wait a moment.' });
+        if (error.message === 'RATE_LIMIT_REACHED') {
+            return res.status(429).json({ error: 'Rate limit reached.' });
         }
 
         res.status(500).json({ error: error.message || 'Internal Server Error' });
